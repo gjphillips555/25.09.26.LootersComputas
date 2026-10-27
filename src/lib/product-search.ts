@@ -8,6 +8,7 @@ export type ShopCategoryId =
   | "components"
   | "cables"
   | "gift-cards"
+  | "digital"
   | "batteries"
   | "ink"
   | "all";
@@ -19,6 +20,7 @@ export const SHOP_CATEGORIES: { id: ShopCategoryId; label: string }[] = [
   { id: "components", label: "Components" },
   { id: "cables", label: "Cables & Plugs" },
   { id: "gift-cards", label: "Gift cards" },
+  { id: "digital", label: "Digital" },
   { id: "batteries", label: "Batteries" },
   { id: "ink", label: "Ink" },
   { id: "all", label: "All products" },
@@ -31,6 +33,7 @@ export const SHOP_CATEGORY_PAGES = [
   "components",
   "cables",
   "gift-cards",
+  "digital",
   "batteries",
   "ink",
 ] as const;
@@ -53,6 +56,7 @@ export const TITLE_CATEGORY_CODES: {
   { id: "components", label: "Components", sample: "C0" },
   { id: "cables", label: "Cables & Plugs", sample: "C4" },
   { id: "gift-cards", label: "Gift cards", sample: "G1" },
+  { id: "digital", label: "Digital", sample: "D1" },
   { id: "batteries", label: "Batteries", sample: "B4" },
   { id: "ink", label: "Ink", sample: "I1" },
 ];
@@ -64,6 +68,7 @@ const TITLE_STAMP: Record<string, ShopCategoryPage> = {
   C0: "components",
   C4: "cables",
   G1: "gift-cards",
+  D1: "digital",
   B4: "batteries",
   I1: "ink",
 };
@@ -124,6 +129,7 @@ const MONITOR_ITEM = /\b(monitors?|computer displays?)\b/i;
 const NOT_A_MONITOR = /\b(graphics card|gpu|geforce|radeon|for (an )?extra monitor)\b/i;
 
 function inferKindFromTitle(title: string): ShopCategoryPage {
+  if (/\bdigital key\b/i.test(title)) return "digital";
   if (LAPTOP_PART.test(title)) return "components";
   if (LAPTOP_MACHINE.test(title)) return "laptops";
   if (DESKTOP_MACHINE.test(title)) return "desktops";
@@ -139,6 +145,7 @@ export function productKind(product: Product): ShopCategoryPage {
   const stamped = categoryFromTitleCode(product.title);
   if (stamped) return stamped;
   if (INK_ITEM.test(product.title)) return "ink";
+  if (/\bdigital key\b/i.test(product.title)) return "digital";
   if (BATTERY_ITEM.test(product.title)) return "batteries";
   if (/\bchargers?\b/i.test(product.title) && !/\bincludes chargers?\b/i.test(product.title)) {
     return "cables";
@@ -173,6 +180,7 @@ export function itemSort(title: string): string {
   if (/\b(charger|ac adapter)\b/i.test(title) && !/\bincludes charger\b/i.test(title)) return "charger";
   if (BATTERY_ITEM.test(title)) return "battery";
   if (INK_ITEM.test(title)) return "ink";
+  if (/\bdigital key\b/i.test(title)) return "digital-key";
   if (LAPTOP_MACHINE.test(title)) return "laptop";
   if (DESKTOP_MACHINE.test(title)) return "desktop";
   if (/\b(graphics card|geforce|radeon|\brtx\b|\bgtx\b|quadro|\barc\b)\b/i.test(title)) return "gpu";

@@ -133,6 +133,7 @@ test("monitors, cables and gift cards use their own stamps", () => {
   assert.equal(kind('Dell 24" Full HD Monitor | "M0"'), "monitors");
   assert.equal(kind("HDMI Cable 2m | \"C4\""), "cables");
   assert.equal(kind("Looters Computas Gift Card | \"G1\""), "gift-cards");
+  assert.equal(kind("Windows 11 Home digital key | \"D1\""), "digital");
   assert.equal(kind("Cat6 Ethernet Cable 2m"), "cables");
   assert.equal(kind("Dell 24 inch Monitor"), "monitors");
   assert.equal(

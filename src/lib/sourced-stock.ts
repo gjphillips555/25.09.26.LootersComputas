@@ -6,7 +6,7 @@ const SHIP: ShippingOption[] = [
   { id: "south", label: "South Island courier", price: 18 },
 ];
 
-type Kind = "batteries" | "ink" | "components" | "cables" | "monitors";
+type Kind = "batteries" | "ink" | "components" | "cables" | "monitors" | "digital";
 
 type Row = {
   id: string;
@@ -18,6 +18,8 @@ type Row = {
   fit: string;
   genuine?: boolean;
   shipping?: ShippingOption[];
+  /** Fixed shelf price. Digital keys use this so we keep the spread over the key site. */
+  shelf?: number;
 };
 
 const PHOTO = {
@@ -62,11 +64,18 @@ const PHOTO = {
   ryzen5600: "/artwork/sourced/ryzen-5600.jpg",
   kingstonFury: "/artwork/sourced/kingston-fury.jpg",
   msiB550: "/artwork/sourced/msi-b550.jpg",
+  winHome: "/artwork/sourced/digital-windows-home.svg",
+  winPro: "/artwork/sourced/digital-windows-pro.svg",
+  officeKey: "/artwork/sourced/digital-office.svg",
 } as const;
 
 const GPU_SHIP: ShippingOption[] = [
   { id: "north", label: "North Island courier", price: 18 },
   { id: "south", label: "South Island courier", price: 26 },
+];
+
+const EMAIL: ShippingOption[] = [
+  { id: "email", label: "Emailed after payment — no courier", price: 0 },
 ];
 
 const MON_SHIP: ShippingOption[] = [
@@ -146,6 +155,10 @@ const ROWS: Row[] = [
   { id: "src-9906", kind: "components", cost: 263.35, photo: "ryzen5600", brand: "AMD", fit: "AM4 CPU", title: "AMD Ryzen 5 5600 Processor" },
   { id: "src-9907", kind: "components", cost: 290, photo: "kingstonFury", brand: "Kingston", fit: "16GB DDR4 kit", title: "Kingston Fury Beast 16GB DDR4 RGB Memory" },
   { id: "src-9908", kind: "components", cost: 205.85, photo: "msiB550", brand: "MSI", fit: "AM4 motherboard", title: "MSI B550M PRO-VDH WIFI Motherboard" },
+
+  { id: "src-9301", kind: "digital", cost: 25, shelf: 49.95, photo: "winHome", brand: "Microsoft", fit: "1 PC", title: "Windows 11 Home digital key", shipping: EMAIL },
+  { id: "src-9302", kind: "digital", cost: 30, shelf: 64.95, photo: "winPro", brand: "Microsoft", fit: "1 PC", title: "Windows 11 Pro digital key", shipping: EMAIL },
+  { id: "src-9303", kind: "digital", cost: 40, shelf: 79.95, photo: "officeKey", brand: "Microsoft", fit: "Word, Excel and PowerPoint on 1 PC", title: "Office apps digital key — Word, Excel and PowerPoint", shipping: EMAIL },
 ];
 
 const PATH = {
@@ -179,6 +192,12 @@ const PATH = {
     name: "Monitors",
     stamp: "M0",
   },
+  digital: {
+    path: "/Computers/Software",
+    number: "0002-digital",
+    name: "Digital",
+    stamp: "D1",
+  },
 } as const;
 
 function toProduct(row: Row): Product {
@@ -186,14 +205,14 @@ function toProduct(row: Row): Product {
   // Batteries and chargers: NZ seller price did not include the courier to us.
   // Ink is a small mailer. GPUs are a small box from another island if the Wellington shop is out.
   // Cables, the monitor and the branded gear already include that freight in cost.
-  const inbound = row.id.startsWith("src-97") || row.id.startsWith("src-98") || row.id.startsWith("src-99")
+  const inbound = row.kind === "digital" || row.id.startsWith("src-97") || row.id.startsWith("src-98") || row.id.startsWith("src-99")
     ? 0
     : row.id.startsWith("src-95")
       ? 6
       : row.id.startsWith("src-96")
         ? 13
         : 12;
-  const amount = markedUp(row.cost + inbound);
+  const amount = row.shelf ?? markedUp(row.cost + inbound);
   const genuine = Boolean(row.genuine);
   return {
     id: row.id,
@@ -211,9 +230,11 @@ function toProduct(row: Row): Product {
     listingUrl: "",
     isNew: false,
     shipping: row.shipping ?? SHIP,
-    maxQty: row.kind === "ink" ? 12 : row.kind === "cables" ? 10 : row.kind === "monitors" ? 2 : 4,
+    maxQty: row.kind === "digital" ? 5 : row.kind === "ink" ? 12 : row.kind === "cables" ? 10 : row.kind === "monitors" ? 2 : 4,
     description:
-      row.kind === "components" && /graphics card/i.test(row.title)
+      row.kind === "digital"
+        ? `Digital key for ${row.fit}. We buy it in after you pay and email the key to the address on the order. This is a third-party digital licence, not a boxed Microsoft shop copy and not a Microsoft 365 subscription. The shelf price is what you pay us. If the key will not activate, you get a full refund.`
+        : row.kind === "components" && /graphics card/i.test(row.title)
         ? `New ${row.brand} card, bought in from a New Zealand shop when you order and posted from Wellington. ${row.id === "src-9601" ? "This is a basic display card for an extra screen or an old PC, not for modern games. " : ""}If that exact card has already sold there, you get a full refund before it ships.`
         : row.kind === "components"
           ? `New ${row.brand} ${row.fit}. Ordered in when you buy and posted from Wellington. If we cannot get this exact item, you get a full refund before it ships.`
@@ -227,7 +248,7 @@ function toProduct(row: Row): Product {
     attributes: [
       { name: "Brand", value: row.brand },
       { name: "Fits", value: row.fit },
-      { name: "Type", value: row.kind === "components" || row.kind === "monitors" || (row.kind === "cables" && !/charger/i.test(row.title)) ? "New" : genuine ? "Genuine" : "Compatible" },
+      { name: "Type", value: row.kind === "digital" ? "Digital key" : row.kind === "components" || row.kind === "monitors" || (row.kind === "cables" && !/charger/i.test(row.title)) ? "New" : genuine ? "Genuine" : "Compatible" },
     ],
     viewCount: null,
     soldOut: false,

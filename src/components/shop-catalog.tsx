@@ -53,6 +53,11 @@ export function ShopCatalog({
         <h1 className="font-display text-xl font-semibold">{label}</h1>
         <ShopSearch className="w-full sm:max-w-md" variant="plain" />
       </div>
+      {category === "digital" ? (
+        <p className="mb-3 max-w-2xl text-sm text-muted-foreground">
+          Emailed after you pay. Third-party digital licences, not a Microsoft shop box and not Microsoft 365. Full refund if the key will not activate.
+        </p>
+      ) : null}
       <RefineBar products={products} />
       <ProductGrid
         key={category}

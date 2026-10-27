@@ -38,6 +38,7 @@ export function ProductGrid({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = products.filter((p) => {
+      if (p.soldOut) return false;
       if (!unfiltered && !productInCategory(p, category)) return false;
       if (brand !== "all" && !productMatchesBrand(p, brand)) return false;
       if (!q) return true;

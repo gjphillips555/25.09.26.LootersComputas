@@ -80,7 +80,9 @@ function CheckoutPage() {
     const chosen =
       buyShip && buyNow.shipping.some((s) => s.id === buyShip)
         ? buyShip
-        : "";
+        : buyNow.shipping.length === 1
+          ? buyNow.shipping[0].id
+          : "";
     return {
       ...cartProductFrom(buyNow),
       qty: Math.min(cap, qty),

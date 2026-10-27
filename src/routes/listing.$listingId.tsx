@@ -54,14 +54,17 @@ function ProductPage() {
   const line = lines.find((l) => l.id === product.id);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [added, setAdded] = useState(false);
-  const [shippingId, setShippingId] = useState(line?.shippingId ?? "");
   const [qty, setLocalQty] = useState(1);
   const canBuy = !product.soldOut && product.buyNow && product.amount > 0;
   const soldOut = Boolean(product.soldOut);
   const inCart = isInCart(product.id, lines);
   const photos = product.photos.length > 0 ? product.photos : product.photo ? [product.photo] : [];
   const activePhoto = photos[photoIndex] ?? photos[0];
-  const needsShipping = product.shipping.length > 0;
+  const soleShip = product.shipping.length === 1 ? product.shipping[0].id : "";
+  const [shippingId, setShippingId] = useState(line?.shippingId || soleShip);
+  const needsShipping = product.shipping.some((s) => s.price > 0);
+  const emailedOnly =
+    product.shipping.length > 0 && product.shipping.every((s) => s.price === 0);
   const buyQty = inCart && line ? line.qty : qty;
 
   function pickShipping(id: string) {
@@ -188,6 +191,12 @@ function ProductPage() {
             </p>
           </div>
 
+          {emailedOnly && !soldOut && (
+            <p className="rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm">
+              Emailed after you pay. No courier.
+            </p>
+          )}
+
           {needsShipping && !soldOut && (
             <fieldset className="rounded-xl border border-border bg-secondary/30 p-4">
               <legend className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -300,7 +309,10 @@ function ProductPage() {
                 </KeyButton>
                 <p className="text-xs text-muted-foreground">
                   Pays for this item only. Guest checkout — no Google account
-                  required. Select shipping first so the total is correct.
+                  required.{" "}
+                  {emailedOnly
+                    ? "We email the key after payment. No courier."
+                    : "Select shipping first so the total is correct."}
                 </p>
               </>
             ) : (

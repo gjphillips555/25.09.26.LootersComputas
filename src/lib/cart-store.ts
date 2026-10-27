@@ -74,7 +74,7 @@ export const useCart = create<CartState>()(
               {
                 ...toCartProduct(product),
                 qty: 1,
-                shippingId: shippingId ?? "",
+                shippingId: shippingId ?? (product.shipping.length === 1 ? product.shipping[0].id : ""),
               },
             ],
           };

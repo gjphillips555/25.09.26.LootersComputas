@@ -64,8 +64,13 @@ export function ProductCard({
       const full = await getProduct({ data: { id: product.id } });
       add(cartProductFrom(full ?? product));
       setAdded(true);
+      const emailed =
+        (full ?? product).shipping.length > 0 &&
+        (full ?? product).shipping.every((s) => s.price === 0);
       toast.success("Added to cart", {
-        description: "Pick shipping in your cart to tally PayPal.",
+        description: emailed
+          ? "Emailed after you pay. No courier."
+          : "Pick shipping in your cart to tally PayPal.",
       });
       window.setTimeout(() => setAdded(false), 1200);
     } catch {
