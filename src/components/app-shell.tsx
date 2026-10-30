@@ -1,21 +1,17 @@
-import { useState, type ReactNode } from "react";
-import { CartDrawer } from "@/components/cart-drawer";
+import type { ReactNode } from "react";
 import { PageScrollKeys } from "@/components/page-scroll-keys";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const [cartOpen, setCartOpen] = useState(false);
-
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip">
-      <SiteHeader onOpenCart={() => setCartOpen(true)} />
+      <SiteHeader />
       <main className="shell-main mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6">
         {children}
       </main>
-      <SiteFooter onOpenCart={() => setCartOpen(true)} />
+      <SiteFooter />
       <PageScrollKeys />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 }

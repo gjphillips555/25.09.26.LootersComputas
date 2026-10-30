@@ -14,11 +14,16 @@ import {
   Users,
   RefreshCw,
   Star,
+  Heart,
+  Recycle,
+  Wallet,
+  MessageSquare,
+  MessagesSquare,
+  Store,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { BrandLogo } from "@/components/brand-logo";
 import { BrandTicker } from "@/components/brand-ticker";
-import { KeyLink } from "@/components/key-button";
 import { ARTWORK } from "@/lib/artwork";
 
 export const Route = createFileRoute("/")({
@@ -26,15 +31,49 @@ export const Route = createFileRoute("/")({
 });
 
 const CATEGORIES = [
-  { label: "Computers & Laptops", icon: Laptop, to: "/sell" as const },
-  { label: "Phones & Tablets", icon: Smartphone, to: "/sell" as const },
-  { label: "Gaming", icon: Gamepad2, to: "/sell" as const },
-  { label: "TVs & Audio", icon: Tv, to: "/sell" as const },
-  { label: "Home & Living", icon: Sofa, to: "/sell" as const },
-  { label: "Vehicles", icon: Car, to: "/sell" as const },
-  { label: "Sports & Outdoors", icon: Bike, to: "/sell" as const },
-  { label: "Fashion", icon: Shirt, to: "/sell" as const },
-  { label: "More", icon: MoreHorizontal, to: "/sell" as const },
+  { label: "Computers & Laptops", icon: Laptop },
+  { label: "Phones & Tablets", icon: Smartphone },
+  { label: "Gaming", icon: Gamepad2 },
+  { label: "TVs & Audio", icon: Tv },
+  { label: "Home & Living", icon: Sofa },
+  { label: "Vehicles", icon: Car },
+  { label: "Sports & Outdoors", icon: Bike },
+  { label: "Fashion", icon: Shirt },
+  { label: "More", icon: MoreHorizontal },
+] as const;
+
+/** Placeholder charity / recycle picks — local NZ flavour until live listings land. */
+const CHARITY_PICKS = [
+  {
+    title: "Refurbished Chromebooks",
+    blurb: "School kits · Auckland charity partner",
+    tag: "Recycle",
+    price: "Donate / from $40",
+  },
+  {
+    title: "Working laptops for seniors",
+    blurb: "Age Concern drop-off · Wellington",
+    tag: "Charity",
+    price: "Pay it forward",
+  },
+  {
+    title: "Parts bins — GPUs & RAM",
+    blurb: "Community repair café · Christchurch",
+    tag: "Reuse",
+    price: "Swap preferred",
+  },
+  {
+    title: "Cables & chargers bulk",
+    blurb: "e-waste divert · Hamilton",
+    tag: "Recycle",
+    price: "Free to uplift",
+  },
+  {
+    title: "Monitors for community hubs",
+    blurb: "Library / marae kits · Northland",
+    tag: "Charity",
+    price: "Sponsored",
+  },
 ] as const;
 
 function Home() {
@@ -42,7 +81,7 @@ function Home() {
     <AppShell>
       <BrandTicker />
 
-      {/* Hero — matches brand board */}
+      {/* Hero */}
       <section className="relative mt-4 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[#1a0b2e] via-[#2a1545] to-[#0f0618]">
         <div
           className="pointer-events-none absolute inset-0 opacity-40"
@@ -67,25 +106,27 @@ function Home() {
             </h1>
             <p className="max-w-xl text-base text-white/75 sm:text-lg">
               The all-in-one marketplace for people, not just computers. Same
-              penguin. Bigger community.
+              penguin. Bigger community. Powered by PayPal between looters.
             </p>
             <div className="flex flex-wrap gap-2.5">
-              <TrustPill>PayPal Payments — Safe & Secure</TrustPill>
-              <TrustPill>Verified Users — Real Feedback</TrustPill>
-              <TrustPill>Swap + Cash — Make it Happen</TrustPill>
+              <TrustPill>PayPal — Safe & Secure</TrustPill>
+              <TrustPill>Verified Users</TrustPill>
+              <TrustPill>Swap + Cash</TrustPill>
             </div>
             <div className="flex flex-wrap gap-3 pt-1">
               <Link
                 to="/sell"
-                className="inline-flex items-center justify-center rounded-xl bg-[#ff9a00] px-5 py-2.5 text-sm font-bold text-[#1a1000] shadow-lg shadow-orange-500/25 hover:bg-[#ffb020]"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff9a00] px-5 py-2.5 text-sm font-bold text-[#1a1000] shadow-lg shadow-orange-500/25 hover:bg-[#ffb020]"
               >
-                Start Trading →
+                <Store className="size-4" />
+                Start Trading
               </Link>
               <Link
                 to="/account"
-                className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
               >
-                My Account
+                <Wallet className="size-4" />
+                Wallet / PayPal
               </Link>
             </div>
           </div>
@@ -103,24 +144,29 @@ function Home() {
         </div>
       </section>
 
-      {/* Category grid */}
+      {/* Marketplace quick nav */}
+      <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <QuickLink to="/sell" icon={Store} label="Sell / List" hint="List gear" />
+        <QuickLink to="/account" icon={MessageSquare} label="Inbox" hint="Messages & deals" />
+        <QuickLink to="/hidden/forum" icon={MessagesSquare} label="Forum" hint="Community den" />
+        <QuickLink to="/account" icon={Wallet} label="Wallet" hint="Connect PayPal" />
+      </section>
+
+      {/* Categories */}
       <section className="mt-8" aria-label="Popular categories">
         <div className="mb-3 flex items-end justify-between gap-3">
           <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
             Browse categories
           </h2>
-          <Link
-            to="/sell"
-            className="text-sm font-medium text-[#ff9a00] hover:underline"
-          >
-            View all
+          <Link to="/sell" className="text-sm font-medium text-[#ff9a00] hover:underline">
+            List yours
           </Link>
         </div>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-9">
-          {CATEGORIES.map(({ label, icon: Icon, to }) => (
+          {CATEGORIES.map(({ label, icon: Icon }) => (
             <Link
               key={label}
-              to={to}
+              to="/sell"
               className="group flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-2 py-3 text-center transition hover:border-[#ff9a00]/40 hover:bg-secondary/60"
               title="Listings for this category coming soon — list yours now"
             >
@@ -135,18 +181,71 @@ function Home() {
         </div>
       </section>
 
-      {/* Primary actions — keyboard style kept for brand continuity */}
-      <div className="mx-auto mt-8 flex max-w-2xl flex-wrap items-center justify-center gap-3">
-        <KeyLink to="/sell" tone="orange" size="fit">
-          Sell / List an item
-        </KeyLink>
-        <KeyLink to="/account" tone="teal" size="fit">
-          Your Account
-        </KeyLink>
-        <KeyLink to="/inbox" tone="cream" size="fit">
-          Inbox
-        </KeyLink>
-      </div>
+      {/* PayPal collab band */}
+      <section className="mt-8 overflow-hidden rounded-2xl border border-[#003087]/25 bg-gradient-to-r from-[#003087] to-[#009cde]">
+        <div className="flex flex-col items-start gap-4 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
+              Official payments rail
+            </p>
+            <h2 className="font-display text-xl font-bold text-white sm:text-2xl">
+              Looters Computas × PayPal
+            </h2>
+            <p className="max-w-lg text-sm text-white/80">
+              Buyer and seller settle direct. Looters never holds funds. Connect
+              PayPal once in your account — then trade with anyone on the
+              platform.
+            </p>
+          </div>
+          <Link
+            to="/account"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#ffc439] px-5 py-2.5 text-sm font-bold text-[#003087] hover:bg-[#ffd66b]"
+          >
+            <Wallet className="size-4" />
+            Open Wallet
+          </Link>
+        </div>
+      </section>
+
+      {/* Charity / recycle carousel */}
+      <section className="mt-8" aria-label="Charity and recycle picks">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+              Recycle · Charity · Community
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Local NZ reuse & give-back gear — list yours or pick one up.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
+            <Recycle className="size-3.5 text-[#ff9a00]" />
+            Coming live
+          </span>
+        </div>
+        <div className="-mx-1 flex gap-3 overflow-x-auto pb-2 pt-1 [scrollbar-width:thin]">
+          {CHARITY_PICKS.map((item) => (
+            <article
+              key={item.title}
+              className="w-[220px] shrink-0 rounded-xl border border-border bg-card p-4"
+            >
+              <div className="mb-3 flex h-24 items-center justify-center rounded-lg bg-secondary/80">
+                {item.tag === "Charity" ? (
+                  <Heart className="size-8 text-[#ff9a00]/80" />
+                ) : (
+                  <Recycle className="size-8 text-[#ff9a00]/80" />
+                )}
+              </div>
+              <span className="rounded bg-[#ff9a00]/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#ff9a00]">
+                {item.tag}
+              </span>
+              <h3 className="mt-2 text-sm font-semibold leading-snug">{item.title}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">{item.blurb}</p>
+              <p className="mt-2 text-xs font-medium text-foreground">{item.price}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {/* Community banner */}
       <section className="mt-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-r from-[#2a1545] to-[#1a0b2e]">
@@ -156,19 +255,28 @@ function Home() {
               Make a deal. Join the community.
             </h2>
             <p className="text-sm text-white/70">
-              Trade. Swap. Sell. Buy. Give feedback.
+              Trade · Swap · Sell · Buy · Forum · Feedback
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
-              PayPal Payments
-            </span>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
-              User Feedback
-            </span>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white">
-              Swap + Cash
-            </span>
+            <Link
+              to="/hidden/forum"
+              className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
+            >
+              Open Forum
+            </Link>
+            <Link
+              to="/account"
+              className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
+            >
+              Inbox
+            </Link>
+            <Link
+              to="/sell"
+              className="rounded-full bg-[#ff9a00] px-3 py-1.5 text-xs font-bold text-[#1a1000] hover:bg-[#ffb020]"
+            >
+              List an item
+            </Link>
           </div>
         </div>
       </section>
@@ -217,14 +325,11 @@ function Home() {
               you're ready to deal, then list gear or make buy / swap offers.
             </p>
             <p>
-              Inbox will have <strong className="text-foreground">Messages</strong>{" "}
-              and a <strong className="text-foreground">Deals</strong> tab. Swap
-              offers (photos + description) stay private to the listing owner.
-            </p>
-            <p>
-              We're building this in the open. Browse categories above, list
-              something from Sell, or set up your account — the rest is landing
-              steadily.
+              Use <strong className="text-foreground">Inbox</strong> for
+              messages and deals, <strong className="text-foreground">Forum</strong>{" "}
+              for the community den, and <strong className="text-foreground">Wallet</strong>{" "}
+              to link PayPal. Charity and recycle listings are rolling in for
+              local NZ partners.
             </p>
             <p className="font-medium text-foreground">— Looters</p>
           </div>
@@ -234,7 +339,7 @@ function Home() {
               to="/account"
               className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600"
             >
-              Your Account
+              Account & Wallet
             </Link>
             <Link
               to="/sell"
@@ -280,18 +385,51 @@ function Home() {
         </NewsCard>
       </div>
 
-      <div className="mt-10 flex flex-col items-center gap-8 pb-8 pt-4">
+      <div className="mt-10 flex flex-col items-center gap-6 pb-8 pt-4">
         <div className="flex flex-wrap justify-center gap-3">
-          <KeyLink to="/sell" tone="orange">
+          <Link
+            to="/sell"
+            className="rounded-xl bg-[#ff9a00] px-5 py-2.5 text-sm font-bold text-[#1a1000] hover:bg-[#ffb020]"
+          >
             List something
-          </KeyLink>
-          <KeyLink to="/account" tone="teal">
+          </Link>
+          <Link
+            to="/account"
+            className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold hover:bg-secondary"
+          >
             Account & PayPal
-          </KeyLink>
+          </Link>
         </div>
         <BrandLogo className="h-24 w-auto max-w-[360px] object-contain sm:h-32 sm:max-w-[480px]" />
       </div>
     </AppShell>
+  );
+}
+
+function QuickLink({
+  to,
+  icon: Icon,
+  label,
+  hint,
+}: {
+  to: "/sell" | "/account" | "/hidden/forum";
+  icon: typeof Store;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 transition hover:border-[#ff9a00]/40 hover:bg-secondary/50"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#ff9a00]/15 text-[#ff9a00]">
+        <Icon className="size-4" strokeWidth={1.85} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold">{label}</span>
+        <span className="block truncate text-xs text-muted-foreground">{hint}</span>
+      </span>
+    </Link>
   );
 }
 
@@ -315,7 +453,7 @@ function TrustCard({
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff9a00]/15 text-[#ff9a00]">
-        <Icon className="h-4.5 w-4.5" strokeWidth={1.75} />
+        <Icon className="h-4 w-4" strokeWidth={1.75} />
       </div>
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{body}</p>
