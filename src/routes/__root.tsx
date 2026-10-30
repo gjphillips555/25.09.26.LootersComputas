@@ -6,20 +6,19 @@ import { ARTWORK } from "@/lib/artwork";
 import { THEME_BOOT_SCRIPT, ThemeProvider, useTheme } from "@/lib/theme";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Looters Computers";
+const APP_NAME = "LootersComputas";
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: `${APP_NAME}` },
+      { title: APP_NAME },
       {
         name: "description",
-        content:
-          "Shop Looters Computas. Add to cart, pick shipping, and check out in NZD.",
+        content: "LootersComputas is a community marketplace to buy, sell, swap and trade. Real people. Real deals.",
       },
-      { name: "theme-color", content: "#f2f2f0" },
+      { name: "theme-color", content: "#21182d" },
       { name: "color-scheme", content: "light dark" },
     ],
     links: [
@@ -29,10 +28,7 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: ARTWORK.appleIcon },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
-      {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
