@@ -18,4 +18,6 @@ export const ARTWORK = {
   appleIcon: "/artwork/apple-icon.png",
   og: "/artwork/og.jpg",
   storefront: "/artwork/storefront.jpg",
+  /** Washed-out penguin mugshot for guest / default avatar */
+  guestAvatar: "/artwork/favicon.svg",
 } as const;

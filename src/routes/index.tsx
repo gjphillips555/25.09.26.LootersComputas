@@ -14,12 +14,11 @@ import {
   Users,
   RefreshCw,
   Star,
-  Heart,
-  Recycle,
   Wallet,
   MessageSquare,
   MessagesSquare,
   Store,
+  UserPlus,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { BrandLogo } from "@/components/brand-logo";
@@ -42,60 +41,26 @@ const CATEGORIES = [
   { label: "More", icon: MoreHorizontal },
 ] as const;
 
-/** Placeholder charity / recycle picks — local NZ flavour until live listings land. */
-const CHARITY_PICKS = [
-  {
-    title: "Refurbished Chromebooks",
-    blurb: "School kits · Auckland charity partner",
-    tag: "Recycle",
-    price: "Donate / from $40",
-  },
-  {
-    title: "Working laptops for seniors",
-    blurb: "Age Concern drop-off · Wellington",
-    tag: "Charity",
-    price: "Pay it forward",
-  },
-  {
-    title: "Parts bins — GPUs & RAM",
-    blurb: "Community repair café · Christchurch",
-    tag: "Reuse",
-    price: "Swap preferred",
-  },
-  {
-    title: "Cables & chargers bulk",
-    blurb: "e-waste divert · Hamilton",
-    tag: "Recycle",
-    price: "Free to uplift",
-  },
-  {
-    title: "Monitors for community hubs",
-    blurb: "Library / marae kits · Northland",
-    tag: "Charity",
-    price: "Sponsored",
-  },
-] as const;
-
 function Home() {
   return (
     <AppShell>
       <BrandTicker />
 
-      {/* Hero */}
-      <section className="relative mt-4 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-[#1a0b2e] via-[#2a1545] to-[#0f0618]">
+      {/* Hero — no border, transparent background */}
+      <section className="relative mt-4 overflow-hidden rounded-2xl bg-transparent">
         <div
-          className="pointer-events-none absolute inset-0 opacity-40"
+          className="pointer-events-none absolute inset-0 opacity-50"
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 70% 40%, rgba(255,154,0,0.25), transparent 55%), radial-gradient(ellipse 50% 40% at 20% 80%, rgba(147,51,234,0.35), transparent 50%)",
+              "radial-gradient(ellipse 80% 60% at 70% 40%, rgba(255,154,0,0.18), transparent 55%), radial-gradient(ellipse 50% 40% at 20% 80%, rgba(147,51,234,0.22), transparent 50%)",
           }}
         />
-        <div className="relative grid gap-8 px-5 py-10 sm:px-8 sm:py-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-10">
+        <div className="relative grid gap-8 px-1 py-8 sm:px-2 sm:py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-10">
           <div className="space-y-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff9a00]">
               Marketplace · Community · Real deals
             </p>
-            <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+            <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
               BUY. SELL.
               <br />
               SWAP. TRADE.
@@ -104,7 +69,7 @@ function Home() {
                 GET REAL DEALS.
               </span>
             </h1>
-            <p className="max-w-xl text-base text-white/75 sm:text-lg">
+            <p className="max-w-xl text-base text-muted-foreground sm:text-lg">
               The all-in-one marketplace for people, not just computers. Same
               penguin. Bigger community. Powered by PayPal between looters.
             </p>
@@ -122,11 +87,11 @@ function Home() {
                 Start Trading
               </Link>
               <Link
-                to="/account"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/10"
+                to="/login"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card/60 px-5 py-2.5 text-sm font-semibold text-foreground backdrop-blur-sm hover:bg-secondary"
               >
-                <Wallet className="size-4" />
-                Wallet / PayPal
+                <UserPlus className="size-4" />
+                Not yet a member? Sign Up
               </Link>
             </div>
           </div>
@@ -207,46 +172,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Charity / recycle carousel */}
-      <section className="mt-8" aria-label="Charity and recycle picks">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
-              Recycle · Charity · Community
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Local NZ reuse & give-back gear — list yours or pick one up.
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-            <Recycle className="size-3.5 text-[#ff9a00]" />
-            Coming live
-          </span>
-        </div>
-        <div className="-mx-1 flex gap-3 overflow-x-auto pb-2 pt-1 [scrollbar-width:thin]">
-          {CHARITY_PICKS.map((item) => (
-            <article
-              key={item.title}
-              className="w-[220px] shrink-0 rounded-xl border border-border bg-card p-4"
-            >
-              <div className="mb-3 flex h-24 items-center justify-center rounded-lg bg-secondary/80">
-                {item.tag === "Charity" ? (
-                  <Heart className="size-8 text-[#ff9a00]/80" />
-                ) : (
-                  <Recycle className="size-8 text-[#ff9a00]/80" />
-                )}
-              </div>
-              <span className="rounded bg-[#ff9a00]/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#ff9a00]">
-                {item.tag}
-              </span>
-              <h3 className="mt-2 text-sm font-semibold leading-snug">{item.title}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{item.blurb}</p>
-              <p className="mt-2 text-xs font-medium text-foreground">{item.price}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
       {/* Community banner */}
       <section className="mt-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-r from-[#2a1545] to-[#1a0b2e]">
         <div className="flex flex-col items-start gap-4 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
@@ -270,6 +195,12 @@ function Home() {
               className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
             >
               Inbox
+            </Link>
+            <Link
+              to="/login"
+              className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/25"
+            >
+              Not yet a member? Sign Up
             </Link>
             <Link
               to="/sell"
@@ -328,30 +259,29 @@ function Home() {
               Use <strong className="text-foreground">Inbox</strong> for
               messages and deals, <strong className="text-foreground">Forum</strong>{" "}
               for the community den, and <strong className="text-foreground">Wallet</strong>{" "}
-              to link PayPal. Charity and recycle listings are rolling in for
-              local NZ partners.
+              to link PayPal.
             </p>
             <p className="font-medium text-foreground">— Looters</p>
           </div>
 
           <div className="flex flex-wrap gap-3 pt-2">
             <Link
-              to="/account"
+              to="/login"
               className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600"
+            >
+              Not yet a member? Sign Up
+            </Link>
+            <Link
+              to="/account"
+              className="rounded-xl border border-orange-500/60 bg-orange-500/10 px-5 py-2.5 text-sm font-semibold text-orange-400 hover:bg-orange-500/20"
             >
               Account & Wallet
             </Link>
             <Link
               to="/sell"
-              className="rounded-xl border border-orange-500/60 bg-orange-500/10 px-5 py-2.5 text-sm font-semibold text-orange-400 hover:bg-orange-500/20"
-            >
-              Sell / List an item
-            </Link>
-            <Link
-              to="/terms"
               className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
             >
-              Marketplace Terms
+              Sell / List an item
             </Link>
           </div>
         </NewsCard>
@@ -388,16 +318,16 @@ function Home() {
       <div className="mt-10 flex flex-col items-center gap-6 pb-8 pt-4">
         <div className="flex flex-wrap justify-center gap-3">
           <Link
-            to="/sell"
+            to="/login"
             className="rounded-xl bg-[#ff9a00] px-5 py-2.5 text-sm font-bold text-[#1a1000] hover:bg-[#ffb020]"
           >
-            List something
+            Not yet a member? Sign Up
           </Link>
           <Link
-            to="/account"
+            to="/sell"
             className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold hover:bg-secondary"
           >
-            Account & PayPal
+            List something
           </Link>
         </div>
         <BrandLogo className="h-24 w-auto max-w-[360px] object-contain sm:h-32 sm:max-w-[480px]" />
@@ -435,7 +365,7 @@ function QuickLink({
 
 function TrustPill({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm">
+    <span className="inline-flex items-center rounded-full border border-border bg-card/70 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur-sm">
       {children}
     </span>
   );
