@@ -35,8 +35,9 @@ function SellPage() {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [publishing, setPublishing] = useState(false);
 
-  // Form state (basic for now — full create server fn comes next)
+  // Listing form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -58,17 +59,24 @@ function SellPage() {
 
   const canSell = isPayPalConnected(profile);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSell) {
       toast.error("Connect PayPal on your Account page before listing.");
       navigate({ to: "/account" });
       return;
     }
-    // Placeholder — full createListing server function lands in the next pass
-    toast.message("Listing form ready — full save coming in the next update.", {
-      description: "Schema + PayPal gate are already live.",
-    });
+    if (publishing) return;
+    setPublishing(true);
+    try {
+      await createListing({ data: { title, description, category, condition, priceNzd: price.trim() ? Number(price) : null, acceptsSwaps, location } });
+      toast.success("Your listing is live!");
+      await navigate({ to: "/market" });
+    } catch (error) {
+      toast.error(error instanceof Error && error.message.includes("PAYPAL_REQUIRED") ? "Please reconnect PayPal before listing." : "Could not publish your listing. Please check the details and try again.");
+    } finally {
+      setPublishing(false);
+    }
   }
 
   return (
@@ -204,14 +212,15 @@ function SellPage() {
             </label>
 
             <p className="text-xs text-muted-foreground">
-              Listings are published immediately and can be browsed in the community marketplace. Photos and messaging are not enabled yet.
+              Your listing will appear in the community marketplace. Photo uploads and buyer messaging are being added separately.
             </p>
 
             <button
               type="submit"
+              disabled={publishing}
               className="w-full rounded-xl bg-orange-500 py-3 font-semibold text-white hover:bg-orange-600"
             >
-              Publish listing
+              {publishing ? "Publishing…" : "Publish listing"}
             </button>
           </form>
         )}
