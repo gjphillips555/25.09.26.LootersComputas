@@ -10,6 +10,7 @@ import {
   type ProfileRow,
 } from "@/lib/marketplace/profile";
 import { ARTWORK } from "@/lib/artwork";
+import { createListing } from "@/lib/marketplace/listings";
 
 export const Route = createFileRoute("/sell")({
   component: SellPage,
@@ -203,7 +204,7 @@ function SellPage() {
             </label>
 
             <p className="text-xs text-muted-foreground">
-              Image upload will be added next (same domain hosting for now).
+              Listings are published immediately and can be browsed in the community marketplace. Photos and messaging are not enabled yet.
             </p>
 
             <button
