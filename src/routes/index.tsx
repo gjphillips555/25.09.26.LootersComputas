@@ -67,7 +67,7 @@ function Home() {
       <div className="mt-4 space-y-8">
         <NewsCard date="Sat 31 Oct 2026" dateTime="2026-10-31">
           <h1 className="text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Marketplace is on the way.
+            The community marketplace is opening up.
           </h1>
           <p className="text-sm font-medium text-[#ff9a00]">
             Fixed-price listings, swap offers, and direct PayPal between looters
