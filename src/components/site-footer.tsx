@@ -39,10 +39,10 @@ export function SiteFooter({ onOpenCart }: { onOpenCart: () => void }) {
         <p className="text-center text-xs text-neutral-600">
           &copy; 2026 Looters Computas. Prices in NZD, GST inclusive. Contact:{" "}
           <a
-            href="mailto:LootersRetail@protonmail.com"
+            href="mailto:looterscomputas@outlook.com"
             className="font-medium text-neutral-900 underline-offset-2 hover:underline"
           >
-            LootersRetail@protonmail.com
+            looterscomputas@outlook.com
           </a>
         </p>
         <LegalLinks className="text-neutral-600 [&_a]:text-neutral-600 [&_a:hover]:text-neutral-900" />
