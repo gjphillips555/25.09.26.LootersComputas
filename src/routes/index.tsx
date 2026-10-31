@@ -46,8 +46,8 @@ function Home() {
     <AppShell>
       <BrandTicker />
 
-      {/* Hero — no border, transparent background */}
-      <section className="relative mt-4 overflow-hidden rounded-2xl bg-transparent">
+      {/* Hero — fully open, no border / no card chrome */}
+      <section className="relative mt-2 bg-transparent">
         <div
           className="pointer-events-none absolute inset-0 opacity-50"
           style={{
@@ -55,7 +55,7 @@ function Home() {
               "radial-gradient(ellipse 80% 60% at 70% 40%, rgba(255,154,0,0.18), transparent 55%), radial-gradient(ellipse 50% 40% at 20% 80%, rgba(147,51,234,0.22), transparent 50%)",
           }}
         />
-        <div className="relative grid gap-8 px-1 py-8 sm:px-2 sm:py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-10">
+        <div className="relative grid gap-8 py-8 sm:py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-10">
           <div className="space-y-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff9a00]">
               Marketplace · Community · Real deals
