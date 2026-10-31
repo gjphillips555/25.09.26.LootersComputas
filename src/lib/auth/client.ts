@@ -15,18 +15,13 @@ export const authClient = createAuthClient({
 });
 
 export const authEnabled = import.meta.env.VITE_AUTH_ENABLED !== "false";
-
 export { GROK_PROVIDERS };
 
 const BEARER_KEY = "grok-auth.bearer-token";
 
 export function getBearerToken(): string | null {
   if (typeof window === "undefined") return null;
-  try {
-    return window.sessionStorage.getItem(BEARER_KEY);
-  } catch {
-    return null;
-  }
+  try { return window.sessionStorage.getItem(BEARER_KEY); } catch { return null; }
 }
 
 function setBearerToken(token: string | null): void {
@@ -34,16 +29,11 @@ function setBearerToken(token: string | null): void {
   try {
     if (token) window.sessionStorage.setItem(BEARER_KEY, token);
     else window.sessionStorage.removeItem(BEARER_KEY);
-  } catch {
-    /* ignore */
-  }
+  } catch { /* ignore */ }
 }
 
 function inLivePreview(): boolean {
-  if (typeof window === "undefined") return false;
-  return (
-    window.location.hostname.endsWith(".grok-sandbox.com")
-  );
+  return typeof window !== "undefined" && window.location.hostname.endsWith(".grok-sandbox.com");
 }
 
 type PopupMessage = { source: "grok-auth-popup"; token: string | null; error?: string };
@@ -54,53 +44,46 @@ export async function signIn(
 ): Promise<void> {
   const callbackURL = opts.callbackURL ?? "/";
   const errorCallbackURL = opts.errorCallbackURL ?? "/";
+  const preview = inLivePreview();
 
-  const popup = inLivePreview() ? openSignInPopup(providerId) : null;
-
+  // The embedded Grok preview uses its own broker popup. The actual Looters
+  // domain uses Better Auth's native Google social provider and Google's OAuth app.
+  const popup = preview ? openSignInPopup("grok-google") : null;
   await runPreSignInSignOut({
-    livePreview: inLivePreview(),
+    livePreview: preview,
     hasBearer: Boolean(getBearerToken()),
     requestSignOut: () => authClient.signOut(),
     clearToken: () => setBearerToken(null),
   });
 
-  if (inLivePreview()) {
+  if (preview) {
     if (!popup) throw new Error("Pop-up blocked — allow pop-ups for sign-in");
     const token = await waitForPopupToken(popup);
-    if (!token) throw new Error("Sign-in was cancelled or failed");
+    if (!token) throw new Error("Google sign-in was cancelled or failed");
     setBearerToken(token);
-    try {
-      await authClient.getSession();
-    } catch {
-      /* session store will recover on next useSession fetch */
-    }
-    if (typeof window !== "undefined") {
-      const dest = new URL(callbackURL, window.location.origin);
-      const here = window.location;
-      if (dest.origin !== here.origin || dest.pathname !== here.pathname || dest.search !== here.search) {
-        window.location.href = callbackURL;
-      }
+    try { await authClient.getSession(); } catch { /* recover on next session fetch */ }
+    const dest = new URL(callbackURL, window.location.origin);
+    const here = window.location;
+    if (dest.origin !== here.origin || dest.pathname !== here.pathname || dest.search !== here.search) {
+      window.location.href = callbackURL;
     }
     return;
   }
 
-  // Always use genericOAuth via the Grok broker. Provider ids are "grok-google"
-  // / "grok-x". Calling social({ provider: "google" }) hits PROVIDER_NOT_FOUND
-  // because this app does not register the built-in social Google provider.
-  const { data, error } = await authClient.signIn.oauth2({
-    providerId,
+  if (providerId !== "google") throw new Error("LootersComputas sign-in uses Google.");
+  const { data, error } = await authClient.signIn.social({
+    provider: "google",
     callbackURL,
     errorCallbackURL,
   });
-  if (error) throw new Error(error.message ?? "Sign-in failed");
+  if (error) throw new Error(error.message ?? "Google sign-in failed");
   if (data?.url) window.location.href = data.url;
 }
 
 function openSignInPopup(providerId: string): Window | null {
   const origin = window.location.origin;
   const url = `${origin}/auth/popup?providerId=${encodeURIComponent(providerId)}`;
-  const name = `grok-signin-${Date.now()}`;
-  return window.open(url, name, "popup,width=500,height=650");
+  return window.open(url, `looters-google-signin-${Date.now()}`, "popup,width=500,height=650");
 }
 
 function waitForPopupToken(popup: Window): Promise<string | null> {
@@ -110,9 +93,7 @@ function waitForPopupToken(popup: Window): Promise<string | null> {
     let closeTimer: number | undefined;
     const settle = (token: string | null) => {
       if (settled) return;
-      settled = true;
-      cleanup();
-      resolve(token);
+      settled = true; cleanup(); resolve(token);
     };
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== origin) return;
@@ -143,8 +124,6 @@ export async function signOut(redirectTo = "/"): Promise<void> {
       if (error) throw new Error(error.message ?? "Sign-out failed");
     },
     clearToken: () => setBearerToken(null),
-    redirect: () => {
-      window.location.href = redirectTo;
-    },
+    redirect: () => { window.location.href = redirectTo; },
   });
 }
