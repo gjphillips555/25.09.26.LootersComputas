@@ -84,9 +84,20 @@ export async function signIn(
     return;
   }
 
-  // Always use genericOAuth via the Grok broker. Provider ids are "grok-google"
-  // / "grok-x". Calling social({ provider: "google" }) hits PROVIDER_NOT_FOUND
-  // because this app does not register the built-in social Google provider.
+  // Production Google sign-in uses Better Auth's built-in Google provider.
+  // The server configures it from GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
+  if (providerId === "grok-google" || providerId === "google") {
+    const { data, error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL,
+      errorCallbackURL,
+    });
+    if (error) throw new Error(error.message ?? "Google sign-in failed");
+    if (data?.url) window.location.href = data.url;
+    return;
+  }
+
+  // Other broker-backed providers continue using the generic OAuth plugin.
   const { data, error } = await authClient.signIn.oauth2({
     providerId,
     callbackURL,
