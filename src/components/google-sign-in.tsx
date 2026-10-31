@@ -11,7 +11,7 @@ export function GoogleSignIn({
   callbackURL = "/",
   compact = false,
   showF8 = false,
-  label = "Continue With Google",
+  label = "Sign into LootersComputas with Google",
   size = "default",
   tone,
 }: {
@@ -37,13 +37,13 @@ export function GoogleSignIn({
     setAgreedTerms();
     setBusy(true);
     try {
-      await signIn("grok-google", { callbackURL });
+      await signIn("google", { callbackURL });
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(msg, {
         description:
-          "If this keeps happening, Google sign-in needs a database URL set on the live host.",
+          "Google sign-in must be configured for this website in its Google Cloud OAuth settings.",
       });
     } finally {
       setBusy(false);
@@ -91,7 +91,7 @@ export function GoogleSignIn({
             if (agreed) void start();
             else setOpen((v) => !v);
           }}
-          aria-label="Sign in with Google (optional)"
+          aria-label="Sign into LootersComputas with Google"
           className="kb-key kb-key-sm kb-white disabled:opacity-60"
         >
           <span className="kb-cap">
@@ -116,7 +116,7 @@ export function GoogleSignIn({
               onClick={() => setOpen(false)}
             />
             <div className="absolute right-0 z-50 mt-2 w-64 space-y-3 rounded-xl border border-border bg-card p-3 shadow-xl">
-              <p className="text-sm font-medium">Sign in with Google</p>
+              <p className="text-sm font-medium">Sign into LootersComputas</p>
               {box}
               <KeyButton
                 size="sm"
@@ -126,7 +126,7 @@ export function GoogleSignIn({
                 onClick={() => void start()}
               >
                 <GoogleMark className="size-3.5" />
-                {busy ? "Connecting…" : "Sign in"}
+                {busy ? "Connecting…" : "Sign into LootersComputas"}
               </KeyButton>
             </div>
           </>
