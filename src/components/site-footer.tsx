@@ -1,4 +1,4 @@
-import { ARTWORK } from "@/lib/artwork";
+import { PayPalAdvert } from "@/components/paypal-advert";
 import { AccountButton } from "@/components/account-button";
 import { CartButton } from "@/components/cart-button";
 import { LegalLinks } from "@/components/legal-links";
@@ -20,15 +20,7 @@ export function SiteFooter({ onOpenCart }: { onOpenCart: () => void }) {
           <AccountButton />
           <CartButton onClick={onOpenCart} />
         </div>
-        <img
-          src={ARTWORK.afterpay}
-          alt="Afterpay: Shop now. Pay later. Always interest-free. Split your purchase into 4 payments, payable every 2 weeks."
-          width={600}
-          height={600}
-          className="mx-auto h-auto w-full max-w-3xl"
-          loading="lazy"
-          decoding="async"
-        />
+        <PayPalAdvert />
         <img
           src={ARTWORK.payments}
           alt="Accepted payment methods: Amex, Apple Pay, Diners Club, Discover, Google Pay, JCB, Mastercard, PayPal and Visa"
