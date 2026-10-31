@@ -29,13 +29,13 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { BrandLogo } from "@/components/brand-logo";
 import { BrandTicker } from "@/components/brand-ticker";
+import { ShopSearch } from "@/components/shop-search";
 import { ARTWORK } from "@/lib/artwork";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
-/** Tech & gadgets marketplace categories */
 const CATEGORIES = [
   { label: "Computers", icon: Monitor },
   { label: "Laptops", icon: Laptop },
@@ -86,6 +86,18 @@ function Home() {
               phones, drones, e-bikes, scooters and more. Same penguin. Powered
               by PayPal between looters.
             </p>
+
+            {/* Marketplace search — primary finder */}
+            <div className="max-w-xl pt-1">
+              <ShopSearch
+                variant="hero"
+                placeholder="Search laptops, GPUs, phones, drones…"
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                Try “RTX”, “MacBook”, “iPhone”, “e-bike” — or pick a category below.
+              </p>
+            </div>
+
             <div className="flex flex-wrap gap-2.5">
               <TrustPill>PayPal — Safe & Secure</TrustPill>
               <TrustPill>Verified Users</TrustPill>
