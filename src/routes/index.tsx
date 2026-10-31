@@ -4,7 +4,7 @@ import {
   Monitor,
   Laptop,
   Gamepad2,
-  Disc3,
+  Joystick,
   Cpu,
   Tv,
   Plane,
@@ -12,7 +12,7 @@ import {
   Zap,
   Smartphone,
   Plug,
-  Vacuum,
+  Fan,
   Watch,
   CircuitBoard,
   Gem,
@@ -40,7 +40,7 @@ const CATEGORIES = [
   { label: "Computers", icon: Monitor },
   { label: "Laptops", icon: Laptop },
   { label: "Gaming", icon: Gamepad2 },
-  { label: "Games", icon: Disc3 },
+  { label: "Games", icon: Joystick },
   { label: "Components", icon: Cpu },
   { label: "TVs", icon: Tv },
   { label: "Drones", icon: Plane },
@@ -48,7 +48,7 @@ const CATEGORIES = [
   { label: "E-Scooters", icon: Zap },
   { label: "Cellphones", icon: Smartphone },
   { label: "Chargers", icon: Plug },
-  { label: "Vacuums", icon: Vacuum },
+  { label: "Vacuums", icon: Fan },
   { label: "Watches", icon: Watch },
   { label: "Other Gadgets", icon: CircuitBoard },
   { label: "Collectables", icon: Gem },
@@ -59,7 +59,6 @@ function Home() {
     <AppShell>
       <BrandTicker />
 
-      {/* Hero — fully open, no border / no card chrome */}
       <section className="relative mt-2 bg-transparent">
         <div
           className="pointer-events-none absolute inset-0 opacity-50"
@@ -123,7 +122,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Marketplace quick nav */}
       <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <QuickLink to="/sell" icon={Store} label="Sell / List" hint="List gear" />
         <QuickLink to="/account" icon={MessageSquare} label="Inbox" hint="Messages & deals" />
@@ -131,7 +129,6 @@ function Home() {
         <QuickLink to="/account" icon={Wallet} label="Wallet" hint="Connect PayPal" />
       </section>
 
-      {/* Categories */}
       <section className="mt-8" aria-label="Marketplace categories">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
@@ -165,7 +162,6 @@ function Home() {
         </div>
       </section>
 
-      {/* PayPal collab band */}
       <section className="mt-8 overflow-hidden rounded-2xl border border-[#003087]/25 bg-gradient-to-r from-[#003087] to-[#009cde]">
         <div className="flex flex-col items-start gap-4 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div className="space-y-1">
@@ -191,7 +187,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Community banner */}
       <section className="mt-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-r from-[#2a1545] to-[#1a0b2e]">
         <div className="flex flex-col items-start gap-4 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div className="space-y-1">
@@ -231,7 +226,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Trust row */}
       <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <TrustCard
           icon={Users}
