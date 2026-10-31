@@ -2,7 +2,7 @@ import { useState, type MouseEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Check, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
-import { AfterpayLine } from "@/components/afterpay-mark";
+import { PayPalAdvert } from "@/components/paypal-advert";
 import { getProduct } from "@/lib/catalog";
 import { cartProductFrom, isInCart, useCart } from "@/lib/cart-store";
 import { categoryBadge } from "@/lib/product-search";
@@ -160,7 +160,7 @@ export function ProductCard({
           <p className="font-display text-xl font-bold tabular-nums text-foreground">
             {product.priceLabel}
           </p>
-          {product.amount > 0 ? <AfterpayLine amount={product.amount} /> : null}
+          {product.amount > 0 ? <PayPalAdvert compact /> : null}
           <button
             type="button"
             onClick={handleAdd}
