@@ -56,7 +56,7 @@ export const createForumTopic = createServerFn({ method: "POST" })
     await sql`insert into forum_topics(id,user_id,title,category) values(${id},${context.userId},${data.title},${data.category})`;
     await sql`insert into forum_posts(id,topic_id,user_id,body) values(${randomUUID()},${id},${context.userId},${data.body})`;
     await sql`insert into loot_point_ledger(id,user_id,points,reason,source_key)
-      select ${randomUUID()},${context.userId},10,'Started a forum discussion',${"forum-topic:" + id}
+      select ${randomUUID()},${context.userId},least(10,50-(select coalesce(sum(points),0) from loot_point_ledger where user_id=${context.userId} and created_at >= date_trunc('day',now()))),'Started a forum discussion',${"forum-topic:" + id}
       where (select coalesce(sum(points),0) from loot_point_ledger
         where user_id=${context.userId} and created_at >= date_trunc('day',now())) < 50
       on conflict(source_key) do nothing`;
@@ -75,7 +75,7 @@ export const createForumPost = createServerFn({ method: "POST" })
     await sql`insert into forum_posts(id,topic_id,user_id,body) values(${id},${data.topicId},${context.userId},${data.body})`;
     await sql`update forum_topics set updated_at=now() where id=${data.topicId}`;
     await sql`insert into loot_point_ledger(id,user_id,points,reason,source_key)
-      select ${randomUUID()},${context.userId},2,'Replied to a forum discussion',${"forum-reply:" + id}
+      select ${randomUUID()},${context.userId},least(2,50-(select coalesce(sum(points),0) from loot_point_ledger where user_id=${context.userId} and created_at >= date_trunc('day',now()))),'Replied to a forum discussion',${"forum-reply:" + id}
       where (select coalesce(sum(points),0) from loot_point_ledger
         where user_id=${context.userId} and created_at >= date_trunc('day',now())) < 50
       on conflict(source_key) do nothing`;
