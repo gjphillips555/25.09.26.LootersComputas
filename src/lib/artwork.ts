@@ -8,6 +8,7 @@ export const ARTWORK = {
   logoPixel: "/artwork/logo-pixel.png",
   payments: "/artwork/payment-methods.png",
   trademe: "/artwork/trademe.png",
+  afterpayMark: "/artwork/afterpay-mark.png",
   favicon: "/artwork/favicon.svg",
   faviconPng: "/artwork/favicon-32.png",
   favicon16: "/artwork/favicon-16.png",
