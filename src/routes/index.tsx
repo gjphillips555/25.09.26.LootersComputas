@@ -40,7 +40,9 @@ function Home() {
         <KeyLink to="/account" tone="teal" size="fit">
           Your Account
         </KeyLink>
-        <KeyLink to="/forum" tone="cream" size="fit">\n          Community Forum\n        </KeyLink>
+        <KeyLink to="/forum" tone="cream" size="fit">
+          Community Forum
+        </KeyLink>
       </div>
 
       {/* Category pills — marketplace browse (listings coming) */}
