@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { authEnabled } from "@/lib/auth/client";
 import { BrandLogo } from "@/components/brand-logo";
 import { GoogleSignIn } from "@/components/google-sign-in";
-import { KeyLink } from "@/components/key-button";
 import { LegalLinks } from "@/components/legal-links";
 
 export const Route = createFileRoute("/login")({ component: Login });
@@ -14,23 +13,15 @@ function Login() {
         <Link to="/" className="flex justify-center">
           <BrandLogo className="h-16 w-auto max-w-[280px] object-contain" />
         </Link>
-        <h1 className="text-center font-display text-xl font-semibold">
-          Sign in
-        </h1>
+        <h1 className="text-center font-display text-xl font-semibold">Sign into LootersComputas</h1>
         <p className="text-center text-sm text-muted-foreground">
-          Google is optional. Agree to the Terms, then use Google to save your
-          name and email, or carry on as a guest to shop and pay.
+          Use your Google account to join the LootersComputas community. One account gives you access to the forum and marketplace.
         </p>
         {authEnabled ? (
-          <GoogleSignIn callbackURL="/" />
+          <GoogleSignIn callbackURL="/" label="Sign into LootersComputas with Google" />
         ) : (
-          <p className="text-center text-sm text-muted-foreground">
-            Sign-in is disabled.
-          </p>
+          <p className="text-center text-sm text-muted-foreground">Google sign-in is currently disabled.</p>
         )}
-        <KeyLink to="/" size="default">
-          Continue as guest
-        </KeyLink>
         <LegalLinks className="pt-2" />
       </div>
     </main>
