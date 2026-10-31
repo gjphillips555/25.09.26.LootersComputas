@@ -4,7 +4,7 @@ export const Route = createFileRoute("/arcade")({
   head: () => ({
     meta: [
       { title: "Arcade | Looters Computas" },
-      { name: "description", content: "Play free browser games at Looters Computas Arcade" },
+      { name: "description", content: "Thousands of free browser games from Looters Computas." },
     ],
   }),
   component: ArcadePage,
@@ -12,13 +12,10 @@ export const Route = createFileRoute("/arcade")({
 
 function ArcadePage() {
   return (
-    <div className="w-full h-[calc(100vh-4rem)]">
-      <iframe
-        src="/arcade.html"
-        title="Looters Arcade"
-        className="w-full h-full border-0"
-        allow="fullscreen; autoplay; gamepad"
-      />
-    </div>
+    <iframe
+      src="/arcade.html"
+      title="Looters Computas Arcade"
+      style={{ display: "block", width: "100%", height: "100vh", border: 0 }}
+    />
   );
 }

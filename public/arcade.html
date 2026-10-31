@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arcade | Looters Computas</title>
+<meta name="description" content="Thousands of free browser games from Looters Computas. No sign-up, just play.">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --card: #14141f;
+  --accent: #ff6b35;
+  --text: #e8e8f0;
+  --muted: #8888a0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #222233;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+h1 { font-size: 1.4rem; font-weight: 700; }
+.search {
+  flex: 1;
+  min-width: 180px;
+  max-width: 400px;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #333348;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+}
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid #222233;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255,107,53,0.15);
+}
+.card img {
+  width: 100%;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  background: #1a1a28;
+  display: block;
+}
+.card .info {
+  padding: 0.6rem 0.75rem;
+}
+.card .title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card .cat {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+#player {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 100;
+  flex-direction: column;
+}
+#player.active { display: flex; }
+#player-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #111;
+  border-bottom: 1px solid #222;
+}
+#player-bar button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+#player iframe {
+  flex: 1;
+  width: 100%;
+  border: 0;
+}
+.loading, .empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎮 Arcade</h1>
+  <input class="search" type="search" id="q" placeholder="Search games…" autocomplete="off">
+</header>
+<div id="grid" class="grid"><div class="loading">Loading games…</div></div>
+<div id="player">
+  <div id="player-bar">
+    <button id="back">← Back</button>
+    <span id="ptitle"></span>
+  </div>
+  <iframe id="frame" allow="fullscreen; autoplay; gamepad" allowfullscreen></iframe>
+</div>
+<script>
+const grid = document.getElementById('grid');
+const q = document.getElementById('q');
+const player = document.getElementById('player');
+const frame = document.getElementById('frame');
+const ptitle = document.getElementById('ptitle');
+let all = [];
+
+fetch('/arcade-games.json')
+  .then(r => r.json())
+  .then(data => {
+    all = data.games || data;
+    render(all);
+  })
+  .catch(e => {
+    grid.innerHTML = '<div class="empty">Failed to load games.</div>';
+    console.error(e);
+  });
+
+function render(list) {
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">No games found.</div>';
+    return;
+  }
+  grid.innerHTML = list.map(([id, title, thumb, cat]) => `
+    <div class="card" data-id="${id}" data-title="${esc(title)}">
+      <img src="${thumb || ''}" alt="" loading="lazy" onerror="this.style.opacity=0.3">
+      <div class="info">
+        <div class="title">${esc(title)}</div>
+        <div class="cat">${esc(cat || '')}</div>
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('.card').forEach(c => {
+    c.onclick = () => play(c.dataset.id, c.dataset.title);
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function play(id, title) {
+  ptitle.textContent = title;
+  frame.src = `https://html5.gamedistribution.com/${id}/`;
+  player.classList.add('active');
+}
+
+document.getElementById('back').onclick = () => {
+  player.classList.remove('active');
+  frame.src = '';
+};
+
+q.oninput = () => {
+  const term = q.value.trim().toLowerCase();
+  if (!term) return render(all);
+  render(all.filter(([id, title, thumb, cat]) =>
+    (title||'').toLowerCase().includes(term) || (cat||'').toLowerCase().includes(term)
+  ));
+};
+</script>
+</body>
+</html>
