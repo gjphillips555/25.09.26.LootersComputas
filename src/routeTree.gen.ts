@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as HiddenRouteImport } from './routes/hidden'
@@ -29,6 +30,11 @@ import { Route as HiddenLetterTokenRouteImport } from './routes/hidden.letter.$t
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArcadeRoute = ArcadeRouteImport.update({
+  id: '/arcade',
+  path: '/arcade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuildRoute = BuildRouteImport.update({
@@ -109,6 +115,7 @@ const HiddenLetterTokenRoute = HiddenLetterTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
   '/build': typeof BuildRoute
   '/checkout': typeof CheckoutRoute
   '/hidden': typeof HiddenRouteWithChildren
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
   '/build': typeof BuildRoute
   '/checkout': typeof CheckoutRoute
   '/hidden': typeof HiddenRouteWithChildren
@@ -145,6 +153,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
   '/build': typeof BuildRoute
   '/checkout': typeof CheckoutRoute
   '/hidden': typeof HiddenRouteWithChildren
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/arcade'
     | '/build'
     | '/checkout'
     | '/hidden'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/arcade'
     | '/build'
     | '/checkout'
     | '/hidden'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/arcade'
     | '/build'
     | '/checkout'
     | '/hidden'
@@ -219,6 +231,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArcadeRoute: typeof ArcadeRoute
   BuildRoute: typeof BuildRoute
   CheckoutRoute: typeof CheckoutRoute
   HiddenRoute: typeof HiddenRouteWithChildren
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arcade': {
+      id: '/arcade'
+      path: '/arcade'
+      fullPath: '/arcade'
+      preLoaderRoute: typeof ArcadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/build': {
@@ -376,6 +396,7 @@ const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArcadeRoute: ArcadeRoute,
   BuildRoute: BuildRoute,
   CheckoutRoute: CheckoutRoute,
   HiddenRoute: HiddenRouteWithChildren,
