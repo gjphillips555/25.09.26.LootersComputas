@@ -6,7 +6,7 @@ import { ARTWORK } from "@/lib/artwork";
 import { THEME_BOOT_SCRIPT, ThemeProvider, useTheme } from "@/lib/theme";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Looters Computers";
+const APP_NAME = "LootersComputas";
 
 export const Route = createRootRoute({
   head: () => ({
