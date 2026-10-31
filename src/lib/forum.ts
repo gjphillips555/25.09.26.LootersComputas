@@ -55,11 +55,7 @@ export const createForumTopic = createServerFn({ method: "POST" })
     const id = randomUUID();
     await sql`insert into forum_topics(id,user_id,title,category) values(${id},${context.userId},${data.title},${data.category})`;
     await sql`insert into forum_posts(id,topic_id,user_id,body) values(${randomUUID()},${id},${context.userId},${data.body})`;
-    await sql`insert into loot_point_ledger(id,user_id,points,reason,source_key)
-      select ${randomUUID()},${context.userId},least(10,50-(select coalesce(sum(points),0) from loot_point_ledger where user_id=${context.userId} and created_at >= date_trunc('day',now()))),'Started a forum discussion',${"forum-topic:" + id}
-      where (select coalesce(sum(points),0) from loot_point_ledger
-        where user_id=${context.userId} and created_at >= date_trunc('day',now())) < 50
-      on conflict(source_key) do nothing`;
+
     return { id };
   });
 
@@ -74,11 +70,7 @@ export const createForumPost = createServerFn({ method: "POST" })
     const id = randomUUID();
     await sql`insert into forum_posts(id,topic_id,user_id,body) values(${id},${data.topicId},${context.userId},${data.body})`;
     await sql`update forum_topics set updated_at=now() where id=${data.topicId}`;
-    await sql`insert into loot_point_ledger(id,user_id,points,reason,source_key)
-      select ${randomUUID()},${context.userId},least(2,50-(select coalesce(sum(points),0) from loot_point_ledger where user_id=${context.userId} and created_at >= date_trunc('day',now()))),'Replied to a forum discussion',${"forum-reply:" + id}
-      where (select coalesce(sum(points),0) from loot_point_ledger
-        where user_id=${context.userId} and created_at >= date_trunc('day',now())) < 50
-      on conflict(source_key) do nothing`;
+
     return { id };
   });
 
@@ -93,12 +85,3 @@ export const deleteForumPost = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
-export const getMyLootPoints = createServerFn({ method: "GET" })
-  .middleware([authMiddleware])
-  .handler(async ({ context }) => {
-    const sql = await getSql();
-    const [summary] = await sql`select coalesce(sum(points),0)::int as balance from loot_point_ledger where user_id=${context.userId}`;
-    const history = await sql`select points,reason,created_at from loot_point_ledger where user_id=${context.userId} order by created_at desc limit 100`;
-    return { balance: summary?.balance ?? 0, history };
-  });
