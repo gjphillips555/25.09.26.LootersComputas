@@ -43,6 +43,12 @@ function Home() {
         <KeyLink to="/forum" tone="cream" size="fit">
           Community Forum
         </KeyLink>
+        <KeyLink to="/arcade" tone="orange" size="fit">
+          Arcade Games
+        </KeyLink>
+        <KeyLink to="/casino" tone="cream" size="fit">
+          Gambling Games
+        </KeyLink>
       </div>
 
       {/* Category pills — marketplace browse (listings coming) */}
