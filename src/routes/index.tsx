@@ -1,15 +1,21 @@
 import type { ReactNode } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Monitor,
   Laptop,
-  Smartphone,
   Gamepad2,
+  Disc3,
+  Cpu,
   Tv,
-  Sofa,
-  Car,
+  Plane,
   Bike,
-  Shirt,
-  MoreHorizontal,
+  Zap,
+  Smartphone,
+  Plug,
+  Vacuum,
+  Watch,
+  CircuitBoard,
+  Gem,
   ShieldCheck,
   Users,
   RefreshCw,
@@ -29,16 +35,23 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+/** Tech & gadgets marketplace categories */
 const CATEGORIES = [
-  { label: "Computers & Laptops", icon: Laptop },
-  { label: "Phones & Tablets", icon: Smartphone },
+  { label: "Computers", icon: Monitor },
+  { label: "Laptops", icon: Laptop },
   { label: "Gaming", icon: Gamepad2 },
-  { label: "TVs & Audio", icon: Tv },
-  { label: "Home & Living", icon: Sofa },
-  { label: "Vehicles", icon: Car },
-  { label: "Sports & Outdoors", icon: Bike },
-  { label: "Fashion", icon: Shirt },
-  { label: "More", icon: MoreHorizontal },
+  { label: "Games", icon: Disc3 },
+  { label: "Components", icon: Cpu },
+  { label: "TVs", icon: Tv },
+  { label: "Drones", icon: Plane },
+  { label: "E-Bikes", icon: Bike },
+  { label: "E-Scooters", icon: Zap },
+  { label: "Cellphones", icon: Smartphone },
+  { label: "Chargers", icon: Plug },
+  { label: "Vacuums", icon: Vacuum },
+  { label: "Watches", icon: Watch },
+  { label: "Other Gadgets", icon: CircuitBoard },
+  { label: "Collectables", icon: Gem },
 ] as const;
 
 function Home() {
@@ -58,7 +71,7 @@ function Home() {
         <div className="relative grid gap-8 py-8 sm:py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-10">
           <div className="space-y-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff9a00]">
-              Marketplace · Community · Real deals
+              Tech · Gaming · Gadgets · Real deals
             </p>
             <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
               BUY. SELL.
@@ -70,8 +83,9 @@ function Home() {
               </span>
             </h1>
             <p className="max-w-xl text-base text-muted-foreground sm:text-lg">
-              The all-in-one marketplace for people, not just computers. Same
-              penguin. Bigger community. Powered by PayPal between looters.
+              NZ marketplace for computers, laptops, gaming gear, components,
+              phones, drones, e-bikes, scooters and more. Same penguin. Powered
+              by PayPal between looters.
             </p>
             <div className="flex flex-wrap gap-2.5">
               <TrustPill>PayPal — Safe & Secure</TrustPill>
@@ -118,22 +132,27 @@ function Home() {
       </section>
 
       {/* Categories */}
-      <section className="mt-8" aria-label="Popular categories">
+      <section className="mt-8" aria-label="Marketplace categories">
         <div className="mb-3 flex items-end justify-between gap-3">
-          <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
-            Browse categories
-          </h2>
+          <div>
+            <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+              Browse categories
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Computers · gaming · gadgets · mobility · collectables
+            </p>
+          </div>
           <Link to="/sell" className="text-sm font-medium text-[#ff9a00] hover:underline">
             List yours
           </Link>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-9">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-5">
           {CATEGORIES.map(({ label, icon: Icon }) => (
             <Link
               key={label}
               to="/sell"
               className="group flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-2 py-3 text-center transition hover:border-[#ff9a00]/40 hover:bg-secondary/60"
-              title="Listings for this category coming soon — list yours now"
+              title={`${label} — list yours now`}
             >
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-[#ff9a00] transition group-hover:bg-[#ff9a00]/15">
                 <Icon className="h-5 w-5" strokeWidth={1.75} />
@@ -241,18 +260,20 @@ function Home() {
       <div className="mt-4 space-y-8">
         <NewsCard date="Sat 31 Oct 2026" dateTime="2026-10-31">
           <h2 className="text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Marketplace is live in spirit.
+            Tech & gadgets marketplace.
           </h2>
           <p className="text-sm font-medium text-[#ff9a00]">
-            Fixed-price listings, swap offers, and direct PayPal between looters
-            — we never touch the money.
+            Computers, laptops, gaming, components, phones, drones, e-bikes and
+            more — direct PayPal between looters.
           </p>
 
           <div className="max-w-3xl space-y-4 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
             <p>G'day everyone.</p>
             <p>
-              Looters Computas is becoming a community marketplace for computer
-              parts and beyond. Sign in with Google, connect PayPal once when
+              Looters Computas is a community marketplace for computers,
+              laptops, gaming gear, games, components, TVs, drones, e-bikes,
+              e-scooters, cellphones, chargers, vacuums, watches, other gadgets
+              and collectables. Sign in with Google, connect PayPal once when
               you're ready to deal, then list gear or make buy / swap offers.
             </p>
             <p>
@@ -307,8 +328,8 @@ function Home() {
             <p>
               The orange front, the penguin on the footpath, PCs in the glass —
               that's the old days. Doors are shut. What continues is the name,
-              the people, and a place for looters to buy, sell and swap parts
-              with each other.
+              the people, and a place for looters to buy, sell and swap tech and
+              gadgets with each other.
             </p>
             <p className="font-medium text-foreground">— Looters</p>
           </div>

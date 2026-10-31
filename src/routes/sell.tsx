@@ -16,14 +16,21 @@ export const Route = createFileRoute("/sell")({
 });
 
 const CATEGORIES = [
-  "Desktops",
+  "Computers",
   "Laptops",
+  "Gaming",
+  "Games",
   "Components",
-  "Monitors",
-  "Cables & Plugs",
-  "Batteries",
-  "Ink",
-  "Other",
+  "TVs",
+  "Drones",
+  "E-Bikes",
+  "E-Scooters",
+  "Cellphones",
+  "Chargers",
+  "Vacuums",
+  "Watches",
+  "Other Gadgets",
+  "Collectables",
 ];
 
 const CONDITIONS = ["New", "Excellent", "Good", "Fair", "For parts"];
@@ -35,7 +42,6 @@ function SellPage() {
   const [authOpen, setAuthOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Form state (basic for now — full create server fn comes next)
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -64,7 +70,6 @@ function SellPage() {
       navigate({ to: "/account" });
       return;
     }
-    // Placeholder — full createListing server function lands in the next pass
     toast.message("Listing form ready — full save coming in the next update.", {
       description: "Schema + PayPal gate are already live.",
     });
@@ -78,7 +83,9 @@ function SellPage() {
         </Link>
         <div>
           <h1 className="font-display text-2xl font-bold">Sell / List an item</h1>
-          <p className="text-sm text-muted-foreground">Fixed price or open to swaps</p>
+          <p className="text-sm text-muted-foreground">
+            Computers · gaming · gadgets · mobility · collectables
+          </p>
         </div>
       </div>
 
