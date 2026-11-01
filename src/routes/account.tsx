@@ -61,7 +61,7 @@ function AccountPage() {
       <SignedOut>
         <div className="rounded-2xl border border-border bg-card p-8 text-center">
           <p className="mb-4 text-muted-foreground">
-            Sign in with Google to manage your marketplace account.
+            Sign in with Google or email (including Proton Mail) to manage your marketplace account.
           </p>
           <button
             type="button"
