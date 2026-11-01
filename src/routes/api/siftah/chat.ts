@@ -1,12 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getSql } from "@/lib/db";
+import { requireUserId } from "@/lib/auth/verify.server";
 
-type ChatMessage = { role: string; content: string };
-
+type ChatMessage = { role: "user" | "assistant" | "system"; content: string };
 type Body = {
-  model?: string;
+  action?: "status" | "chat";
   messages?: ChatMessage[];
   token?: string;
-  trial?: boolean;
+  model?: string;
+};
+
+const SUPER_SAIYAN_MODEL = "NousResearch/Hermes-3-Llama-3.1-70B";
+const SIFTAH_MODELS = [
+  "p-e-w/gemma-3-12b-it-heretic",
+  "dphn/Dolphin3.0-Mistral-24B",
+  "Sao10K/L3-8B-Stheno-v3.2",
+  "huihui-ai/Huihui-Qwen3.5-27B-abliterated",
+  "mlabonne/gemma-3-27b-it-abliterated",
+] as const;
+const FREE_SUPER_SAIYAN = 5;
+const FREE_SIFTAH = 5;
+const COOLDOWN_HOURS = 5;
+
+type Usage = {
+  super_saiyan_used: number;
+  siftah_used: number;
+  cooldown_until: string | null;
 };
 
 export const Route = createFileRoute("/api/siftah/chat")({
@@ -20,39 +39,150 @@ export const Route = createFileRoute("/api/siftah/chat")({
           return json({ error: "Invalid JSON body" }, 400);
         }
 
-        const model = (body.model || "").trim();
-        const messages = Array.isArray(body.messages) ? body.messages : [];
-        if (!model) return json({ error: "Missing model" }, 400);
-        if (messages.length === 0) return json({ error: "Missing messages" }, 400);
-
-        const userToken = typeof body.token === "string" ? body.token.trim() : "";
-        const serverToken = (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
-        const token = userToken || serverToken;
-
-        // No token configured → honest demo reply so the UI still works while you wire HF.
-        if (!token) {
-          const last = [...messages].reverse().find((m) => m.role === "user");
-          const q = last?.content?.slice(0, 200) || "";
-          return json({
-            reply:
-              `Siftah demo mode (no Hugging Face token on server yet).\n\n` +
-              `You said: “${q}”\n\n` +
-              `Add HUGGINGFACE_API_TOKEN in Vercel env for shared trial replies, ` +
-              `or users can paste their own hf_ token in the UI. Model requested: ${model}`,
-          });
+        let userId: string;
+        try {
+          userId = await requireUserId();
+        } catch {
+          return json({ error: "Please sign in to use Siftah.", code: "AUTH_REQUIRED" }, 401);
         }
 
+        const sql = await getSql();
+        await sql.query(
+          `insert into siftah_usage (user_id) values ($1) on conflict (user_id) do nothing`,
+          [userId],
+        );
+        await sql.query(
+          `update siftah_usage
+             set super_saiyan_used = 0,
+                 siftah_used = 0,
+                 cooldown_until = null,
+                 updated_at = now()
+           where user_id = $1 and cooldown_until is not null and cooldown_until <= now()`,
+          [userId],
+        );
+
+        if (body.action === "status") {
+          const [usage] = await sql.query<Usage>(
+            `select super_saiyan_used, siftah_used, cooldown_until
+               from siftah_usage where user_id = $1`,
+            [userId],
+          );
+          return json({ usage: publicUsage(usage) });
+        }
+
+        const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
+        if (!messages.length || !messages.some((m) => m.role === "user")) {
+          return json({ error: "Missing chat messages" }, 400);
+        }
+
+        // Reserve one reply atomically so simultaneous tabs cannot exceed the cap.
+        const [reserved] = await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
+          `update siftah_usage
+              set super_saiyan_used = case
+                    when super_saiyan_used < $2 then super_saiyan_used + 1
+                    else super_saiyan_used end,
+                  siftah_used = case
+                    when super_saiyan_used >= $2 and siftah_used < $3 then siftah_used + 1
+                    else siftah_used end,
+                  cooldown_until = case
+                    when super_saiyan_used >= $2 and siftah_used = $3 - 1
+                      then now() + ($4 || ' hours')::interval
+                    else cooldown_until end,
+                  updated_at = now()
+            where user_id = $1
+              and (cooldown_until is null or cooldown_until <= now())
+              and (super_saiyan_used < $2 or siftah_used < $3)
+          returning super_saiyan_used, siftah_used, cooldown_until,
+                    case when super_saiyan_used <= $2 then 'super_saiyan' else 'siftah' end as stage`,
+          [userId, FREE_SUPER_SAIYAN, FREE_SIFTAH, String(COOLDOWN_HOURS)],
+        );
+
+        if (!reserved) {
+          const [usage] = await sql.query<Usage>(
+            `select super_saiyan_used, siftah_used, cooldown_until
+               from siftah_usage where user_id = $1`,
+            [userId],
+          );
+          return json({
+            error: usage?.cooldown_until
+              ? "You've used your 10 free replies. Your Siftah allowance will refresh when the 5-hour cooldown ends."
+              : "Your free replies are used up. Please wait for your allowance to refresh.",
+            code: "FREE_LIMIT",
+            usage: publicUsage(usage),
+          }, 429);
+        }
+
+        const stage = reserved.stage;
+        const tokenFromUser = typeof body.token === "string" ? body.token.trim() : "";
+        const token = tokenFromUser ||
+          (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
+
         try {
-          const reply = await hfChat(model, messages, token);
-          return json({ reply });
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : "Upstream model error";
-          return json({ error: msg }, 502);
+          let reply: string;
+          let modelUsed: string;
+          if (!token) {
+            const last = [...messages].reverse().find((m) => m.role === "user");
+            reply = "Siftah demo mode: connect a Hugging Face API token on the server to enable live model replies. Your free allowance is being tested, but no AI model was called.";
+            modelUsed = "demo";
+          } else if (stage === "super_saiyan") {
+            reply = await hfChat(SUPER_SAIYAN_MODEL, messages, token);
+            modelUsed = SUPER_SAIYAN_MODEL;
+          } else {
+            const start = Math.max(0, reserved.siftah_used - 1) % SIFTAH_MODELS.length;
+            let lastError: unknown;
+            let successfulModel = "";
+            for (let offset = 0; offset < SIFTAH_MODELS.length; offset += 1) {
+              const candidate = SIFTAH_MODELS[(start + offset) % SIFTAH_MODELS.length];
+              try {
+                reply = await hfChat(candidate, messages, token);
+                successfulModel = candidate;
+                break;
+              } catch (error) {
+                lastError = error;
+              }
+            }
+            if (!successfulModel) throw lastError ?? new Error("All five Siftah models are busy.");
+            modelUsed = successfulModel;
+          }
+
+          return json({
+            reply: reply!,
+            stage,
+            modelUsed,
+            usage: publicUsage(reserved),
+            failoverPool: stage === "siftah" ? 5 : 0,
+          });
+        } catch (error) {
+          // Failed upstream calls do not consume a free reply or trigger cooldown.
+          await sql.query(
+            `update siftah_usage
+                set super_saiyan_used = greatest(0, super_saiyan_used - case when $2 = 'super_saiyan' then 1 else 0 end),
+                    siftah_used = greatest(0, siftah_used - case when $2 = 'siftah' then 1 else 0 end),
+                    cooldown_until = case when $2 = 'siftah' and siftah_used = $3 then null else cooldown_until end,
+                    updated_at = now()
+              where user_id = $1`,
+            [userId, stage, FREE_SIFTAH],
+          );
+          const message = error instanceof Error ? error.message : "Upstream model error";
+          const [usage] = await sql.query<Usage>(
+            `select super_saiyan_used, siftah_used, cooldown_until
+               from siftah_usage where user_id = $1`,
+            [userId],
+          );
+          return json({ error: message, usage: publicUsage(usage) }, 502);
         }
       },
     },
   },
 });
+
+function publicUsage(usage?: Usage) {
+  return {
+    superSaiyanUsed: Number(usage?.super_saiyan_used ?? 0),
+    siftahUsed: Number(usage?.siftah_used ?? 0),
+    cooldownUntil: usage?.cooldown_until ?? null,
+  };
+}
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -62,7 +192,6 @@ function json(data: unknown, status = 200) {
 }
 
 async function hfChat(model: string, messages: ChatMessage[], token: string) {
-  // Prefer OpenAI-compatible router when available; fall back to text-generation.
   const routerUrl = "https://router.huggingface.co/v1/chat/completions";
   const res = await fetch(routerUrl, {
     method: "POST",
@@ -73,7 +202,7 @@ async function hfChat(model: string, messages: ChatMessage[], token: string) {
     body: JSON.stringify({
       model,
       messages: messages.map((m) => ({
-        role: m.role === "assistant" ? "assistant" : m.role === "system" ? "system" : "user",
+        role: m.role,
         content: String(m.content || "").slice(0, 8000),
       })),
       max_tokens: 512,
@@ -85,44 +214,39 @@ async function hfChat(model: string, messages: ChatMessage[], token: string) {
     const data = (await res.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
     };
-    const text = data.choices?.[0]?.message?.content;
-    if (text) return text;
+    const content = data.choices?.[0]?.message?.content;
+    if (content) return content;
   }
 
-  // Fallback: classic inference API text generation
   const prompt = messages
     .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
     .join("\n") + "\nASSISTANT:";
-
-  const tg = await fetch(`https://api-inference.huggingface.co/models/${encodeURIComponent(model)}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      inputs: prompt.slice(0, 12000),
-      parameters: {
-        max_new_tokens: 400,
-        temperature: 0.7,
-        return_full_text: false,
+  const fallback = await fetch(
+    `https://api-inference.huggingface.co/models/${encodeURIComponent(model)}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
-
-  const raw = await tg.text();
-  if (!tg.ok) {
-    throw new Error(`Hugging Face ${tg.status}: ${raw.slice(0, 280)}`);
+      body: JSON.stringify({
+        inputs: prompt.slice(0, 12000),
+        parameters: { max_new_tokens: 400, temperature: 0.7, return_full_text: false },
+      }),
+    },
+  );
+  const raw = await fallback.text();
+  if (!fallback.ok) {
+    throw new Error(`Hugging Face ${fallback.status}: ${raw.slice(0, 240)}`);
   }
-
   try {
-    const parsed = JSON.parse(raw) as Array<{ generated_text?: string }> | { generated_text?: string };
+    const parsed = JSON.parse(raw) as
+      | Array<{ generated_text?: string }>
+      | { generated_text?: string };
     if (Array.isArray(parsed)) return parsed[0]?.generated_text || raw;
-    if (parsed && typeof parsed === "object" && "generated_text" in parsed) {
-      return parsed.generated_text || raw;
-    }
+    if ("generated_text" in parsed) return parsed.generated_text || raw;
   } catch {
-    /* plain text */
+    // The inference endpoint can also return plain text.
   }
   return raw;
 }
