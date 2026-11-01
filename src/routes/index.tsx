@@ -91,7 +91,7 @@ function Home() {
             </p>
 
             {/* Marketplace search — primary finder */}
-            <div className="hidden max-w-xl pt-1 sm:block">
+            <div className="hidden max-w-xl pt-1 md:block">
               <ShopSearch
                 variant="hero"
                 placeholder="Search laptops, GPUs, phones, drones…"
