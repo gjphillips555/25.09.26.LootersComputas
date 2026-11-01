@@ -6,6 +6,8 @@ import {
   PanelRightClose, PanelRightOpen, Plus, Reply, Sparkles, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminToolbar } from "@/components/admin-toolbar";
+import { AnalyticsBeacon } from "@/components/analytics-beacon";
 
 export const Route = createFileRoute("/siftah")({
   head: () => ({
@@ -380,6 +382,8 @@ function SiftahPage() {
 
   return (
     <div className="siftah-app dark min-h-dvh" style={shellStyle}>
+      <AdminToolbar />
+      <AnalyticsBeacon />
       <div className="flex min-h-dvh flex-col">
         <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-xl">
           <div className="mx-auto flex h-[68px] w-full max-w-[1600px] items-center justify-between gap-3 px-3 sm:px-5">

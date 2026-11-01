@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { SignedIn, SignedOut } from "@/lib/auth/gates";
 import { AuthModal } from "@/components/AuthModal";
 import { ConnectPayPalButton } from "@/components/ConnectPayPalButton";
@@ -12,6 +12,7 @@ import {
   type ProfileRow,
 } from "@/lib/marketplace/profile";
 import { ARTWORK } from "@/lib/artwork";
+import { SiftahCreditsWallet } from "@/components/siftah-credits-wallet";
 
 export const Route = createFileRoute("/account")({
   component: AccountPage,
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/account")({
 });
 
 function AccountPage() {
-  const { user, isLoading } = useCurrentUser();
+  const { user, isPending: isLoading } = useCurrentUserState();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const search = Route.useSearch();
@@ -60,7 +61,7 @@ function AccountPage() {
       <SignedOut>
         <div className="rounded-2xl border border-border bg-card p-8 text-center">
           <p className="mb-4 text-muted-foreground">
-            Sign in with Google to manage your marketplace account.
+            Sign in with Google or email (including Proton Mail) to manage your marketplace account.
           </p>
           <button
             type="button"
@@ -82,7 +83,7 @@ function AccountPage() {
             <section className="rounded-2xl border border-border bg-card p-6">
               <h2 className="mb-4 font-display text-lg font-semibold">Profile</h2>
               <div className="flex items-center gap-4">
-                {user?.image ? (
+                {user?.profileImageUrl ? (
                   <img
                     src={user.image}
                     alt=""
@@ -90,17 +91,17 @@ function AccountPage() {
                   />
                 ) : (
                   <div className="flex size-14 items-center justify-center rounded-full bg-primary/20 text-xl font-bold text-primary">
-                    {(user?.name || user?.email || "?")[0]?.toUpperCase()}
+                    {(user?.displayName || user?.primaryEmail || "?")[0]?.toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <p className="font-medium">{user?.name || "Looter"}</p>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <p className="font-medium">{user?.displayName || "Looter"}</p>
+                  <p className="text-sm text-muted-foreground">{user?.primaryEmail}</p>
                 </div>
               </div>
             </section>
 
-            {/* PayPal gate */}
+            <SiftahCreditsWallet />\n\n            {/* PayPal gate */}
             <section className="rounded-2xl border border-border bg-card p-6">
               <h2 className="mb-1 font-display text-lg font-semibold">Payment methods</h2>
               <p className="mb-4 text-sm text-muted-foreground">

@@ -91,7 +91,7 @@ function Home() {
             </p>
 
             {/* Marketplace search — primary finder */}
-            <div className="max-w-xl pt-1">
+            <div className="hidden max-w-xl pt-1 sm:block">
               <ShopSearch
                 variant="hero"
                 placeholder="Search laptops, GPUs, phones, drones…"
@@ -137,7 +137,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="siftah-mini-ad relative mx-auto mt-1 w-full max-w-xl overflow-hidden rounded-xl border border-red-500/30 bg-[#09090c] text-white shadow-[0_8px_26px_rgba(0,0,0,.22)]" aria-label="Siftah Mobile advertisement">
+      <section className="siftah-mini-ad relative mx-auto mt-1 w-full max-w-6xl overflow-hidden rounded-xl bg-transparent text-white" aria-label="Siftah Mobile advertisement">
         <style>{`
           @keyframes siftahMiniPulse { 0%,100% { opacity:.28; transform:scale(.88) } 50% { opacity:.72; transform:scale(1.08) } }
           @keyframes siftahMiniSweep { 0% { transform:translateX(-160%) skewX(-18deg) } 70%,100% { transform:translateX(430%) skewX(-18deg) } }
@@ -147,12 +147,12 @@ function Home() {
         `}</style>
         <div className="pointer-events-none absolute -right-8 -top-12 size-32 rounded-full bg-red-600/25 blur-2xl siftah-mini-pulse" />
         <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-red-400/20 to-transparent siftah-mini-sweep" />
-        <Link to="/siftah" className="relative flex min-h-[76px] items-center gap-3 px-3 py-2.5 transition hover:bg-white/[0.035] sm:px-4">
-          <img src="/siftah-mobile-logo.svg" alt="" aria-hidden="true" className="h-14 w-14 shrink-0 object-contain drop-shadow-[0_0_12px_rgba(239,35,22,.25)]" />
+        <Link to="/siftah" className="relative flex min-h-[190px] items-center justify-center gap-4 px-2 py-3 transition sm:min-h-[220px] sm:gap-6 sm:px-5">
+          <img src="/siftah-mobile-logo.svg" alt="Siftah Mobile" className="h-44 w-auto max-w-[42%] shrink-0 object-contain drop-shadow-[0_0_14px_rgba(239,35,22,.25)] sm:h-52" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[9px] font-black uppercase tracking-[.2em] text-red-400">A little extra computing power</span>
-            <span className="block text-sm font-extrabold leading-tight sm:text-base">Meet Siftah Mobile</span>
-            <span className="mt-0.5 block text-[11px] leading-snug text-white/65">AI chat, coding help and creative tools.</span>
+            <span className="block text-[9px] font-black uppercase tracking-[.2em] text-white" style={{WebkitTextStroke:"1px #050505",paintOrder:"stroke fill"}}>A little extra computing power</span>
+            <span className="block text-base font-black leading-tight text-red-500 sm:text-xl" style={{WebkitTextStroke:"1.5px #050505",paintOrder:"stroke fill"}}>Meet Siftah Mobile</span>
+            <span className="mt-1 block text-[11px] font-bold leading-snug text-white sm:text-sm" style={{WebkitTextStroke:"1px #050505",paintOrder:"stroke fill"}}>AI chat, coding help and creative tools.</span>
           </span>
           <span className="shrink-0 rounded-lg bg-red-600 px-3 py-2 text-[11px] font-extrabold text-white shadow-md shadow-red-950/40 transition hover:bg-red-500">Explore <span aria-hidden="true">→</span></span>
         </Link>
@@ -382,10 +382,8 @@ function Home() {
           </Link>
         </div>
         <BrandLogo className="h-24 w-auto max-w-[360px] object-contain sm:h-32 sm:max-w-[480px]" />
-        <Link to="/siftah" className="group inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/[0.06] px-4 py-2 text-xs font-semibold text-muted-foreground transition hover:border-red-500/50 hover:bg-red-500/10 hover:text-foreground">
-          <span className="size-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,.8)]" />
-          Siftah Mobile
-          <span className="text-red-400 transition group-hover:translate-x-0.5" aria-hidden="true">→</span>
+        <Link to="/siftah" className="inline-flex items-center justify-center rounded-xl p-2 transition hover:scale-[1.03]" aria-label="Open Siftah Mobile">
+          <img src="/siftah-mobile-logo.svg" alt="Siftah Mobile" className="h-28 w-auto max-w-[180px] object-contain" loading="lazy" />
         </Link>
       </div>
     </AppShell>

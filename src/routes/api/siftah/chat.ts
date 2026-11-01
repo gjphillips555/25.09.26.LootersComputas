@@ -74,6 +74,26 @@ export const Route = createFileRoute("/api/siftah/chat")({
         const { userId, mode } = access;
         const isGuest = mode === "guest";
         const sql = await getSql();
+        const [globalSettings] = await sql.query<{
+          default_super_model: string; fallback_models: string[]; free_super_saiyan: number;
+          free_siftah: number; cooldown_hours: number; guest_enabled: boolean;
+        }>("select default_super_model, fallback_models, free_super_saiyan, free_siftah, cooldown_hours, guest_enabled from siftah_admin_settings where id = 1");
+        const memberRows = isGuest ? [] : await sql.query<{
+          enabled: boolean; model_override: string | null; free_super_saiyan: number | null;
+          free_siftah: number | null; cooldown_hours: number | null;
+        }>("select enabled, model_override, free_super_saiyan, free_siftah, cooldown_hours from siftah_user_settings where user_id = $1", [userId]);
+        const memberSettings = memberRows[0];
+        if (isGuest && globalSettings?.guest_enabled === false) return json({ error: "Guest access is currently disabled. Please sign in." }, 403);
+        if (!isGuest && memberSettings?.enabled === false) return json({ error: "Siftah access has been disabled for this account. Contact support." }, 403);
+        const freeSuper = memberSettings?.free_super_saiyan ?? globalSettings?.free_super_saiyan ?? FREE_SUPER_SAIYAN;
+        const freeSiftah = memberSettings?.free_siftah ?? globalSettings?.free_siftah ?? FREE_SIFTAH;
+        const cooldownHours = memberSettings?.cooldown_hours ?? globalSettings?.cooldown_hours ?? COOLDOWN_HOURS;
+        const superModel = memberSettings?.model_override || globalSettings?.default_super_model || SUPER_SAIYAN_MODEL;
+        const allowedModels = new Set<string>([...SIFTAH_MODELS, SUPER_SAIYAN_MODEL]);
+        const configuredFallbacks = Array.isArray(globalSettings?.fallback_models)
+          ? globalSettings.fallback_models.filter((model) => allowedModels.has(model))
+          : [];
+        const fallbackModels = configuredFallbacks.length ? configuredFallbacks : [...SIFTAH_MODELS];
         await sql.query(
           "insert into siftah_usage (user_id) values ($1) on conflict (user_id) do nothing",
           [userId],
@@ -134,7 +154,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
               and (super_saiyan_used < $2 or siftah_used < $3)
           returning super_saiyan_used, siftah_used, cooldown_until,
                     case when siftah_used > 0 then 'siftah' else 'super_saiyan' end as stage`,
-          [userId, FREE_SUPER_SAIYAN, FREE_SIFTAH, String(COOLDOWN_HOURS)],
+          [userId, freeSuper, freeSiftah, String(cooldownHours)],
         );
 
         let paidCreditReserved = false;
@@ -171,13 +191,13 @@ export const Route = createFileRoute("/api/siftah/chat")({
           let reply = "";
           let modelUsed = "";
           if (stage === "super_saiyan") {
-            reply = await hfChat(SUPER_SAIYAN_MODEL, messages, token);
-            modelUsed = SUPER_SAIYAN_MODEL;
+            reply = await hfChat(superModel, messages, token);
+            modelUsed = superModel;
           } else {
-            const start = Math.max(0, (reserved?.siftah_used ?? 1) - 1) % SIFTAH_MODELS.length;
+            const start = Math.max(0, (reserved?.siftah_used ?? 1) - 1) % fallbackModels.length;
             let lastError: unknown;
-            for (let offset = 0; offset < SIFTAH_MODELS.length; offset += 1) {
-              const candidate = SIFTAH_MODELS[(start + offset) % SIFTAH_MODELS.length];
+            for (let offset = 0; offset < fallbackModels.length; offset += 1) {
+              const candidate = fallbackModels[(start + offset) % fallbackModels.length];
               try {
                 reply = await hfChat(candidate, messages, token);
                 modelUsed = candidate;
@@ -199,7 +219,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
               creditsBalance: isGuest ? 0 : await getCreditBalance(userId),
             },
             creditsCharged: stage === "paid" ? 2 : 0,
-            failoverPool: stage === "siftah" || stage === "paid" ? SIFTAH_MODELS.length : 0,
+            failoverPool: stage === "siftah" || stage === "paid" ? fallbackModels.length : 0,
           });
         } catch (error) {
           if (stage === "paid") {
@@ -215,7 +235,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
                       cooldown_until = case when $2 = 'siftah' and siftah_used = $3 then null else cooldown_until end,
                       updated_at = now()
                 where user_id = $1`,
-              [userId, stage, FREE_SIFTAH],
+              [userId, stage, freeSiftah],
             );
           }
           const message = error instanceof Error ? error.message : "Upstream model error";
