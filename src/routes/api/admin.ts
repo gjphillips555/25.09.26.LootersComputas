@@ -57,6 +57,8 @@ export const Route = createFileRoute("/api/admin")({
       },
       POST: async ({ request }) => {
         try {
+          const origin = request.headers.get("origin");
+          if (origin && origin !== new URL(request.url).origin) return json({ error: "Invalid request origin." }, 403);
           const admin = await getAdminAccess();
           if (!admin) return json({ error: "Admin access required." }, 403);
           const body = await request.json().catch(() => ({})) as Record<string, unknown>;
