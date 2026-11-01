@@ -140,7 +140,7 @@ export function AuthModal({
             <p className="text-center text-sm text-white/50">Sign-in is currently disabled.</p>
           )}
 
-          {/* PayPal note with graphics */}
+          <Link to="/login" search={{ callbackURL }} onClick={onClose} className="block w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-white/10">Use email instead · Proton Mail supported</Link>\n\n          {/* PayPal note with graphics */}
           <div className="rounded-xl border border-[#0070ba]/30 bg-[#003087]/20 px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0070ba]">
