@@ -194,7 +194,6 @@ function SiftahPage() {
   }, [ready, freeUsed, paidLeft, modelId, byoToken, messages]);
 
   useEffect(() => {
-    // If current model is paid-only and they lost access, drop to first free model
     if (!availableModels.some((m) => m.id === modelId)) {
       setModelId(availableModels[0]?.id ?? MODELS[0].id);
     }
@@ -205,7 +204,6 @@ function SiftahPage() {
   }, [messages, busy]);
 
   function claimPaidPack() {
-    // Honour system for now — you confirm payment in PayPal; user taps "I've paid"
     setPaidLeft((n) => n + PAID_PACK);
     setShowPay(false);
     setError(null);
@@ -252,7 +250,6 @@ function SiftahPage() {
         { id: uid(), role: "assistant", content: reply, at: Date.now() },
       ]);
 
-      // Spend free first, then paid pack. BYO token does not burn credits.
       if (!hasByo) {
         if (freeLeft > 0) setFreeUsed((u) => u + 1);
         else if (paidLeft > 0) setPaidLeft((n) => Math.max(0, n - 1));
@@ -357,8 +354,8 @@ function SiftahPage() {
                 ${PAID_USD} USD → {PAID_PACK} messages + paid models unlocked
               </p>
               <p className="text-xs text-muted-foreground">
-                Pay via PayPal (friends & family or goods — your choice). Note:{" "}
-                <span className="font-mono">Siftah {PAID_PACK}</span>. Then tap “I've paid”.
+                Pay via PayPal. Note: <span className="font-mono">Siftah {PAID_PACK}</span>. Then
+                tap “I've paid”.
               </p>
               <div className="flex flex-wrap gap-2">
                 <a
@@ -378,8 +375,8 @@ function SiftahPage() {
                 </button>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Honour system for now (credits stored in this browser). Change PayPal slug in code
-                if <span className="font-mono">paypal.me/{PAYPAL_ME_SLUG}</span> is wrong.
+                Honour system for now (credits in this browser). Fix PayPal slug if{" "}
+                <span className="font-mono">paypal.me/{PAYPAL_ME_SLUG}</span> is wrong.
               </p>
             </div>
           )}
@@ -387,8 +384,8 @@ function SiftahPage() {
           {showToken && (
             <div className="mt-4 space-y-2 rounded-xl border border-dashed border-border bg-secondary/30 p-3">
               <p className="text-xs text-muted-foreground">
-                Optional: your own Hugging Face token (Inference access). Unlimited, any model tier.
-                Stored only in this browser.
+                Optional: your own Hugging Face token. Unlimited, any model tier. Stored only in this
+                browser.
               </p>
               <input
                 type="password"
@@ -417,7 +414,8 @@ function SiftahPage() {
                   Top up ${PAID_USD}
                 </button>
                 <button
-                  type="button"liche onClick={() => setShowToken(true)}
+                  type="button"
+                  onClick={() => setShowToken(true)}
                   className="inline-flex rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
                 >
                   Use my HF token
@@ -496,8 +494,7 @@ function SiftahPage() {
         </section>
 
         <p className="text-center text-xs text-muted-foreground">
-          Free = cheaper Inference routes. Paid unlocks bigger models. Giant GGUF-only packs still need
-          local hardware.
+          Free = cheaper Inference routes. Paid unlocks bigger models.
         </p>
 
         <p className="pb-4 text-center text-sm font-semibold tracking-wide">
