@@ -38,7 +38,8 @@ export const Route = createFileRoute("/api/admin")({
                     coalesce(ca.balance,0)::int as siftah_credits,
                     coalesce(ust.enabled,true) as siftah_enabled,
                     ust.model_override, ust.free_super_saiyan, ust.free_siftah, ust.cooldown_hours,
-                    coalesce(ust.features,'{}'::jsonb) as features
+                    coalesce(ust.features,'{}'::jsonb) as features,
+                    exists(select 1 from profiles p where p.user_id = u.id and p.paypal_payer_id is not null) as paypal_connected
                from "user" u
                left join siftah_usage us on us.user_id = u.id
                left join siftah_credit_accounts ca on ca.user_id = u.id
