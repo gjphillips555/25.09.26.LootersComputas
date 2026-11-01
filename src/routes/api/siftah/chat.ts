@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 import { requireUserId } from "@/lib/auth/verify.server";
+import { getCreditBalance } from "@/lib/paypal.server";
 
 type ChatMessage = { role: "user" | "assistant" | "system"; content: string };
 type Body = {
@@ -72,7 +73,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
                from siftah_usage where user_id = $1`,
             [userId],
           );
-          return json({ usage: publicUsage(usage) });
+          return json({ usage: { ...publicUsage(usage), creditsBalance: await getCreditBalance(userId) } });
         }
 
         const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
@@ -112,22 +113,33 @@ export const Route = createFileRoute("/api/siftah/chat")({
           [userId, FREE_SUPER_SAIYAN, FREE_SIFTAH, String(COOLDOWN_HOURS)],
         );
 
+        let paidCreditReserved = false;
         if (!reserved) {
-          const [usage] = await sql.query<Usage>(
-            `select super_saiyan_used, siftah_used, cooldown_until
-               from siftah_usage where user_id = $1`,
+          const paidRows = await sql.query<{ balance: number }>(
+            `update siftah_credit_accounts
+                set balance = balance - 2, updated_at = now()
+              where user_id = $1 and balance >= 2
+            returning balance`,
             [userId],
           );
-          return json({
-            error: usage?.cooldown_until
-              ? "You've used your 10 free replies. Your Siftah allowance will refresh when the 5-hour cooldown ends."
-              : "Your free replies are used up. Please wait for your allowance to refresh.",
-            code: "FREE_LIMIT",
-            usage: publicUsage(usage),
-          }, 429);
+          paidCreditReserved = paidRows.length > 0;
+          if (!paidCreditReserved) {
+            const [usage] = await sql.query<Usage>(
+              `select super_saiyan_used, siftah_used, cooldown_until
+                 from siftah_usage where user_id = $1`,
+              [userId],
+            );
+            return json({
+              error: usage?.cooldown_until
+                ? "You've used your free allowance and don't have enough Credits. Your free allowance refreshes when the 5-hour cooldown ends."
+                : "Your free allowance is used up. Buy Credits to continue chatting.",
+              code: "FREE_LIMIT",
+              usage: { ...publicUsage(usage), creditsBalance: await getCreditBalance(userId) },
+            }, 429);
+          }
         }
 
-        const stage = reserved.stage;
+        const stage = reserved?.stage ?? "paid";
 
         try {
           let reply = "";
@@ -161,27 +173,35 @@ export const Route = createFileRoute("/api/siftah/chat")({
             reply: reply!,
             stage,
             modelUsed,
-            usage: publicUsage(reserved),
-            failoverPool: stage === "siftah" ? 5 : 0,
+            usage: { ...publicUsage(reserved), creditsBalance: await getCreditBalance(userId) },
+            creditsCharged: stage === "paid" ? 2 : 0,
+            failoverPool: stage === "siftah" || stage === "paid" ? 5 : 0,
           });
         } catch (error) {
           // Failed upstream calls do not consume a free reply or trigger cooldown.
-          await sql.query(
-            `update siftah_usage
-                set super_saiyan_used = greatest(0, super_saiyan_used - case when $2 = 'super_saiyan' then 1 else 0 end),
-                    siftah_used = greatest(0, siftah_used - case when $2 = 'siftah' then 1 else 0 end),
-                    cooldown_until = case when $2 = 'siftah' and siftah_used = $3 then null else cooldown_until end,
-                    updated_at = now()
-              where user_id = $1`,
-            [userId, stage, FREE_SIFTAH],
-          );
+          if (stage === "paid") {
+            await sql.query(
+              "update siftah_credit_accounts set balance = balance + 2, updated_at = now() where user_id = $1",
+              [userId],
+            );
+          } else {
+            await sql.query(
+              `update siftah_usage
+                  set super_saiyan_used = greatest(0, super_saiyan_used - case when $2 = 'super_saiyan' then 1 else 0 end),
+                      siftah_used = greatest(0, siftah_used - case when $2 = 'siftah' then 1 else 0 end),
+                      cooldown_until = case when $2 = 'siftah' and siftah_used = $3 then null else cooldown_until end,
+                      updated_at = now()
+                where user_id = $1`,
+              [userId, stage, FREE_SIFTAH],
+            );
+          }
           const message = error instanceof Error ? error.message : "Upstream model error";
           const [usage] = await sql.query<Usage>(
             `select super_saiyan_used, siftah_used, cooldown_until
                from siftah_usage where user_id = $1`,
             [userId],
           );
-          return json({ error: message, usage: publicUsage(usage) }, 502);
+          return json({ error: message, usage: { ...publicUsage(usage), creditsBalance: await getCreditBalance(userId) } }, 502);
         }
       },
     },
