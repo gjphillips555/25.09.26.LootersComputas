@@ -11,34 +11,43 @@ export const Route = createFileRoute("/siftah")({
       {
         name: "description",
         content:
-          "Siftah Mobile — free trial on budget open models, then $5 for more messages and stronger models.",
+          "Siftah Mobile — free trial on budget open models, then $4.99 for more messages and stronger models.",
       },
     ],
   }),
   component: SiftahPage,
 });
 
-/** Free trial: 10 user messages on budget models only. */
-const FREE_TRIAL = 10;
-/** One-off pack after trial: $5 → 100 extra user messages (10× free). */
-const PAID_PACK = 100;
-const PAID_USD = 5;
+/**
+ * Credits: every message counts both ways (user send + assistant reply).
+ * Cost = 2 credits per bubble → 100 paid credits = 50 bubbles = 25 full replies.
+ */
+const CREDITS_PER_MSG = 2;
+
+/** Free trial: 20 credits = 10 bubbles total = 5 full replies on budget models. */
+const FREE_CREDITS = 20;
+
+/** $4.99 → 100 credits = 50 messages back-and-forth = 25 replies. */
+const PAID_CREDITS = 100;
+const PAID_USD = 4.99;
 
 /**
- * Put your real PayPal.me slug here (no @).
- * Link becomes https://paypal.me/{slug}/5
- * Example: "gjphillips" → paypal.me/gjphillips/5
- * Or set VITE_SIFTAH_PAYPAL_ME in env if you prefer.
+ * Set in Vercel (Production + Preview):
+ *   VITE_SIFTAH_PAYPAL_ME = your PayPal.me slug (no @, no URL)
+ * Example: gjphillips  →  https://www.paypal.com/paypalme/gjphillips/4.99
  */
-const PAYPAL_ME_SLUG =
+const PAYPAL_ME_SLUG = (
   (typeof import.meta !== "undefined" &&
     (import.meta as { env?: { VITE_SIFTAH_PAYPAL_ME?: string } }).env
       ?.VITE_SIFTAH_PAYPAL_ME) ||
-  "looterscomputas";
+  ""
+).trim();
 
-const PAYPAL_PAY_URL = `https://www.paypal.com/paypalme/${PAYPAL_ME_SLUG}/${PAID_USD}`;
+const PAYPAL_PAY_URL = PAYPAL_ME_SLUG
+  ? `https://www.paypal.com/paypalme/${encodeURIComponent(PAYPAL_ME_SLUG)}/${PAID_USD}`
+  : "";
 
-const STORAGE_KEY = "siftah-mobile-v2";
+const STORAGE_KEY = "siftah-mobile-v3";
 
 type Role = "user" | "assistant" | "system";
 type Msg = { id: string; role: Role; content: string; at: number };
@@ -48,16 +57,10 @@ type ModelOpt = {
   label: string;
   blurb: string;
   hf: string;
-  /** free = trial pool; paid = only after $5 pack or BYO token */
   tier: "free" | "paid";
 };
 
-/**
- * Free tier = smaller / cheaper Inference routes (still decent, not toy models).
- * Paid tier = larger abliterated / uncensored checkpoints.
- */
 const MODELS: ModelOpt[] = [
-  // —— Free / budget ——
   {
     id: "gemma3-12b-heretic",
     label: "Gemma 3 12B Heretic",
@@ -79,39 +82,38 @@ const MODELS: ModelOpt[] = [
     hf: "Sao10K/L3-8B-Stheno-v3.2",
     tier: "free",
   },
-  // —— Paid (after $5 or BYO HF token) ——
   {
     id: "qwen35-27b-ablit",
     label: "Qwen3.5 27B Abliterated",
-    blurb: "$5 · strong abliterated",
+    blurb: "$4.99 · strong abliterated",
     hf: "huihui-ai/Huihui-Qwen3.5-27B-abliterated",
     tier: "paid",
   },
   {
     id: "gemma3-27b-ablit",
     label: "Gemma 3 27B Abliterated",
-    blurb: "$5 · mlabonne",
+    blurb: "$4.99 · mlabonne",
     hf: "mlabonne/gemma-3-27b-it-abliterated",
     tier: "paid",
   },
   {
     id: "llama33-70b-ablit",
     label: "Llama 3.3 70B Abliterated",
-    blurb: "$5 · heavyweight",
+    blurb: "$4.99 · heavyweight",
     hf: "huihui-ai/Llama-3.3-70B-Instruct-abliterated",
     tier: "paid",
   },
   {
     id: "hermes3-70b",
     label: "Hermes 3 70B",
-    blurb: "$5 · general / agentic",
+    blurb: "$4.99 · general / agentic",
     hf: "NousResearch/Hermes-3-Llama-3.1-70B",
     tier: "paid",
   },
 ];
 
 type Persist = {
-  freeUsed: number;
+  freeLeft: number;
   paidLeft: number;
   modelId: string;
   byoToken: string;
@@ -120,7 +122,7 @@ type Persist = {
 
 function loadPersist(): Persist {
   const defaults: Persist = {
-    freeUsed: 0,
+    freeLeft: FREE_CREDITS,
     paidLeft: 0,
     modelId: MODELS[0].id,
     byoToken: "",
@@ -133,7 +135,7 @@ function loadPersist(): Persist {
     const p = JSON.parse(raw) as Partial<Persist>;
     const modelId = MODELS.some((m) => m.id === p.modelId) ? (p.modelId as string) : MODELS[0].id;
     return {
-      freeUsed: Number(p.freeUsed) || 0,
+      freeLeft: Math.max(0, Number(p.freeLeft) ?? FREE_CREDITS),
       paidLeft: Math.max(0, Number(p.paidLeft) || 0),
       modelId,
       byoToken: typeof p.byoToken === "string" ? p.byoToken : "",
@@ -150,7 +152,7 @@ function uid() {
 
 function SiftahPage() {
   const [ready, setReady] = useState(false);
-  const [freeUsed, setFreeUsed] = useState(0);
+  const [freeLeft, setFreeLeft] = useState(FREE_CREDITS);
   const [paidLeft, setPaidLeft] = useState(0);
   const [modelId, setModelId] = useState(MODELS[0].id);
   const [byoToken, setByoToken] = useState("");
@@ -163,9 +165,9 @@ function SiftahPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const hasByo = byoToken.trim().length > 8;
-  const freeLeft = Math.max(0, FREE_TRIAL - freeUsed);
-  const canSend = hasByo || freeLeft > 0 || paidLeft > 0;
-  const locked = !canSend;
+  const totalCredits = freeLeft + paidLeft;
+  const canAffordOneBubble = hasByo || totalCredits >= CREDITS_PER_MSG;
+  const locked = !canAffordOneBubble;
 
   const unlockedPaidModels = hasByo || paidLeft > 0;
   const availableModels = useMemo(
@@ -179,7 +181,7 @@ function SiftahPage() {
 
   useEffect(() => {
     const p = loadPersist();
-    setFreeUsed(p.freeUsed);
+    setFreeLeft(p.freeLeft);
     setPaidLeft(p.paidLeft);
     setModelId(p.modelId);
     setByoToken(p.byoToken);
@@ -189,9 +191,9 @@ function SiftahPage() {
 
   useEffect(() => {
     if (!ready) return;
-    const payload: Persist = { freeUsed, paidLeft, modelId, byoToken, messages };
+    const payload: Persist = { freeLeft, paidLeft, modelId, byoToken, messages };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [ready, freeUsed, paidLeft, modelId, byoToken, messages]);
+  }, [ready, freeLeft, paidLeft, modelId, byoToken, messages]);
 
   useEffect(() => {
     if (!availableModels.some((m) => m.id === modelId)) {
@@ -203,8 +205,21 @@ function SiftahPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
+  /** Spend CREDITS_PER_MSG from free first, then paid. */
+  function spendCredits(amount: number) {
+    if (hasByo) return;
+    setFreeLeft((f) => {
+      const fromFree = Math.min(f, amount);
+      const rest = amount - fromFree;
+      if (rest > 0) {
+        setPaidLeft((p) => Math.max(0, p - rest));
+      }
+      return f - fromFree;
+    });
+  }
+
   function claimPaidPack() {
-    setPaidLeft((n) => n + PAID_PACK);
+    setPaidLeft((n) => n + PAID_CREDITS);
     setShowPay(false);
     setError(null);
   }
@@ -213,7 +228,9 @@ function SiftahPage() {
     const text = input.trim();
     if (!text || busy) return;
     if (locked) {
-      setError(`Trial done. Pay $${PAID_USD} for ${PAID_PACK} more messages, or paste your HF token.`);
+      setError(
+        `Out of credits. $${PAID_USD} → ${PAID_CREDITS} credits (25 replies), or paste your HF token.`,
+      );
       setShowPay(true);
       return;
     }
@@ -222,6 +239,7 @@ function SiftahPage() {
     setInput("");
     const userMsg: Msg = { id: uid(), role: "user", content: text, at: Date.now() };
     setMessages((m) => [...m, userMsg]);
+    spendCredits(CREDITS_PER_MSG);
     setBusy(true);
 
     try {
@@ -249,11 +267,7 @@ function SiftahPage() {
         ...m,
         { id: uid(), role: "assistant", content: reply, at: Date.now() },
       ]);
-
-      if (!hasByo) {
-        if (freeLeft > 0) setFreeUsed((u) => u + 1);
-        else if (paidLeft > 0) setPaidLeft((n) => Math.max(0, n - 1));
-      }
+      spendCredits(CREDITS_PER_MSG);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setError(msg);
@@ -261,6 +275,8 @@ function SiftahPage() {
         ...m,
         { id: uid(), role: "assistant", content: `⚠ ${msg}`, at: Date.now() },
       ]);
+      // Still charge for the error bubble so spam can't be free — optional; skip if you prefer refund on fail
+      spendCredits(CREDITS_PER_MSG);
     } finally {
       setBusy(false);
     }
@@ -271,13 +287,16 @@ function SiftahPage() {
     setError(null);
   }
 
+  const bubblesLeft = hasByo
+    ? null
+    : Math.floor(totalCredits / CREDITS_PER_MSG);
+  const repliesLeft = hasByo ? null : Math.floor(totalCredits / (CREDITS_PER_MSG * 2));
+
   const creditLabel = hasByo
     ? "BYO token · unlimited"
-    : freeLeft > 0
-      ? `${freeLeft} free left`
-      : paidLeft > 0
-        ? `${paidLeft} paid left`
-        : "0 left";
+    : totalCredits <= 0
+      ? "0 credits"
+      : `${totalCredits} credits · ~${repliesLeft} replies`;
 
   return (
     <AppShell>
@@ -285,8 +304,8 @@ function SiftahPage() {
         <header className="flex flex-col items-center text-center">
           <SiftahLogo />
           <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-            Free trial: {FREE_TRIAL} messages on budget models. Then ${PAID_USD} via PayPal for{" "}
-            {PAID_PACK} more + stronger models — or bring your own HF token.
+            Free trial on budget models. Then ${PAID_USD} → {PAID_CREDITS} credits (50 messages
+            back-and-forth / 25 replies) + stronger models — or bring your own HF token.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
             <SiteDomainLine />
@@ -317,7 +336,7 @@ function SiftahPage() {
                   "rounded-full px-3 py-1 text-xs font-bold",
                   locked
                     ? "bg-red-600 text-white"
-                    : freeLeft <= 3 && paidLeft === 0 && !hasByo
+                    : totalCredits <= CREDITS_PER_MSG * 4 && !hasByo
                       ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
                       : "bg-red-500/15 text-red-700 dark:text-red-300",
                 )}
@@ -351,32 +370,46 @@ function SiftahPage() {
           {showPay && (
             <div className="mt-4 space-y-3 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm">
               <p className="font-semibold">
-                ${PAID_USD} USD → {PAID_PACK} messages + paid models unlocked
+                ${PAID_USD} USD → {PAID_CREDITS} credits
               </p>
               <p className="text-xs text-muted-foreground">
-                Pay via PayPal. Note: <span className="font-mono">Siftah {PAID_PACK}</span>. Then
-                tap “I've paid”.
+                {CREDITS_PER_MSG} credits per message, both ways → 50 messages /{" "}
+                <strong>25 replies</strong>. Unlocks paid models. Note on payment:{" "}
+                <span className="font-mono">Siftah {PAID_CREDITS}</span>.
               </p>
               <div className="flex flex-wrap gap-2">
-                <a
-                  href={PAYPAL_PAY_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex rounded-xl bg-[#0070ba] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#005ea6]"
-                >
-                  Pay ${PAID_USD} on PayPal
-                </a>
+                {PAYPAL_PAY_URL ? (
+                  <a
+                    href={PAYPAL_PAY_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex rounded-xl bg-[#0070ba] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#005ea6]"
+                  >
+                    Pay ${PAID_USD} on PayPal
+                  </a>
+                ) : (
+                  <span className="inline-flex rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
+                    Set VITE_SIFTAH_PAYPAL_ME in Vercel to enable the pay link
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={claimPaidPack}
                   className="inline-flex rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold hover:bg-secondary"
                 >
-                  I've paid — add {PAID_PACK} messages
+                  I've paid — add {PAID_CREDITS} credits
                 </button>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Honour system for now (credits in this browser). Fix PayPal slug if{" "}
-                <span className="font-mono">paypal.me/{PAYPAL_ME_SLUG}</span> is wrong.
+                Honour system (credits in this browser). Env:{" "}
+                <span className="font-mono">VITE_SIFTAH_PAYPAL_ME</span>
+                {PAYPAL_ME_SLUG ? (
+                  <>
+                    {" "}= <span className="font-mono">{PAYPAL_ME_SLUG}</span>
+                  </>
+                ) : (
+                  " (not set yet)"
+                )}
               </p>
             </div>
           )}
@@ -400,9 +433,9 @@ function SiftahPage() {
 
           {locked && (
             <div className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
-              <p className="font-semibold text-red-700 dark:text-red-300">No messages left</p>
+              <p className="font-semibold text-red-700 dark:text-red-300">No credits left</p>
               <p className="mt-1 text-muted-foreground">
-                ${PAID_USD} gets you {PAID_PACK} more messages and the stronger models, or paste an HF
+                ${PAID_USD} → {PAID_CREDITS} credits (25 replies) + stronger models, or paste an HF
                 token.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -442,8 +475,15 @@ function SiftahPage() {
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
             {messages.length === 0 && (
               <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-6 text-center text-sm text-muted-foreground">
-                Free trial uses budget models only. After ${PAID_USD} you unlock larger abliterated
-                models and {PAID_PACK} extra messages.
+                {bubblesLeft != null ? (
+                  <>
+                    Free pool: {FREE_CREDITS} credits (~{Math.floor(FREE_CREDITS / (CREDITS_PER_MSG * 2))}{" "}
+                    replies). Paid: ${PAID_USD} unlocks larger models + {PAID_CREDITS} credits (25
+                    replies).
+                  </>
+                ) : (
+                  "Ask anything."
+                )}
               </div>
             )}
             {messages.map((m) => (
@@ -478,7 +518,7 @@ function SiftahPage() {
                 onChange={(e) => setInput(e.target.value)}
                 disabled={busy || locked}
                 placeholder={
-                  locked ? `Trial over — $${PAID_USD} top-up or HF token` : "Message Siftah…"
+                  locked ? `Out of credits — $${PAID_USD} or HF token` : "Message Siftah…"
                 }
                 className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-red-500 disabled:opacity-60"
               />
@@ -494,7 +534,7 @@ function SiftahPage() {
         </section>
 
         <p className="text-center text-xs text-muted-foreground">
-          Free = cheaper Inference routes. Paid unlocks bigger models.
+          2 credits per bubble (yours + the reply). Free = budget models. Paid unlocks bigger ones.
         </p>
 
         <p className="pb-4 text-center text-sm font-semibold tracking-wide">
