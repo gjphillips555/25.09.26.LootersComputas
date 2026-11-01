@@ -2454,3 +2454,77 @@ a.loot-outline:hover {
 @media (prefers-reduced-motion: reduce) {
   .toon-spin, .toon-face, .bit, .whiteboard li, .cartoon.is-built .cartoon-case { animation: none; }
 }
+
+
+/* Siftah Mobile: a dark-first, self-contained workspace with a Looters-style red/white wordmark. */
+.siftah-app {
+  color-scheme: dark;
+  --color-background: #09090b;
+  --color-foreground: #e4e4e7;
+  --color-card: #151518;
+  --color-card-foreground: #e4e4e7;
+  --color-popover: #17171b;
+  --color-popover-foreground: #e4e4e7;
+  --color-primary: var(--siftah-accent, #ef4444);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #242428;
+  --color-secondary-foreground: #e4e4e7;
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+  --color-accent: #27272a;
+  --color-accent-foreground: #fafafa;
+  --color-border: rgb(255 255 255 / 12%);
+  --color-input: rgb(255 255 255 / 16%);
+  --color-ring: var(--siftah-accent, #ef4444);
+  background: #09090b;
+  color: #e4e4e7;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.siftah-wordmark {
+  color: #ed1c24;
+  font-family: "Archivo Black", "Arial Black", Impact, sans-serif;
+  font-size: clamp(2.8rem, 11vw, 5.3rem);
+  font-weight: 900;
+  letter-spacing: -0.075em;
+  line-height: 0.92;
+  -webkit-text-stroke: 1.8px #fff;
+  paint-order: stroke fill;
+  text-shadow: 2px 3px 0 #111, 0 0 1px #fff;
+}
+
+.siftah-submark {
+  margin-top: 0.48rem;
+  color: #fff;
+  font-family: "Archivo Black", "Arial Black", Impact, sans-serif;
+  font-size: clamp(1rem, 4vw, 1.4rem);
+  font-weight: 900;
+  letter-spacing: 0.32em;
+  line-height: 1;
+  padding-left: 0.32em;
+  -webkit-text-stroke: 0.45px #fff;
+  text-shadow: 1px 2px 0 #111;
+}
+
+.siftah-submark-small {
+  margin-top: 0.2rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.25em;
+  padding-left: 0.25em;
+}
+
+.siftah-app textarea,
+.siftah-app input,
+.siftah-app select {
+  color: #f4f4f5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siftah-app *,
+  .siftah-app *::before,
+  .siftah-app *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
