@@ -78,10 +78,11 @@ export const Route = createFileRoute("/api/siftah/chat")({
           default_super_model: string; fallback_models: string[]; free_super_saiyan: number;
           free_siftah: number; cooldown_hours: number; guest_enabled: boolean;
         }>("select default_super_model, fallback_models, free_super_saiyan, free_siftah, cooldown_hours, guest_enabled from siftah_admin_settings where id = 1");
-        const [memberSettings] = isGuest ? [] : await sql.query<{
+        const memberRows = isGuest ? [] : await sql.query<{
           enabled: boolean; model_override: string | null; free_super_saiyan: number | null;
           free_siftah: number | null; cooldown_hours: number | null;
         }>("select enabled, model_override, free_super_saiyan, free_siftah, cooldown_hours from siftah_user_settings where user_id = $1", [userId]);
+        const memberSettings = memberRows[0];
         if (isGuest && globalSettings?.guest_enabled === false) return json({ error: "Guest access is currently disabled. Please sign in." }, 403);
         if (!isGuest && memberSettings?.enabled === false) return json({ error: "Siftah access has been disabled for this account. Contact support." }, 403);
         const freeSuper = memberSettings?.free_super_saiyan ?? globalSettings?.free_super_saiyan ?? FREE_SUPER_SAIYAN;
