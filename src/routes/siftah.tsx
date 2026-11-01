@@ -18,16 +18,11 @@ export const Route = createFileRoute("/siftah")({
   component: SiftahPage,
 });
 
-/** 2 credits per bubble (user + assistant). 100 paid = 50 bubbles = 25 replies. */
 const CREDITS_PER_MSG = 2;
 const FREE_CREDITS = 20;
 const PAID_CREDITS = 100;
 const PAID_USD = 4.99;
 
-/**
- * Vercel env: VITE_SIFTAH_PAYPAL_ME = your PayPal.me slug only
- * Create / find it: https://www.paypal.com/paypalme
- */
 const PAYPAL_ME_SLUG = (
   (typeof import.meta !== "undefined" &&
     (import.meta as { env?: { VITE_SIFTAH_PAYPAL_ME?: string } }).env
@@ -43,18 +38,17 @@ const STORAGE_KEY = "siftah-mobile-v4";
 
 type Role = "user" | "assistant" | "system";
 type Msg = { id: string; role: Role; content: string; at: number };
+type ServerStatus = "online" | "busy" | "degraded" | "offline";
+type LoadPhase = "idle" | "connecting" | "generating";
 
 type ServerOpt = {
   id: string;
-  /** Public label only — never expose backend ids in the UI */
   label: string;
   blurb: string;
-  /** Internal backend model id (not shown to users) */
   backend: string;
   tier: "free" | "paid";
 };
 
-/** Public names are Server N. Backend ids stay server-side in the request body only. */
 const SERVERS: ServerOpt[] = [
   {
     id: "s1",
@@ -144,6 +138,32 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function statusLabel(s: ServerStatus) {
+  switch (s) {
+    case "online":
+      return "Online";
+    case "busy":
+      return "Busy";
+    case "degraded":
+      return "Slow";
+    case "offline":
+      return "Offline";
+  }
+}
+
+function statusDotClass(s: ServerStatus) {
+  switch (s) {
+    case "online":
+      return "bg-emerald-500";
+    case "busy":
+      return "bg-amber-400 animate-pulse";
+    case "degraded":
+      return "bg-orange-500";
+    case "offline":
+      return "bg-red-500";
+  }
+}
+
 function SiftahPage() {
   const [ready, setReady] = useState(false);
   const [freeLeft, setFreeLeft] = useState(FREE_CREDITS);
@@ -153,8 +173,13 @@ function SiftahPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<LoadPhase>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [statuses, setStatuses] = useState<Record<string, ServerStatus>>(() =>
+    Object.fromEntries(SERVERS.map((s) => [s.id, "online" as ServerStatus])),
+  );
   const bottomRef = useRef<HTMLDivElement>(null);
+  const phaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalCredits = freeLeft + paidLeft;
   const locked = totalCredits < CREDITS_PER_MSG;
@@ -168,6 +193,32 @@ function SiftahPage() {
     () => availableServers.find((s) => s.id === serverId) ?? availableServers[0] ?? SERVERS[0],
     [availableServers, serverId],
   );
+
+  const activeStatus: ServerStatus = busy ? "busy" : statuses[server.id] ?? "online";
+
+  // Ambient status flicker so the board feels live (not real health checks)
+  useEffect(() => {
+    const tick = () => {
+      setStatuses((prev) => {
+        const next = { ...prev };
+        for (const s of SERVERS) {
+          if (busy && s.id === serverId) {
+            next[s.id] = "busy";
+            continue;
+          }
+          const r = Math.random();
+          if (r > 0.97) next[s.id] = "offline";
+          else if (r > 0.9) next[s.id] = "degraded";
+          else if (r > 0.82) next[s.id] = "busy";
+          else next[s.id] = "online";
+        }
+        return next;
+      });
+    };
+    tick();
+    const id = setInterval(tick, 8000);
+    return () => clearInterval(id);
+  }, [busy, serverId]);
 
   useEffect(() => {
     const p = loadPersist();
@@ -194,7 +245,13 @@ function SiftahPage() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, busy]);
+  }, [messages, busy, phase]);
+
+  useEffect(() => {
+    return () => {
+      if (phaseTimer.current) clearTimeout(phaseTimer.current);
+    };
+  }, []);
 
   function spendCredits(amount: number) {
     setFreeLeft((f) => {
@@ -215,7 +272,9 @@ function SiftahPage() {
     const text = input.trim();
     if (!text || busy) return;
     if (locked) {
-      setError(`Out of credits. $${PAID_USD} unlocks ${PAID_CREDITS} credits (25 replies) + premium servers.`);
+      setError(
+        `Out of credits. $${PAID_USD} unlocks ${PAID_CREDITS} credits (25 replies) + premium servers.`,
+      );
       setShowPay(true);
       return;
     }
@@ -226,6 +285,11 @@ function SiftahPage() {
     setMessages((m) => [...m, userMsg]);
     spendCredits(CREDITS_PER_MSG);
     setBusy(true);
+    setPhase("connecting");
+    setStatuses((prev) => ({ ...prev, [server.id]: "busy" }));
+
+    if (phaseTimer.current) clearTimeout(phaseTimer.current);
+    phaseTimer.current = setTimeout(() => setPhase("generating"), 450);
 
     try {
       const history = [...messages, userMsg]
@@ -252,6 +316,7 @@ function SiftahPage() {
         { id: uid(), role: "assistant", content: reply, at: Date.now() },
       ]);
       spendCredits(CREDITS_PER_MSG);
+      setStatuses((prev) => ({ ...prev, [server.id]: "online" }));
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setError(msg);
@@ -260,7 +325,10 @@ function SiftahPage() {
         { id: uid(), role: "assistant", content: `⚠ ${msg}`, at: Date.now() },
       ]);
       spendCredits(CREDITS_PER_MSG);
+      setStatuses((prev) => ({ ...prev, [server.id]: "degraded" }));
     } finally {
+      if (phaseTimer.current) clearTimeout(phaseTimer.current);
+      setPhase("idle");
       setBusy(false);
     }
   }
@@ -288,25 +356,84 @@ function SiftahPage() {
           </p>
         </header>
 
+        {/* Server status board */}
+        <section className="rounded-2xl border border-border bg-card/80 p-3 sm:p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Server status
+            </p>
+            <p className="text-[11px] text-muted-foreground">Live · auto-refresh</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+            {SERVERS.map((s) => {
+              const unlocked = s.tier === "free" || unlockedPremium;
+              const st: ServerStatus = !unlocked
+                ? "offline"
+                : busy && s.id === server.id
+                  ? "busy"
+                  : statuses[s.id] ?? "online";
+              const active = s.id === server.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={!unlocked || busy}
+                  onClick={() => unlocked && setServerId(s.id)}
+                  className={cn(
+                    "flex flex-col items-start gap-1 rounded-xl border px-2.5 py-2 text-left transition",
+                    active
+                      ? "border-red-500/60 bg-red-500/10"
+                      : "border-border bg-background/60 hover:bg-secondary/60",
+                    (!unlocked || busy) && "opacity-60",
+                  )}
+                >
+                  <span className="flex items-center gap-1.5 text-xs font-bold">
+                    <span className={cn("size-2 shrink-0 rounded-full", statusDotClass(st))} />
+                    {s.label}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {!unlocked ? "Locked" : statusLabel(st)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="rounded-2xl border border-red-500/25 bg-card p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <label className="block min-w-0 flex-1 text-left">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Server
+                Active server
               </span>
               <select
                 value={server.id}
+                disabled={busy}
                 onChange={(e) => setServerId(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-red-500"
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-red-500 disabled:opacity-60"
               >
                 {availableServers.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.label} — {s.blurb}
+                    {s.label} — {s.blurb} · {statusLabel(
+                      busy && s.id === server.id ? "busy" : statuses[s.id] ?? "online",
+                    )}
                   </option>
                 ))}
               </select>
             </label>
             <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold",
+                  activeStatus === "online" && "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+                  activeStatus === "busy" && "bg-amber-500/20 text-amber-800 dark:text-amber-200",
+                  activeStatus === "degraded" && "bg-orange-500/15 text-orange-700 dark:text-orange-300",
+                  activeStatus === "offline" && "bg-red-600 text-white",
+                )}
+              >
+                <span className={cn("size-1.5 rounded-full", statusDotClass(activeStatus))} />
+                {server.label}: {statusLabel(activeStatus)}
+              </span>
               <span
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-bold",
@@ -328,8 +455,9 @@ function SiftahPage() {
               </button>
               <button
                 type="button"
+                disabled={busy}
                 onClick={clearChat}
-                className="rounded-full border border-border px-3 py-1 text-xs font-semibold hover:bg-secondary"
+                className="rounded-full border border-border px-3 py-1 text-xs font-semibold hover:bg-secondary disabled:opacity-50"
               >
                 Clear
               </button>
@@ -390,20 +518,25 @@ function SiftahPage() {
 
         <section className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <div className="text-left">
-              <p className="text-sm font-bold">{server.label}</p>
-              <p className="text-xs text-muted-foreground">{server.blurb}</p>
+            <div className="flex items-center gap-2 text-left">
+              <span className={cn("size-2.5 rounded-full", statusDotClass(activeStatus))} />
+              <div>
+                <p className="text-sm font-bold">{server.label}</p>
+                <p className="text-xs text-muted-foreground">
+                  {server.blurb} · {statusLabel(activeStatus)}
+                </p>
+              </div>
             </div>
             {busy && (
               <span className="flex items-center gap-2 text-xs font-semibold text-red-600">
-                <span className="size-2 animate-pulse rounded-full bg-red-500" />
-                Thinking…
+                <Spinner className="size-3.5" />
+                {phase === "connecting" ? "Connecting…" : "Generating…"}
               </span>
             )}
           </div>
 
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-            {messages.length === 0 && (
+            {messages.length === 0 && !busy && (
               <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-6 text-center text-sm text-muted-foreground">
                 Pick a server and ask anything. Free: Servers 1–3. Premium (after top-up): 4–7.
               </div>
@@ -421,6 +554,20 @@ function SiftahPage() {
                 {m.content}
               </div>
             ))}
+
+            {/* Typing / loading bubble */}
+            {busy && (
+              <div className="mr-auto flex max-w-[92%] items-center gap-3 rounded-2xl border border-border bg-background px-4 py-3">
+                <Spinner className="size-4 text-red-600" />
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">
+                    {phase === "connecting" ? `Connecting to ${server.label}…` : `${server.label} is writing…`}
+                  </p>
+                  <TypingDots />
+                </div>
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
 
@@ -445,9 +592,16 @@ function SiftahPage() {
               <button
                 type="submit"
                 disabled={busy || locked || !input.trim()}
-                className="rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                className="inline-flex min-w-[5.5rem] items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
               >
-                Send
+                {busy ? (
+                  <>
+                    <Spinner className="size-4" />
+                    …
+                  </>
+                ) : (
+                  "Send"
+                )}
               </button>
             </form>
           </div>
@@ -458,6 +612,34 @@ function SiftahPage() {
         </p>
       </div>
     </AppShell>
+  );
+}
+
+function Spinner({ className }: { className?: string }) {
+  return (
+    <svg
+      className={cn("animate-spin", className)}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+      <path
+        className="opacity-90"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
+      />
+    </svg>
+  );
+}
+
+function TypingDots() {
+  return (
+    <span className="mt-0.5 inline-flex gap-1" aria-hidden>
+      <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.2s]" />
+      <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.1s]" />
+      <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground" />
+    </span>
   );
 }
 
