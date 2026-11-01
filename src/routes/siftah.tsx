@@ -332,7 +332,7 @@ function SiftahPage() {
               className="flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold text-white transition hover:brightness-110"
               style={{ backgroundColor: palette.value }}>
               Sign in to Looters
-            </Link>
+            </a>
             <button type="button" onClick={() => void continueAsGuest()} disabled={guestBusy}
               className="min-h-12 rounded-xl border border-white/15 bg-white/[0.06] px-5 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-50">
               {guestBusy ? "Starting guest session…" : "Continue as Guest"}
