@@ -231,6 +231,11 @@ function SiftahPage() {
               signed-in account, not this browser, so refreshing the page won't reset it.
             </div>
           )}
+
+          <p className="mt-3 text-xs text-muted-foreground">
+            Paid continuation is not switched on yet: PayPal payments need server-side verification before
+            extra replies can safely be credited. No payment is taken from this screen.
+          </p>
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-4">
