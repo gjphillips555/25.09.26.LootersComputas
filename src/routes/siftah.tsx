@@ -630,7 +630,18 @@ function extractArtifacts(messages: Msg[]): Artifact[] {
       const nearbyPath = message.content.slice(Math.max(0, match.index - 260), match.index).match(filenamePattern)?.[1];
       const extension = languageExtensions[language.toLowerCase()] || "txt";
       const name = explicit || infoPath || nearbyPath || `snippet-${files.length + 1}.${extension}`;
-      files.push({ id: `${message.id}-${index++}`, name: name.split("/").pop() || name, language, code: match[2].replace(/\n$/, "") });
+      const displayName = name.split("/").pop() || name;
+      const code = match[2].replace(/\n$/, "");
+      // When a continued answer emits another fence for the same named file,
+      // join it into one downloadable artifact instead of showing duplicate files.
+      const existing = (explicit || infoPath || nearbyPath)
+        ? files.find((file) => file.name.toLowerCase() === displayName.toLowerCase())
+        : undefined;
+      if (existing) {
+        existing.code += (existing.code.endsWith("\n") ? "" : "\n") + code;
+      } else {
+        files.push({ id: `${message.id}-${index++}`, name: displayName, language, code });
+      }
     }
   }
   return files;
