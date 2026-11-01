@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowUp, Check, ChevronDown, Copy, Download, FileCode2,
   PanelRightClose, PanelRightOpen, Plus, Sparkles, X,
@@ -328,7 +328,7 @@ function SiftahPage() {
             Sign in with your Looters Computas account to keep your allowance and Credits with you, or try Siftah in Guest mode.
           </p>
           <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">
-            <Link to="/login?callbackURL=%2Fsiftah"
+            <a href="/login?callbackURL=%2Fsiftah"
               className="flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold text-white transition hover:brightness-110"
               style={{ backgroundColor: palette.value }}>
               Sign in to Looters
