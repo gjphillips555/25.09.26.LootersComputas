@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ArrowUp, Check, ChevronDown, Copy, Download, FileCode2, Menu,
-  MessageSquarePlus, PanelRightClose, PanelRightOpen, Plus, Sparkles, X,
+  ArrowUp, Check, ChevronDown, Copy, Download, FileCode2,
+  PanelRightClose, PanelRightOpen, Plus, Sparkles, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -309,7 +310,7 @@ function SiftahPage() {
     URL.revokeObjectURL(url);
   }
 
-  const shellStyle = { "--siftah-accent": palette.value } as React.CSSProperties;
+  const shellStyle = { "--siftah-accent": palette.value } as CSSProperties;
 
   if (authState === "checking") {
     return <div className="siftah-app dark grid min-h-dvh place-items-center" style={shellStyle}>
@@ -327,7 +328,7 @@ function SiftahPage() {
             Sign in with your Looters Computas account to keep your allowance and Credits with you, or try Siftah in Guest mode.
           </p>
           <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">
-            <Link to="/login" search={{ callbackURL: "/siftah" } as never}
+            <Link to="/login?callbackURL=%2Fsiftah"
               className="flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold text-white transition hover:brightness-110"
               style={{ backgroundColor: palette.value }}>
               Sign in to Looters
