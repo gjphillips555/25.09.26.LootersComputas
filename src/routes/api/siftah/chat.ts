@@ -9,7 +9,7 @@ type Body = { action?: "status" | "chat" | "guest"; messages?: ChatMessage[] };
 
 const GUEST_COOKIE = "siftah_guest";
 const GUEST_MAX_AGE = 60 * 60 * 24 * 30;
-const SUPER_SAIYAN_MODEL = "huihui-ai/Qwen2.5-7B-Instruct-abliterated-v3:featherless-ai";
+const SUPER_SAIYAN_MODEL = "huihui-ai/Huihui-Qwen3.5-27B-abliterated:featherless-ai";
 const SIFTAH_MODELS = [
   "google/gemma-3-12b-it:deepinfra",
   "meta-llama/Llama-3.3-70B-Instruct:novita",
