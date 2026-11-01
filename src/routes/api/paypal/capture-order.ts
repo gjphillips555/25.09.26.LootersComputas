@@ -36,7 +36,15 @@ export const Route = createFileRoute("/api/paypal/capture-order")({
               String(capture.amount?.currency_code || ""),
               capture.id,
             );
-            if (!result) return json({ error: "Payment amount did not match the selected Credits package." }, 409);
+            if (!result) {
+              const completedRows = await sql.query(
+                "select status from siftah_paypal_orders where order_id = $1 and user_id = $2",
+                [body.orderId, userId],
+              );
+              if (completedRows[0]?.status !== "COMPLETED") {
+                return json({ error: "Payment amount did not match the selected Credits package." }, 409);
+              }
+            }
           }
 
           const accountRows = await sql.query("select balance from siftah_credit_accounts where user_id = $1", [userId]);
