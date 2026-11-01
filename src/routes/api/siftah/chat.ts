@@ -1,28 +1,19 @@
+import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
-import { requireUserId } from "@/lib/auth/verify.server";
+import { getSessionUser } from "@/lib/auth/verify.server";
 import { getCreditBalance } from "@/lib/paypal.server";
 
-type ChatMessage = { role: "user" | "assistant" | "system"; content: string };
-type Body = {
-  action?: "status" | "chat";
-  messages?: ChatMessage[];
-  token?: string;
-  model?: string;
-};
+type ChatMessage = { role: "user" | "assistant"; content: string };
+type Body = { action?: "status" | "chat" | "guest"; messages?: ChatMessage[] };
 
-const SUPER_SAIYAN_MODELS = [
-  "p-e-w/gemma-3-12b-it-heretic",
-  "dphn/Dolphin3.0-Mistral-24B",
-  "Sao10K/L3-8B-Stheno-v3.2",
-] as const;
-const DEFAULT_SUPER_SAIYAN_MODEL = SUPER_SAIYAN_MODELS[0];
+const GUEST_COOKIE = "siftah_guest";
+const GUEST_MAX_AGE = 60 * 60 * 24 * 30;
+const SUPER_SAIYAN_MODEL = "huihui-ai/Qwen2.5-7B-Instruct-abliterated-v3:featherless-ai";
 const SIFTAH_MODELS = [
-  "p-e-w/gemma-3-12b-it-heretic",
-  "dphn/Dolphin3.0-Mistral-24B",
-  "Sao10K/L3-8B-Stheno-v3.2",
-  "huihui-ai/Huihui-Qwen3.5-27B-abliterated",
-  "mlabonne/gemma-3-27b-it-abliterated",
+  "google/gemma-3-12b-it:deepinfra",
+  "meta-llama/Llama-3.3-70B-Instruct:novita",
+  "Qwen/Qwen3.5-9B:deepinfra",
 ] as const;
 const FREE_SUPER_SAIYAN = 5;
 const FREE_SIFTAH = 5;
@@ -33,6 +24,8 @@ type Usage = {
   siftah_used: number;
   cooldown_until: string | null;
 };
+
+type Access = { userId: string; mode: "account" | "guest" };
 
 export const Route = createFileRoute("/api/siftah/chat")({
   server: {
@@ -45,53 +38,84 @@ export const Route = createFileRoute("/api/siftah/chat")({
           return json({ error: "Invalid JSON body" }, 400);
         }
 
-        let userId: string;
-        try {
-          userId = await requireUserId();
-        } catch {
-          return json({ error: "Please sign in to use Siftah.", code: "AUTH_REQUIRED" }, 401);
+        if (body.action === "guest") {
+          try {
+            const signedIn = await getSessionUser();
+            if (signedIn) return json({ mode: "account" });
+            const existingGuest = readGuestId(request);
+            if (existingGuest) return json({ mode: "guest" });
+            const guestId = randomUUID();
+            const signature = signGuestId(guestId);
+            return json(
+              { mode: "guest" },
+              200,
+              { "Set-Cookie": `${GUEST_COOKIE}=${guestId}.${signature}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${GUEST_MAX_AGE}` },
+            );
+          } catch {
+            return json({ error: "Guest mode is temporarily unavailable. Please sign in instead." }, 503);
+          }
         }
 
+        let access: Access | null = null;
+        try {
+          const signedIn = await getSessionUser();
+          if (signedIn) access = { userId: signedIn.id, mode: "account" };
+          else {
+            const guestId = readGuestId(request);
+            if (guestId) access = { userId: `guest:${guestId}`, mode: "guest" };
+          }
+        } catch {
+          access = null;
+        }
+        if (!access) {
+          return json({ error: "Sign in or choose Guest mode to use Siftah.", code: "AUTH_REQUIRED" }, 401);
+        }
+
+        const { userId, mode } = access;
+        const isGuest = mode === "guest";
         const sql = await getSql();
         await sql.query(
-          `insert into siftah_usage (user_id) values ($1) on conflict (user_id) do nothing`,
+          "insert into siftah_usage (user_id) values ($1) on conflict (user_id) do nothing",
           [userId],
         );
         await sql.query(
           `update siftah_usage
-             set super_saiyan_used = 0,
-                 siftah_used = 0,
-                 cooldown_until = null,
-                 updated_at = now()
-           where user_id = $1 and cooldown_until is not null and cooldown_until <= now()`,
+              set super_saiyan_used = 0,
+                  siftah_used = 0,
+                  cooldown_until = null,
+                  updated_at = now()
+            where user_id = $1 and cooldown_until is not null and cooldown_until <= now()`,
           [userId],
         );
 
         if (body.action === "status") {
           const [usage] = await sql.query<Usage>(
-            `select super_saiyan_used, siftah_used, cooldown_until
-               from siftah_usage where user_id = $1`,
+            "select super_saiyan_used, siftah_used, cooldown_until from siftah_usage where user_id = $1",
             [userId],
           );
-          return json({ usage: { ...publicUsage(usage), creditsBalance: await getCreditBalance(userId) } });
+          return json({
+            mode,
+            usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },
+          });
         }
 
-        const messages = Array.isArray(body.messages) ? body.messages.slice(-12) : [];
-        if (!messages.length || !messages.some((m) => m.role === "user")) {
-          return json({ error: "Missing chat messages" }, 400);
+        const messages = Array.isArray(body.messages)
+          ? body.messages.slice(-12).filter((message) =>
+              message && (message.role === "user" || message.role === "assistant") && typeof message.content === "string",
+            ).map((message) => ({ role: message.role, content: message.content.slice(0, 8000) }))
+          : [];
+        if (!messages.length || !messages.some((message) => message.role === "user")) {
+          return json({ error: "Add a message before sending." }, 400);
         }
 
-        const tokenFromUser = typeof body.token === "string" ? body.token.trim() : "";
-        const token = tokenFromUser ||
-          (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
+        const token = (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
         if (!token) {
           return json({
-            error: "Siftah's AI service is not connected yet. No free use has been consumed. Add the Hugging Face server token and try again.",
+            error: "Siftah's Hugging Face service is not connected yet. No free use has been consumed.",
             code: "AI_NOT_CONFIGURED",
           }, 503);
         }
 
-        // Reserve one reply atomically so simultaneous tabs cannot exceed the cap.
         const [reserved] = await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
           `update siftah_usage
               set super_saiyan_used = case
@@ -114,7 +138,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
         );
 
         let paidCreditReserved = false;
-        if (!reserved) {
+        if (!reserved && !isGuest) {
           const paidRows = await sql.query<{ balance: number }>(
             `update siftah_credit_accounts
                 set balance = balance - 2, updated_at = now()
@@ -123,62 +147,61 @@ export const Route = createFileRoute("/api/siftah/chat")({
             [userId],
           );
           paidCreditReserved = paidRows.length > 0;
-          if (!paidCreditReserved) {
-            const [usage] = await sql.query<Usage>(
-              `select super_saiyan_used, siftah_used, cooldown_until
-                 from siftah_usage where user_id = $1`,
-              [userId],
-            );
-            return json({
-              error: usage?.cooldown_until
-                ? "You've used your free allowance and don't have enough Credits. Your free allowance refreshes when the 5-hour cooldown ends."
-                : "Your free allowance is used up. Buy Credits to continue chatting.",
-              code: "FREE_LIMIT",
-              usage: { ...publicUsage(usage), creditsBalance: await getCreditBalance(userId) },
-            }, 429);
-          }
+        }
+        if (!reserved && !paidCreditReserved) {
+          const [usage] = await sql.query<Usage>(
+            "select super_saiyan_used, siftah_used, cooldown_until from siftah_usage where user_id = $1",
+            [userId],
+          );
+          const creditsBalance = isGuest ? 0 : await getCreditBalance(userId);
+          return json({
+            error: usage?.cooldown_until
+              ? isGuest
+                ? "Your guest free allowance is used up. Sign in to continue with purchased Credits, or come back when the five-hour cooldown ends."
+                : "You've used your free allowance and don't have enough Credits. Your free allowance refreshes when the five-hour cooldown ends."
+              : "Your free allowance is used up. Sign in and buy Credits to continue chatting.",
+            code: "FREE_LIMIT",
+            mode,
+            usage: { ...publicUsage(usage), creditsBalance },
+          }, 429);
         }
 
         const stage = reserved?.stage ?? "paid";
-
         try {
           let reply = "";
-          let modelUsed: string;
+          let modelUsed = "";
           if (stage === "super_saiyan") {
-            const requested = typeof body.model === "string" ? body.model : "";
-            const chosen = (SUPER_SAIYAN_MODELS as readonly string[]).includes(requested)
-              ? requested
-              : DEFAULT_SUPER_SAIYAN_MODEL;
-            reply = await hfChat(chosen, messages, token);
-            modelUsed = chosen;
+            reply = await hfChat(SUPER_SAIYAN_MODEL, messages, token);
+            modelUsed = SUPER_SAIYAN_MODEL;
           } else {
-            const start = Math.max(0, reserved.siftah_used - 1) % SIFTAH_MODELS.length;
+            const start = Math.max(0, (reserved?.siftah_used ?? 1) - 1) % SIFTAH_MODELS.length;
             let lastError: unknown;
-            let successfulModel = "";
             for (let offset = 0; offset < SIFTAH_MODELS.length; offset += 1) {
               const candidate = SIFTAH_MODELS[(start + offset) % SIFTAH_MODELS.length];
               try {
                 reply = await hfChat(candidate, messages, token);
-                successfulModel = candidate;
+                modelUsed = candidate;
                 break;
               } catch (error) {
                 lastError = error;
               }
             }
-            if (!successfulModel) throw lastError ?? new Error("All five Siftah models are busy.");
-            modelUsed = successfulModel;
+            if (!modelUsed) throw lastError ?? new Error("All Siftah models are currently busy.");
           }
 
           return json({
-            reply: reply!,
+            reply,
             stage,
+            mode,
             modelUsed,
-            usage: { ...publicUsage(reserved), creditsBalance: await getCreditBalance(userId) },
+            usage: {
+              ...publicUsage(reserved),
+              creditsBalance: isGuest ? 0 : await getCreditBalance(userId),
+            },
             creditsCharged: stage === "paid" ? 2 : 0,
-            failoverPool: stage === "siftah" || stage === "paid" ? 5 : 0,
+            failoverPool: stage === "siftah" || stage === "paid" ? SIFTAH_MODELS.length : 0,
           });
         } catch (error) {
-          // Failed upstream calls do not consume a free reply or trigger cooldown.
           if (stage === "paid") {
             await sql.query(
               "update siftah_credit_accounts set balance = balance + 2, updated_at = now() where user_id = $1",
@@ -197,16 +220,45 @@ export const Route = createFileRoute("/api/siftah/chat")({
           }
           const message = error instanceof Error ? error.message : "Upstream model error";
           const [usage] = await sql.query<Usage>(
-            `select super_saiyan_used, siftah_used, cooldown_until
-               from siftah_usage where user_id = $1`,
+            "select super_saiyan_used, siftah_used, cooldown_until from siftah_usage where user_id = $1",
             [userId],
           );
-          return json({ error: message, usage: { ...publicUsage(usage), creditsBalance: await getCreditBalance(userId) } }, 502);
+          return json({
+            error: message,
+            mode,
+            usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },
+          }, 502);
         }
       },
     },
   },
 });
+
+function guestSecret() {
+  const secret = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET;
+  if (!secret) throw new Error("A stable auth secret is required for guest sessions.");
+  return secret;
+}
+
+function signGuestId(id: string) {
+  return createHmac("sha256", guestSecret()).update(id).digest("hex");
+}
+
+function readGuestId(request: Request): string | null {
+  const cookie = request.headers.get("cookie") || "";
+  const raw = cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${GUEST_COOKIE}=`))?.slice(GUEST_COOKIE.length + 1);
+  if (!raw) return null;
+  const [id, signature] = raw.split(".");
+  if (!id || !signature || !/^[0-9a-f-]{36}$/i.test(id)) return null;
+  try {
+    const expected = Buffer.from(signGuestId(id), "hex");
+    const supplied = Buffer.from(signature, "hex");
+    if (expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return null;
+    return id;
+  } catch {
+    return null;
+  }
+}
 
 function publicUsage(usage?: Usage) {
   return {
@@ -216,16 +268,15 @@ function publicUsage(usage?: Usage) {
   };
 }
 
-function json(data: unknown, status = 200) {
+function json(data: unknown, status = 200, headers: HeadersInit = {}) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
   });
 }
 
 async function hfChat(model: string, messages: ChatMessage[], token: string) {
-  const routerUrl = "https://router.huggingface.co/v1/chat/completions";
-  const res = await fetch(routerUrl, {
+  const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -233,52 +284,27 @@ async function hfChat(model: string, messages: ChatMessage[], token: string) {
     },
     body: JSON.stringify({
       model,
-      messages: messages.map((m) => ({
-        role: m.role,
-        content: String(m.content || "").slice(0, 8000),
-      })),
-      max_tokens: 512,
+      messages: [
+        { role: "system", content: "You are a helpful, capable assistant. Be clear, practical, and honest. Follow applicable safety and legal boundaries." },
+        ...messages,
+      ],
+      max_tokens: 1200,
       temperature: 0.7,
     }),
   });
-
-  if (res.ok) {
-    const data = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = data.choices?.[0]?.message?.content;
-    if (content) return content;
+  const data = await response.json().catch(() => ({})) as {
+    choices?: Array<{ message?: { content?: string | Array<{ type?: string; text?: string }> } }>;
+    error?: string | { message?: string };
+    message?: string;
+  };
+  if (!response.ok) {
+    const detail = typeof data.error === "string" ? data.error : data.error?.message || data.message;
+    throw new Error(detail || `Hugging Face inference failed (${response.status}).`);
   }
-
-  const prompt = messages
-    .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
-    .join("\n") + "\nASSISTANT:";
-  const fallback = await fetch(
-    `https://api-inference.huggingface.co/models/${encodeURIComponent(model)}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: prompt.slice(0, 12000),
-        parameters: { max_new_tokens: 400, temperature: 0.7, return_full_text: false },
-      }),
-    },
-  );
-  const raw = await fallback.text();
-  if (!fallback.ok) {
-    throw new Error(`Hugging Face ${fallback.status}: ${raw.slice(0, 240)}`);
-  }
-  try {
-    const parsed = JSON.parse(raw) as
-      | Array<{ generated_text?: string }>
-      | { generated_text?: string };
-    if (Array.isArray(parsed)) return parsed[0]?.generated_text || raw;
-    if ("generated_text" in parsed) return parsed.generated_text || raw;
-  } catch {
-    // The inference endpoint can also return plain text.
-  }
-  return raw;
+  const content = data.choices?.[0]?.message?.content;
+  const reply = typeof content === "string"
+    ? content
+    : Array.isArray(content) ? content.map((part) => part.text || "").join("") : "";
+  if (!reply.trim()) throw new Error("The model returned an empty response.");
+  return reply;
 }
