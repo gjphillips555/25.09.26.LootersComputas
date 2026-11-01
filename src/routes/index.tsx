@@ -137,7 +137,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="siftah-mini-ad relative mx-auto mt-1 w-full max-w-xl overflow-hidden rounded-xl border border-red-500/30 bg-[#09090c] text-white shadow-[0_8px_26px_rgba(0,0,0,.22)]" aria-label="Siftah Mobile advertisement">
+      <section className="siftah-mini-ad relative mx-auto mt-1 w-full max-w-none overflow-hidden rounded-xl border border-red-500/30 bg-[#09090c] text-white shadow-[0_8px_26px_rgba(0,0,0,.22)]" aria-label="Siftah Mobile advertisement">
         <style>{`
           @keyframes siftahMiniPulse { 0%,100% { opacity:.28; transform:scale(.88) } 50% { opacity:.72; transform:scale(1.08) } }
           @keyframes siftahMiniSweep { 0% { transform:translateX(-160%) skewX(-18deg) } 70%,100% { transform:translateX(430%) skewX(-18deg) } }
