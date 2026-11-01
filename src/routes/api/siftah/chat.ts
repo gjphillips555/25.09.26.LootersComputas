@@ -114,7 +114,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           );
           return json({
             mode,
-            usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },\n            model: isGuest ? superModel : superModel,
+            usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },
           });
         }
 
