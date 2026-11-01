@@ -84,9 +84,10 @@ export async function signIn(
     return;
   }
 
-  // Production Google sign-in uses Better Auth's built-in Google provider.
-  // The server configures it from GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
-  if (providerId === "grok-google" || providerId === "google") {
+  // The app's Google button uses the shared auth broker provider ID.
+  // Use Better Auth's native Google provider only when explicitly requested
+  // with "google"; "grok-google" must match the server's genericOAuth plugin.
+  if (providerId === "google") {
     const { data, error } = await authClient.signIn.social({
       provider: "google",
       callbackURL,
