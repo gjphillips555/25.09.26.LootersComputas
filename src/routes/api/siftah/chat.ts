@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
         if (!token) {
           return json({
-            error: "Siftah's AI service is not connected yet. No free reply has been used. Add the Hugging Face server token and try again.",
+            error: "Siftah's AI service is not connected yet. No free use has been consumed. Add the Hugging Face server token and try again.",
             code: "AI_NOT_CONFIGURED",
           }, 503);
         }
