@@ -4,6 +4,7 @@ import {
   MessagesSquare,
   Store,
   Wallet,
+  Sparkles,
 } from "lucide-react";
 import { AccountButton } from "@/components/account-button";
 import { BrandLogo } from "@/components/brand-logo";
@@ -11,6 +12,7 @@ import { ShopSearch } from "@/components/shop-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV = [
+  { to: "/siftah" as const, label: "Siftah", icon: Sparkles },
   { to: "/sell" as const, label: "Sell", icon: Store },
   { to: "/account" as const, label: "Inbox", icon: MessageSquare },
   { to: "/hidden/forum" as const, label: "Forum", icon: MessagesSquare },
