@@ -8,13 +8,16 @@ export async function getAdminAccess() {
   if (!user?.email) return null;
   const email = user.email.trim().toLowerCase();
   const sql = await getSql();
-  const rows = await sql.query<{ role: "owner" | "admin" }>(
-    "select role from siftah_admins where lower(email) = $1 limit 1",
-    [email],
+  const rows = await sql.query<{ role: "owner" | "admin" | null; verified: boolean }>(
+    `select a.role, u."emailVerified" as verified
+       from "user" u left join siftah_admins a on lower(a.email) = lower(u.email)
+      where u.id = $1 and lower(u.email) = $2 limit 1`,
+    [user.id, email],
   );
-  // The owner bootstrap remains valid even if the allowlist row is accidentally removed.
+  // Only verified mailbox identities can enter the allowlist-protected toolbox.
+  if (!rows[0]?.verified) return null;
   if (email === OWNER_EMAIL) return { userId: user.id, email, role: "owner" as const };
-  if (!rows[0]) return null;
+  if (!rows[0].role) return null;
   return { userId: user.id, email, role: rows[0].role };
 }
 
