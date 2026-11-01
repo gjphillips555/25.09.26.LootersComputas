@@ -83,11 +83,18 @@ export const Route = createFileRoute("/api/siftah/chat")({
           free_siftah: number | null; cooldown_hours: number | null;
         }>("select enabled, model_override, free_super_saiyan, free_siftah, cooldown_hours from siftah_user_settings where user_id = $1", [userId]);
         const memberSettings = memberRows[0];
+        const adminRows = isGuest ? [] : await sql.query<{ role: string }>(
+          `select a.role from siftah_admins a
+             join "user" u on lower(a.email) = lower(u.email)
+            where u.id = $1 and u."emailVerified" = true limit 1`,
+          [userId],
+        );
+        const isAdmin = adminRows.length > 0;
         if (isGuest && globalSettings?.guest_enabled === false) return json({ error: "Guest access is currently disabled. Please sign in." }, 403);
         if (!isGuest && memberSettings?.enabled === false) return json({ error: "Siftah access has been disabled for this account. Contact support." }, 403);
-        const freeSuper = memberSettings?.free_super_saiyan ?? globalSettings?.free_super_saiyan ?? FREE_SUPER_SAIYAN;
-        const freeSiftah = memberSettings?.free_siftah ?? globalSettings?.free_siftah ?? FREE_SIFTAH;
-        const cooldownHours = memberSettings?.cooldown_hours ?? globalSettings?.cooldown_hours ?? COOLDOWN_HOURS;
+        const freeSuper = isAdmin ? 100 : memberSettings?.free_super_saiyan ?? globalSettings?.free_super_saiyan ?? FREE_SUPER_SAIYAN;
+        const freeSiftah = isAdmin ? 100 : memberSettings?.free_siftah ?? globalSettings?.free_siftah ?? FREE_SIFTAH;
+        const cooldownHours = isAdmin ? 0 : memberSettings?.cooldown_hours ?? globalSettings?.cooldown_hours ?? COOLDOWN_HOURS;
         const superModel = memberSettings?.model_override || globalSettings?.default_super_model || SUPER_SAIYAN_MODEL;
         const allowedModels = new Set<string>([...SIFTAH_MODELS, SUPER_SAIYAN_MODEL]);
         const configuredFallbacks = Array.isArray(globalSettings?.fallback_models)
