@@ -10,7 +10,12 @@ type Body = {
   model?: string;
 };
 
-const SUPER_SAIYAN_MODEL = "NousResearch/Hermes-3-Llama-3.1-70B";
+const SUPER_SAIYAN_MODELS = [
+  "p-e-w/gemma-3-12b-it-heretic",
+  "dphn/Dolphin3.0-Mistral-24B",
+  "Sao10K/L3-8B-Stheno-v3.2",
+] as const;
+const DEFAULT_SUPER_SAIYAN_MODEL = SUPER_SAIYAN_MODELS[0];
 const SIFTAH_MODELS = [
   "p-e-w/gemma-3-12b-it-heretic",
   "dphn/Dolphin3.0-Mistral-24B",
@@ -125,8 +130,12 @@ export const Route = createFileRoute("/api/siftah/chat")({
             reply = "Siftah demo mode: connect a Hugging Face API token on the server to enable live model replies. Your free allowance is being tested, but no AI model was called.";
             modelUsed = "demo";
           } else if (stage === "super_saiyan") {
-            reply = await hfChat(SUPER_SAIYAN_MODEL, messages, token);
-            modelUsed = SUPER_SAIYAN_MODEL;
+            const requested = typeof body.model === "string" ? body.model : "";
+            const chosen = (SUPER_SAIYAN_MODELS as readonly string[]).includes(requested)
+              ? requested
+              : DEFAULT_SUPER_SAIYAN_MODEL;
+            reply = await hfChat(chosen, messages, token);
+            modelUsed = chosen;
           } else {
             const start = Math.max(0, reserved.siftah_used - 1) % SIFTAH_MODELS.length;
             let lastError: unknown;
