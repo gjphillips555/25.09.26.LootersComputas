@@ -11,30 +11,22 @@ export const Route = createFileRoute("/siftah")({
       {
         name: "description",
         content:
-          "Siftah Mobile — free trial on budget open models, then $4.99 for more messages and stronger models.",
+          "Siftah Mobile — unrestricted AI chat. Free trial, then $4.99 for more messages and premium servers.",
       },
     ],
   }),
   component: SiftahPage,
 });
 
-/**
- * Credits: every message counts both ways (user send + assistant reply).
- * Cost = 2 credits per bubble → 100 paid credits = 50 bubbles = 25 full replies.
- */
+/** 2 credits per bubble (user + assistant). 100 paid = 50 bubbles = 25 replies. */
 const CREDITS_PER_MSG = 2;
-
-/** Free trial: 20 credits = 10 bubbles total = 5 full replies on budget models. */
 const FREE_CREDITS = 20;
-
-/** $4.99 → 100 credits = 50 messages back-and-forth = 25 replies. */
 const PAID_CREDITS = 100;
 const PAID_USD = 4.99;
 
 /**
- * Set in Vercel (Production + Preview):
- *   VITE_SIFTAH_PAYPAL_ME = your PayPal.me slug (no @, no URL)
- * Example: gjphillips  →  https://www.paypal.com/paypalme/gjphillips/4.99
+ * Vercel env: VITE_SIFTAH_PAYPAL_ME = your PayPal.me slug only
+ * Create / find it: https://www.paypal.com/paypalme
  */
 const PAYPAL_ME_SLUG = (
   (typeof import.meta !== "undefined" &&
@@ -47,67 +39,70 @@ const PAYPAL_PAY_URL = PAYPAL_ME_SLUG
   ? `https://www.paypal.com/paypalme/${encodeURIComponent(PAYPAL_ME_SLUG)}/${PAID_USD}`
   : "";
 
-const STORAGE_KEY = "siftah-mobile-v3";
+const STORAGE_KEY = "siftah-mobile-v4";
 
 type Role = "user" | "assistant" | "system";
 type Msg = { id: string; role: Role; content: string; at: number };
 
-type ModelOpt = {
+type ServerOpt = {
   id: string;
+  /** Public label only — never expose backend ids in the UI */
   label: string;
   blurb: string;
-  hf: string;
+  /** Internal backend model id (not shown to users) */
+  backend: string;
   tier: "free" | "paid";
 };
 
-const MODELS: ModelOpt[] = [
+/** Public names are Server N. Backend ids stay server-side in the request body only. */
+const SERVERS: ServerOpt[] = [
   {
-    id: "gemma3-12b-heretic",
-    label: "Gemma 3 12B Heretic",
-    blurb: "Free · fast abliterated",
-    hf: "p-e-w/gemma-3-12b-it-heretic",
+    id: "s1",
+    label: "Server 1",
+    blurb: "Free · fast",
+    backend: "p-e-w/gemma-3-12b-it-heretic",
     tier: "free",
   },
   {
-    id: "dolphin-mistral-24b",
-    label: "Dolphin Mistral 24B",
-    blurb: "Free · solid uncensored mid",
-    hf: "dphn/Dolphin3.0-Mistral-24B",
+    id: "s2",
+    label: "Server 2",
+    blurb: "Free · balanced",
+    backend: "dphn/Dolphin3.0-Mistral-24B",
     tier: "free",
   },
   {
-    id: "stheno-8b",
-    label: "Stheno v3.2 8B",
-    blurb: "Free · cheap RP / chat",
-    hf: "Sao10K/L3-8B-Stheno-v3.2",
+    id: "s3",
+    label: "Server 3",
+    blurb: "Free · chat",
+    backend: "Sao10K/L3-8B-Stheno-v3.2",
     tier: "free",
   },
   {
-    id: "qwen35-27b-ablit",
-    label: "Qwen3.5 27B Abliterated",
-    blurb: "$4.99 · strong abliterated",
-    hf: "huihui-ai/Huihui-Qwen3.5-27B-abliterated",
+    id: "s4",
+    label: "Server 4",
+    blurb: "Premium · strong",
+    backend: "huihui-ai/Huihui-Qwen3.5-27B-abliterated",
     tier: "paid",
   },
   {
-    id: "gemma3-27b-ablit",
-    label: "Gemma 3 27B Abliterated",
-    blurb: "$4.99 · mlabonne",
-    hf: "mlabonne/gemma-3-27b-it-abliterated",
+    id: "s5",
+    label: "Server 5",
+    blurb: "Premium · sharp",
+    backend: "mlabonne/gemma-3-27b-it-abliterated",
     tier: "paid",
   },
   {
-    id: "llama33-70b-ablit",
-    label: "Llama 3.3 70B Abliterated",
-    blurb: "$4.99 · heavyweight",
-    hf: "huihui-ai/Llama-3.3-70B-Instruct-abliterated",
+    id: "s6",
+    label: "Server 6",
+    blurb: "Premium · heavy",
+    backend: "huihui-ai/Llama-3.3-70B-Instruct-abliterated",
     tier: "paid",
   },
   {
-    id: "hermes3-70b",
-    label: "Hermes 3 70B",
-    blurb: "$4.99 · general / agentic",
-    hf: "NousResearch/Hermes-3-Llama-3.1-70B",
+    id: "s7",
+    label: "Server 7",
+    blurb: "Premium · agentic",
+    backend: "NousResearch/Hermes-3-Llama-3.1-70B",
     tier: "paid",
   },
 ];
@@ -115,8 +110,7 @@ const MODELS: ModelOpt[] = [
 type Persist = {
   freeLeft: number;
   paidLeft: number;
-  modelId: string;
-  byoToken: string;
+  serverId: string;
   messages: Msg[];
 };
 
@@ -124,8 +118,7 @@ function loadPersist(): Persist {
   const defaults: Persist = {
     freeLeft: FREE_CREDITS,
     paidLeft: 0,
-    modelId: MODELS[0].id,
-    byoToken: "",
+    serverId: SERVERS[0].id,
     messages: [],
   };
   if (typeof window === "undefined") return defaults;
@@ -133,12 +126,13 @@ function loadPersist(): Persist {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaults;
     const p = JSON.parse(raw) as Partial<Persist>;
-    const modelId = MODELS.some((m) => m.id === p.modelId) ? (p.modelId as string) : MODELS[0].id;
+    const serverId = SERVERS.some((s) => s.id === p.serverId)
+      ? (p.serverId as string)
+      : SERVERS[0].id;
     return {
       freeLeft: Math.max(0, Number(p.freeLeft) ?? FREE_CREDITS),
       paidLeft: Math.max(0, Number(p.paidLeft) || 0),
-      modelId,
-      byoToken: typeof p.byoToken === "string" ? p.byoToken : "",
+      serverId,
       messages: Array.isArray(p.messages) ? p.messages.slice(-80) : [],
     };
   } catch {
@@ -154,9 +148,7 @@ function SiftahPage() {
   const [ready, setReady] = useState(false);
   const [freeLeft, setFreeLeft] = useState(FREE_CREDITS);
   const [paidLeft, setPaidLeft] = useState(0);
-  const [modelId, setModelId] = useState(MODELS[0].id);
-  const [byoToken, setByoToken] = useState("");
-  const [showToken, setShowToken] = useState(false);
+  const [serverId, setServerId] = useState(SERVERS[0].id);
   const [showPay, setShowPay] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -164,56 +156,51 @@ function SiftahPage() {
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const hasByo = byoToken.trim().length > 8;
   const totalCredits = freeLeft + paidLeft;
-  const canAffordOneBubble = hasByo || totalCredits >= CREDITS_PER_MSG;
-  const locked = !canAffordOneBubble;
+  const locked = totalCredits < CREDITS_PER_MSG;
+  const unlockedPremium = paidLeft > 0;
 
-  const unlockedPaidModels = hasByo || paidLeft > 0;
-  const availableModels = useMemo(
-    () => MODELS.filter((m) => m.tier === "free" || unlockedPaidModels),
-    [unlockedPaidModels],
+  const availableServers = useMemo(
+    () => SERVERS.filter((s) => s.tier === "free" || unlockedPremium),
+    [unlockedPremium],
   );
-  const model = useMemo(
-    () => availableModels.find((m) => m.id === modelId) ?? availableModels[0] ?? MODELS[0],
-    [availableModels, modelId],
+  const server = useMemo(
+    () => availableServers.find((s) => s.id === serverId) ?? availableServers[0] ?? SERVERS[0],
+    [availableServers, serverId],
   );
 
   useEffect(() => {
     const p = loadPersist();
     setFreeLeft(p.freeLeft);
     setPaidLeft(p.paidLeft);
-    setModelId(p.modelId);
-    setByoToken(p.byoToken);
+    setServerId(p.serverId);
     setMessages(p.messages);
     setReady(true);
   }, []);
 
   useEffect(() => {
     if (!ready) return;
-    const payload: Persist = { freeLeft, paidLeft, modelId, byoToken, messages };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [ready, freeLeft, paidLeft, modelId, byoToken, messages]);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ freeLeft, paidLeft, serverId, messages } satisfies Persist),
+    );
+  }, [ready, freeLeft, paidLeft, serverId, messages]);
 
   useEffect(() => {
-    if (!availableModels.some((m) => m.id === modelId)) {
-      setModelId(availableModels[0]?.id ?? MODELS[0].id);
+    if (!availableServers.some((s) => s.id === serverId)) {
+      setServerId(availableServers[0]?.id ?? SERVERS[0].id);
     }
-  }, [availableModels, modelId]);
+  }, [availableServers, serverId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  /** Spend CREDITS_PER_MSG from free first, then paid. */
   function spendCredits(amount: number) {
-    if (hasByo) return;
     setFreeLeft((f) => {
       const fromFree = Math.min(f, amount);
       const rest = amount - fromFree;
-      if (rest > 0) {
-        setPaidLeft((p) => Math.max(0, p - rest));
-      }
+      if (rest > 0) setPaidLeft((p) => Math.max(0, p - rest));
       return f - fromFree;
     });
   }
@@ -228,9 +215,7 @@ function SiftahPage() {
     const text = input.trim();
     if (!text || busy) return;
     if (locked) {
-      setError(
-        `Out of credits. $${PAID_USD} → ${PAID_CREDITS} credits (25 replies), or paste your HF token.`,
-      );
+      setError(`Out of credits. $${PAID_USD} unlocks ${PAID_CREDITS} credits (25 replies) + premium servers.`);
       setShowPay(true);
       return;
     }
@@ -252,10 +237,9 @@ function SiftahPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: model.hf,
+          model: server.backend,
           messages: history,
-          token: hasByo ? byoToken.trim() : undefined,
-          trial: !hasByo && freeLeft > 0,
+          trial: freeLeft > 0,
         }),
       });
 
@@ -275,7 +259,6 @@ function SiftahPage() {
         ...m,
         { id: uid(), role: "assistant", content: `⚠ ${msg}`, at: Date.now() },
       ]);
-      // Still charge for the error bubble so spam can't be free — optional; skip if you prefer refund on fail
       spendCredits(CREDITS_PER_MSG);
     } finally {
       setBusy(false);
@@ -287,16 +270,9 @@ function SiftahPage() {
     setError(null);
   }
 
-  const bubblesLeft = hasByo
-    ? null
-    : Math.floor(totalCredits / CREDITS_PER_MSG);
-  const repliesLeft = hasByo ? null : Math.floor(totalCredits / (CREDITS_PER_MSG * 2));
-
-  const creditLabel = hasByo
-    ? "BYO token · unlimited"
-    : totalCredits <= 0
-      ? "0 credits"
-      : `${totalCredits} credits · ~${repliesLeft} replies`;
+  const repliesLeft = Math.floor(totalCredits / (CREDITS_PER_MSG * 2));
+  const creditLabel =
+    totalCredits <= 0 ? "0 credits" : `${totalCredits} credits · ~${repliesLeft} replies`;
 
   return (
     <AppShell>
@@ -304,8 +280,8 @@ function SiftahPage() {
         <header className="flex flex-col items-center text-center">
           <SiftahLogo />
           <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-            Free trial on budget models. Then ${PAID_USD} → {PAID_CREDITS} credits (50 messages
-            back-and-forth / 25 replies) + stronger models — or bring your own HF token.
+            Unrestricted AI chat. Free trial on standard servers — then ${PAID_USD} for{" "}
+            {PAID_CREDITS} credits (50 messages / 25 replies) and premium servers.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
             <SiteDomainLine />
@@ -316,16 +292,16 @@ function SiftahPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <label className="block min-w-0 flex-1 text-left">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Model
+                Server
               </span>
               <select
-                value={model.id}
-                onChange={(e) => setModelId(e.target.value)}
+                value={server.id}
+                onChange={(e) => setServerId(e.target.value)}
                 className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-red-500"
               >
-                {availableModels.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label} — {m.blurb}
+                {availableServers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label} — {s.blurb}
                   </option>
                 ))}
               </select>
@@ -336,7 +312,7 @@ function SiftahPage() {
                   "rounded-full px-3 py-1 text-xs font-bold",
                   locked
                     ? "bg-red-600 text-white"
-                    : totalCredits <= CREDITS_PER_MSG * 4 && !hasByo
+                    : totalCredits <= CREDITS_PER_MSG * 4
                       ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
                       : "bg-red-500/15 text-red-700 dark:text-red-300",
                 )}
@@ -352,13 +328,6 @@ function SiftahPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setShowToken((v) => !v)}
-                className="rounded-full border border-border px-3 py-1 text-xs font-semibold hover:bg-secondary"
-              >
-                {showToken ? "Hide token" : "HF token"}
-              </button>
-              <button
-                type="button"
                 onClick={clearChat}
                 className="rounded-full border border-border px-3 py-1 text-xs font-semibold hover:bg-secondary"
               >
@@ -370,11 +339,10 @@ function SiftahPage() {
           {showPay && (
             <div className="mt-4 space-y-3 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm">
               <p className="font-semibold">
-                ${PAID_USD} USD → {PAID_CREDITS} credits
+                ${PAID_USD} USD → {PAID_CREDITS} credits + premium servers
               </p>
               <p className="text-xs text-muted-foreground">
-                {CREDITS_PER_MSG} credits per message, both ways → 50 messages /{" "}
-                <strong>25 replies</strong>. Unlocks paid models. Note on payment:{" "}
+                2 credits per message, both ways → 50 messages / <strong>25 replies</strong>. Note:{" "}
                 <span className="font-mono">Siftah {PAID_CREDITS}</span>.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -389,7 +357,7 @@ function SiftahPage() {
                   </a>
                 ) : (
                   <span className="inline-flex rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
-                    Set VITE_SIFTAH_PAYPAL_ME in Vercel to enable the pay link
+                    Pay link not configured yet — use I've paid after sending ${PAID_USD}
                   </span>
                 )}
                 <button
@@ -400,34 +368,6 @@ function SiftahPage() {
                   I've paid — add {PAID_CREDITS} credits
                 </button>
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Honour system (credits in this browser). Env:{" "}
-                <span className="font-mono">VITE_SIFTAH_PAYPAL_ME</span>
-                {PAYPAL_ME_SLUG ? (
-                  <>
-                    {" "}= <span className="font-mono">{PAYPAL_ME_SLUG}</span>
-                  </>
-                ) : (
-                  " (not set yet)"
-                )}
-              </p>
-            </div>
-          )}
-
-          {showToken && (
-            <div className="mt-4 space-y-2 rounded-xl border border-dashed border-border bg-secondary/30 p-3">
-              <p className="text-xs text-muted-foreground">
-                Optional: your own Hugging Face token. Unlimited, any model tier. Stored only in this
-                browser.
-              </p>
-              <input
-                type="password"
-                autoComplete="off"
-                value={byoToken}
-                onChange={(e) => setByoToken(e.target.value)}
-                placeholder="hf_…"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none focus:border-red-500"
-              />
             </div>
           )}
 
@@ -435,25 +375,15 @@ function SiftahPage() {
             <div className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
               <p className="font-semibold text-red-700 dark:text-red-300">No credits left</p>
               <p className="mt-1 text-muted-foreground">
-                ${PAID_USD} → {PAID_CREDITS} credits (25 replies) + stronger models, or paste an HF
-                token.
+                ${PAID_USD} → {PAID_CREDITS} credits (25 replies) and premium servers (4–7).
               </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowPay(true)}
-                  className="inline-flex rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
-                >
-                  Top up ${PAID_USD}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowToken(true)}
-                  className="inline-flex rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
-                >
-                  Use my HF token
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPay(true)}
+                className="mt-3 inline-flex rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
+              >
+                Top up ${PAID_USD}
+              </button>
             </div>
           )}
         </section>
@@ -461,8 +391,8 @@ function SiftahPage() {
         <section className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="text-left">
-              <p className="text-sm font-bold">{model.label}</p>
-              <p className="text-xs text-muted-foreground">{model.hf}</p>
+              <p className="text-sm font-bold">{server.label}</p>
+              <p className="text-xs text-muted-foreground">{server.blurb}</p>
             </div>
             {busy && (
               <span className="flex items-center gap-2 text-xs font-semibold text-red-600">
@@ -475,15 +405,7 @@ function SiftahPage() {
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
             {messages.length === 0 && (
               <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-6 text-center text-sm text-muted-foreground">
-                {bubblesLeft != null ? (
-                  <>
-                    Free pool: {FREE_CREDITS} credits (~{Math.floor(FREE_CREDITS / (CREDITS_PER_MSG * 2))}{" "}
-                    replies). Paid: ${PAID_USD} unlocks larger models + {PAID_CREDITS} credits (25
-                    replies).
-                  </>
-                ) : (
-                  "Ask anything."
-                )}
+                Pick a server and ask anything. Free: Servers 1–3. Premium (after top-up): 4–7.
               </div>
             )}
             {messages.map((m) => (
@@ -517,9 +439,7 @@ function SiftahPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={busy || locked}
-                placeholder={
-                  locked ? `Out of credits — $${PAID_USD} or HF token` : "Message Siftah…"
-                }
+                placeholder={locked ? `Out of credits — $${PAID_USD} top-up` : "Message Siftah…"}
                 className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-red-500 disabled:opacity-60"
               />
               <button
@@ -532,10 +452,6 @@ function SiftahPage() {
             </form>
           </div>
         </section>
-
-        <p className="text-center text-xs text-muted-foreground">
-          2 credits per bubble (yours + the reply). Free = budget models. Paid unlocks bigger ones.
-        </p>
 
         <p className="pb-4 text-center text-sm font-semibold tracking-wide">
           <SiteDomainLine className="text-muted-foreground" />
