@@ -10,7 +10,7 @@ export const Route = createFileRoute("/siftah")({
       { title: "Siftah Mobile | Looters Computas" },
       {
         name: "description",
-        content: "Siftah Mobile — 5 Super Saiyan replies, then 5 automatic Siftah fallback replies, followed by a five-hour cooldown.",
+        content: "Siftah Mobile — 5 Super Saiyan free uses, then 5 automatic Siftah fallback replies, followed by a five-hour cooldown.",
       },
     ],
   }),
@@ -34,7 +34,7 @@ type ApiResponse = {
   reply?: string;
   error?: string;
   code?: string;
-  stage?: "super_saiyan" | "siftah";
+  stage?: "super_saiyan" | "siftah" | "paid";
   modelUsed?: string;
   usage?: Usage;
   failoverPool?: number;
@@ -171,7 +171,7 @@ function SiftahPage() {
     const text = input.trim();
     if (!text || busy) return;
     if (locked) {
-      setError(`Your free replies refresh in ${cooldownLabel}.`);
+      setError(`Your free uses refresh in ${cooldownLabel}.`);
       return;
     }
 
@@ -203,9 +203,11 @@ function SiftahPage() {
         throw new Error(data.error || `Request failed (${response.status})`);
       }
 
-      const routeLabel = data.stage === "siftah"
-        ? `Siftah failover · ${data.modelUsed || "one of 1–5"}`
-        : `Super Saiyan · ${data.modelUsed || "ready"}`;
+      const routeLabel = data.stage === "paid"
+        ? `Credits · Siftah backup · ${data.modelUsed || "one of 1–5"}`
+        : data.stage === "siftah"
+          ? `Siftah failover · ${data.modelUsed || "one of 1–5"}`
+          : `Super Saiyan · ${data.modelUsed || "ready"}`;
       setLastRoute(routeLabel);
       setMessages((current) => [
         ...current,
@@ -231,7 +233,7 @@ function SiftahPage() {
         <header className="flex flex-col items-center text-center">
           <SiftahLogo />
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-            Your free allowance gives you 5 Super Saiyan replies, followed by 5 more replies
+            Your free allowance gives you 5 Super Saiyan free uses, followed by 5 more free uses
             through the Siftah 1–5 backup pool. If a Siftah is busy or unavailable, another
             automatically takes over.
           </p>
@@ -241,9 +243,9 @@ function SiftahPage() {
         <section className="rounded-2xl border border-red-500/25 bg-card p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your free replies</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your free uses</p>
               <p className="mt-1 text-sm font-bold">
-                {locked ? "Five-hour cooldown" : totalFreeLeft > 0 ? `${totalFreeLeft} free replies remaining` : "Free allowance complete"}
+                {locked ? "Five-hour cooldown" : totalFreeLeft > 0 ? `${totalFreeLeft} free uses remaining` : "Free allowance complete"}
               </p>
             </div>
             <span className={cn(
@@ -259,23 +261,23 @@ function SiftahPage() {
               title="Super Saiyan"
               used={usage.superSaiyanUsed}
               total={FREE_SUPER_SAIYAN}
-              description="First five replies"
+              description="First five free uses"
             />
             <UsageMeter
               title="Siftah 1–5"
               used={usage.siftahUsed}
               total={FREE_SIFTAH}
-              description="Five more replies with automatic failover"
+              description="Five more free uses with automatic failover"
             />
           </div>
 
           {locked ? (
             <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/5 p-3 text-sm">
-              You've used all 10 free replies. Your allowance will reset automatically in {cooldownLabel}.
+              You've used all 10 free uses. Your allowance will reset automatically in {cooldownLabel}.
             </div>
           ) : (
             <div className="mt-4 rounded-xl border border-border bg-background/60 p-3 text-xs text-muted-foreground">
-              The five-hour cooldown starts after your tenth free reply. Your allowance is tied to your
+              The five-hour cooldown starts after your tenth free use. Your allowance is tied to your
               signed-in account, not this browser, so refreshing the page won't reset it.
             </div>
           )}
