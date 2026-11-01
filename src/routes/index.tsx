@@ -139,22 +139,50 @@ function Home() {
 
       <section className="siftah-mini-ad relative mx-auto mt-1 w-full max-w-6xl overflow-hidden rounded-xl bg-transparent text-white" aria-label="Siftah Mobile advertisement">
         <style>{`
-          @keyframes siftahMiniPulse { 0%,100% { opacity:.28; transform:scale(.88) } 50% { opacity:.72; transform:scale(1.08) } }
-          @keyframes siftahMiniSweep { 0% { transform:translateX(-160%) skewX(-18deg) } 70%,100% { transform:translateX(430%) skewX(-18deg) } }
-          .siftah-mini-pulse { animation:siftahMiniPulse 3.4s ease-in-out infinite }
-          .siftah-mini-sweep { animation:siftahMiniSweep 5.5s ease-in-out infinite }
-          @media (prefers-reduced-motion: reduce) { .siftah-mini-pulse,.siftah-mini-sweep { animation:none } }
+          @keyframes siftahMatrixFlicker {
+            0%, 7%, 9%, 11%, 45%, 47%, 49%, 100% { opacity: 1; filter: none; transform: translate(0,0); }
+            8% { opacity: .35; filter: hue-rotate(95deg); transform: translate(3px,-1px); }
+            10% { opacity: .7; filter: contrast(1.8); transform: translate(-3px,1px); }
+            46% { opacity: .45; filter: hue-rotate(140deg); transform: translate(-2px,0); }
+            48% { opacity: .8; filter: contrast(1.5); transform: translate(2px,1px); }
+          }
+          @keyframes siftahMatrixText {
+            0%, 5%, 8%, 10%, 42%, 45%, 48%, 100% { opacity: 1; clip-path: inset(0 0 0 0); text-shadow: 2px 2px 0 #071b0c, -1px 0 #ff263b; transform: translate(0,0); }
+            6% { opacity: .35; clip-path: inset(12% 0 62% 0); text-shadow: 3px 0 #36ff79, -3px 0 #ff263b; transform: translate(3px,-1px); }
+            7% { opacity: .8; clip-path: inset(58% 0 12% 0); text-shadow: -3px 0 #36ff79, 2px 0 #ff263b; transform: translate(-2px,1px); }
+            43% { opacity: .45; clip-path: inset(35% 0 38% 0); text-shadow: 4px 0 #36ff79, -2px 0 #ff263b; transform: translate(-3px,0); }
+            46% { opacity: .7; clip-path: inset(0 0 72% 0); text-shadow: -3px 0 #36ff79, 3px 0 #ff263b; transform: translate(2px,1px); }
+          }
+          @keyframes siftahMatrixScan {
+            0% { transform: translateY(-130%); opacity: 0; }
+            12%, 82% { opacity: .55; }
+            100% { transform: translateY(330%); opacity: 0; }
+          }
+          .siftah-matrix-logo { animation: siftahMatrixFlicker 6.2s steps(1,end) infinite; }
+          .siftah-matrix-copy { animation: siftahMatrixText 5.4s steps(1,end) infinite; }
+          .siftah-matrix-scan { animation: siftahMatrixScan 4.8s linear infinite; }
+          .siftah-matrix-green { color: #b8ffc9; text-shadow: 2px 2px 0 #071b0c, -1px 0 #ff263b; }
+          @media (max-width: 520px) {
+            .siftah-matrix-link { gap: .55rem; min-height: 230px; padding: .8rem .35rem; }
+            .siftah-matrix-logo { height: 9rem; max-width: 39%; }
+            .siftah-matrix-title { font-size: clamp(1.35rem, 6vw, 2rem); }
+            .siftah-matrix-desc { font-size: clamp(.9rem, 3.8vw, 1.08rem); line-height: 1.25; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .siftah-matrix-logo,.siftah-matrix-copy,.siftah-matrix-scan { animation: none !important; }
+          }
         `}</style>
-        <div className="pointer-events-none absolute -right-8 -top-12 size-32 rounded-full bg-red-600/25 blur-2xl siftah-mini-pulse" />
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-red-400/20 to-transparent siftah-mini-sweep" />
-        <Link to="/siftah" className="relative flex min-h-[190px] items-center justify-center gap-4 px-2 py-3 transition sm:min-h-[220px] sm:gap-6 sm:px-5">
-          <img src="/siftah-mobile-logo.svg" alt="Siftah Mobile" className="h-44 w-auto max-w-[42%] shrink-0 object-contain drop-shadow-[0_0_14px_rgba(239,35,22,.25)] sm:h-52" />
-          <span className="min-w-0 flex-1">
-            <span className="block text-[9px] font-black uppercase tracking-[.2em] text-white" style={{WebkitTextStroke:"1px #050505",paintOrder:"stroke fill"}}>A little extra computing power</span>
-            <span className="block text-base font-black leading-tight text-red-500 sm:text-xl" style={{WebkitTextStroke:"1.5px #050505",paintOrder:"stroke fill"}}>Meet Siftah Mobile</span>
-            <span className="mt-1 block text-[11px] font-bold leading-snug text-white sm:text-sm" style={{WebkitTextStroke:"1px #050505",paintOrder:"stroke fill"}}>AI chat, coding help and creative tools.</span>
+        <div className="pointer-events-none absolute -right-10 -top-12 size-44 rounded-full bg-green-500/10 blur-3xl" />
+        <div className="siftah-matrix-scan pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b from-transparent via-green-300/15 to-transparent" />
+        <Link to="/siftah" className="siftah-matrix-link relative flex min-h-[230px] items-center justify-center gap-5 px-3 py-4 transition sm:min-h-[260px] sm:gap-8 sm:px-8">
+          <img src="/siftah-mobile-logo.svg" alt="Siftah Mobile" className="siftah-matrix-logo h-52 w-auto max-w-[43%] shrink-0 object-contain drop-shadow-[0_0_18px_rgba(34,255,105,.28)] sm:h-60" />
+          <span className="siftah-matrix-copy min-w-0 flex-1">
+            <span className="block text-xs font-black uppercase tracking-[.22em] text-green-200 sm:text-sm" style={{WebkitTextStroke:"1px #050505",paintOrder:"stroke fill"}}>AI-powered computing</span>
+            <span className="siftah-matrix-title siftah-matrix-green block text-2xl font-black leading-[1.05] sm:text-4xl" style={{WebkitTextStroke:"1.5px #050505",paintOrder:"stroke fill"}}>Meet Siftah Mobile</span>
+            <span className="siftah-matrix-desc mt-2 block text-base font-extrabold leading-snug text-white sm:text-xl" style={{WebkitTextStroke:"1px #050505",paintOrder:"stroke fill"}}>AI chat, coding help, app building and creative tools.</span>
+            <span className="mt-2 block text-sm font-bold text-green-200 sm:text-base" style={{WebkitTextStroke:"1px #050505",paintOrder:"stroke fill"}}>Your ideas. Built at the speed of thought.</span>
           </span>
-          <span className="shrink-0 rounded-lg bg-red-600 px-3 py-2 text-[11px] font-extrabold text-white shadow-md shadow-red-950/40 transition hover:bg-red-500">Explore <span aria-hidden="true">→</span></span>
+          <span className="shrink-0 rounded-lg border border-green-300/50 bg-green-500/15 px-3 py-2 text-xs font-extrabold text-green-100 shadow-md shadow-green-950/40 transition hover:bg-green-500/30 sm:text-sm">Explore <span aria-hidden="true">→</span></span>
         </Link>
       </section>
 
