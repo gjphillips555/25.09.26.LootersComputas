@@ -130,7 +130,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
         const stage = reserved.stage;
 
         try {
-          let reply: string;
+          let reply = "";
           let modelUsed: string;
           if (stage === "super_saiyan") {
             const requested = typeof body.model === "string" ? body.model : "";
