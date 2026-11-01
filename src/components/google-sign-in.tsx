@@ -43,7 +43,7 @@ export function GoogleSignIn({
         err instanceof Error ? err.message : "Google sign-in failed";
       toast.error(msg, {
         description:
-          "If this keeps happening, Google sign-in needs a database URL set on the live host.",
+          "Google sign-in could not start. Please try again; if it continues, contact support.",
       });
     } finally {
       setBusy(false);
