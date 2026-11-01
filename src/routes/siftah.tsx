@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  ArrowUp, Check, ChevronDown, Copy, Download, FileCode2,
-  PanelRightClose, PanelRightOpen, Plus, Sparkles, X,
+  ArrowUp, Check, ChevronDown, Copy, Crown, Download, Feather, FileCode2,
+  PanelRightClose, PanelRightOpen, Plus, Reply, Sparkles, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -94,6 +94,7 @@ function SiftahPage() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [activeArtifactId, setActiveArtifactId] = useState("");
+  const [replyTarget, setReplyTarget] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -232,18 +233,20 @@ function SiftahPage() {
     setMobilePanelOpen(false);
   }
 
-  async function send() {
-    const text = input.trim();
+  async function send(overrideText?: string, hiddenPrompt = false) {
+    const text = (overrideText ?? input).trim();
     if (!text || busy || authState !== "ready" || locked) return;
     setError(null);
     setInput("");
+    setReplyTarget(null);
     const userMessage: Msg = { id: makeId(), role: "user", content: text, at: Date.now() };
-    const nextMessages = [...messages, userMessage];
-    updateConversation(nextMessages);
+    const nextMessages = hiddenPrompt ? messages : [...messages, userMessage];
+    if (!hiddenPrompt) updateConversation(nextMessages);
     setBusy(true);
     setLastRoute("Connecting…");
     try {
-      const history = nextMessages.slice(-12).map((message) => ({ role: message.role, content: message.content }));
+      const historyMessages = hiddenPrompt ? [...nextMessages, userMessage] : nextMessages;
+      const history = historyMessages.slice(-12).map((message) => ({ role: message.role, content: message.content }));
       const response = await fetch("/api/siftah/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -274,6 +277,15 @@ function SiftahPage() {
       setBusy(false);
       await refreshUsage();
     }
+  }
+
+  function continueLastResponse() {
+    void send("Continue your previous response from exactly where it stopped. Do not repeat completed sections. If you were writing a complete file, continue the file without omitting code.", true);
+  }
+
+  function startReply(messageId: string) {
+    setReplyTarget(messageId);
+    textareaRef.current?.focus();
   }
 
   async function buyCredits(packageId: "starter" | "standard" | "premium") {
@@ -358,7 +370,7 @@ function SiftahPage() {
         <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#09090b]/90 backdrop-blur-xl">
           <div className="mx-auto flex h-[68px] w-full max-w-[1600px] items-center justify-between gap-3 px-3 sm:px-5">
             <div className="flex min-w-0 items-center gap-3">
-              <SiftahWordmark compact />
+              <div className="rounded-xl border border-white/[0.09] bg-white/[0.035] px-3 py-2 shadow-inner"><SiftahWordmark compact /></div>
               <span className="hidden h-7 w-px bg-white/10 sm:block" />
               <span className="hidden text-xs text-zinc-500 sm:block">AI workspace</span>
             </div>
@@ -449,25 +461,37 @@ function SiftahPage() {
 
               <div className="flex-1 space-y-5 pb-8">
                 {messages.length === 0 && !busy && <WelcomePanel palette={palette.value} onPrompt={(prompt) => { setInput(prompt); textareaRef.current?.focus(); }} />}
-                {messages.map((message) => (
-                  <article key={message.id} className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}>
-                    {message.role === "assistant" && <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl text-white" style={{ backgroundColor: palette.value }}><Sparkles className="size-4" /></div>}
-                    <div className={cn("max-w-[min(92%,760px)] rounded-2xl px-4 py-3 text-[14px] leading-7",
-                      message.role === "user" ? "text-white" : "border border-white/[0.08] bg-[#151518] text-zinc-200")}
-                      style={message.role === "user" ? { backgroundColor: palette.value } : undefined}>
+                {messages.map((message, messageIndex) => {
+                  const isLastAssistant = message.role === "assistant" && !messages.slice(messageIndex + 1).some((item) => item.role === "assistant");
+                  return <article key={message.id} className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}>
+                    {message.role === "assistant" && <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-300"><Sparkles className="size-4" /></div>}
+                    <div className={cn("max-w-[min(92%,760px)] rounded-2xl border px-4 py-3 text-[14px] leading-7 shadow-sm",
+                      message.role === "user" ? "border-[var(--siftah-accent)]/45 text-white shadow-[0_6px_22px_rgba(0,0,0,.16)]" : "border-white/[0.13] bg-[#151518] text-zinc-200")}
+                      style={message.role === "user" ? { backgroundColor: `color-mix(in srgb, ${palette.value} 88%, #09090b)` } : undefined}>
+                      <div className="mb-2 flex items-center justify-between gap-4 border-b border-current/10 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-65">
+                        <span>{message.role === "user" ? "You" : "Siftah"}</span><span>{new Date(message.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      </div>
                       <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                      {message.role === "assistant" && <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/[0.08] pt-2">
+                        <button type="button" onClick={() => startReply(message.id)} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"><Reply className="size-3.5" /> Reply</button>
+                        {isLastAssistant && <button type="button" onClick={continueLastResponse} disabled={busy || locked} className="inline-flex items-center gap-1.5 rounded-lg border border-red-400/25 bg-red-500/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-red-200 transition hover:bg-red-500/[0.15] disabled:opacity-40"><Sparkles className="size-3.5" /> Continue</button>}
+                      </div>}
                     </div>
-                    {message.role === "user" && <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-xs font-semibold text-zinc-300">You</div>}
-                  </article>
-                ))}
+                    {message.role === "user" && <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.06] text-xs font-semibold text-zinc-300">You</div>}
+                  </article>;
+                })}
                 {busy && <div className="flex items-start gap-3">
-                  <div className="flex size-8 items-center justify-center rounded-xl text-white" style={{ backgroundColor: palette.value }}><Sparkles className="size-4" /></div>
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#151518] px-4 py-3 text-sm text-zinc-400"><Spinner /> Thinking…</div>
+                  <div className="flex size-8 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-300">{usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? <Crown className="size-4 fill-red-500/20" /> : <Feather className="size-4" />}</div>
+                  <div className="flex flex-col gap-2 rounded-2xl border border-white/[0.13] bg-[#151518] px-4 py-3 text-sm text-zinc-400">
+                    <div className="flex items-center gap-2">{usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? <Crown className="size-4 fill-red-500/20 text-red-500" /> : <Feather className="size-4 text-red-500" />}<span className="font-semibold text-zinc-200">{usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? "Super Saiyan is typing" : "Siftah is typing"}</span><Spinner /></div>
+                    <span className="text-xs text-zinc-500">Working on your response…</span>
+                  </div>
                 </div>}
                 <div ref={bottomRef} />
               </div>
 
               <div className="sticky bottom-0 -mx-3 border-t border-white/[0.06] bg-[#09090b]/95 px-3 pb-4 pt-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
+                {replyTarget && <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs text-zinc-300"><span className="inline-flex items-center gap-2"><Reply className="size-3.5" /> Replying to Siftah</span><button type="button" onClick={() => setReplyTarget(null)} className="rounded-md p-1 text-zinc-500 hover:bg-white/10 hover:text-white" aria-label="Cancel reply"><X className="size-3.5" /></button></div>}
                 {error && <div className="mb-2 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs text-red-200">{error}</div>}
                 {locked && <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-zinc-400">
                   <span>Your free allowance refreshes in {cooldownLabel}. {mode === "account" ? "Use the Credits menu above to continue now." : "Sign in to use purchased Credits."}</span>
@@ -523,9 +547,9 @@ function SiftahPage() {
 }
 
 function SiftahWordmark({ compact = false }: { compact?: boolean }) {
-  return <div className={cn("select-none text-center", compact && "text-left")} aria-label="Siftah Mobile">
-    <div className="siftah-wordmark">SIFTAH</div>
-    <div className={cn("siftah-submark", compact && "siftah-submark-small")}>MOBILE</div>
+  return <div className={cn("flex select-none items-center gap-2", compact ? "text-left" : "justify-center")} aria-label="Siftah Mobile">
+    <div><div className="siftah-wordmark">SIFTAH</div><div className={cn("siftah-submark", compact && "siftah-submark-small")}>MOBILE</div></div>
+    <Crown aria-hidden="true" className={cn("shrink-0 text-red-500 drop-shadow-[0_2px_5px_rgba(239,68,68,.45)]", compact ? "size-5" : "size-8")} fill="rgba(239,68,68,.22)" strokeWidth={2.6} />
   </div>;
 }
 
@@ -581,19 +605,21 @@ function ArtifactPanel({ artifacts, active, onSelect, onCopy, onDownload }: {
 
 function extractArtifacts(messages: Msg[]): Artifact[] {
   const files: Artifact[] = [];
+  const filenamePattern = /(?:^|[\\s\x60*])([\\w./-]+\\.(?:tsx?|jsx?|html?|css|json|py|sql|sh|md|ya?ml|xml|rs|go))(?:[\\x60*:]|\\s|$)/i;
   for (const message of messages) {
     if (message.role !== "assistant") continue;
-    const pattern = /```([^\n`]*)\n([\s\S]*?)```/g;
+    const pattern = /```([^\\n`]*?)\\n([\\s\\S]*?)```/g;
     let match: RegExpExecArray | null;
     let index = 0;
     while ((match = pattern.exec(message.content)) !== null) {
       const info = match[1].trim();
-      const language = info.split(/\s+/)[0] || "text";
-      const explicit = info.match(/(?:file|filename)=([^\s]+)/i)?.[1];
-      const pathLike = info.split(/\s+/).find((part) => /\.[a-z0-9]{1,8}$/i.test(part) || part.includes("/"));
+      const language = info.split(/\\s+/)[0] || "text";
+      const explicit = info.match(/(?:file|filename)=([^\\s]+)/i)?.[1];
+      const infoPath = info.split(/\\s+/).find((part) => /\\.[a-z0-9]{1,8}$/i.test(part) || part.includes("/"));
+      const nearbyPath = message.content.slice(Math.max(0, match.index - 260), match.index).match(filenamePattern)?.[1];
       const extension = languageExtensions[language.toLowerCase()] || "txt";
-      const name = explicit || pathLike || `snippet-${files.length + 1}.${extension}`;
-      files.push({ id: `${message.id}-${index++}`, name: name.split("/").pop() || name, language, code: match[2].replace(/\n$/, "") });
+      const name = explicit || infoPath || nearbyPath || `snippet-${files.length + 1}.${extension}`;
+      files.push({ id: `${message.id}-${index++}`, name: name.split("/").pop() || name, language, code: match[2].replace(/\\n$/, "") });
     }
   }
   return files;
