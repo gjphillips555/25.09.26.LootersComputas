@@ -40,3 +40,9 @@ create table if not exists site_visit_events (
 );
 create index if not exists site_visit_events_created_idx on site_visit_events (created_at desc);
 create index if not exists site_visit_events_user_idx on site_visit_events (user_id, created_at desc);
+
+-- Admin-configurable allowances can exceed the original five-response defaults.
+alter table siftah_usage drop constraint if exists siftah_usage_super_saiyan_used_check;
+alter table siftah_usage drop constraint if exists siftah_usage_siftah_used_check;
+alter table siftah_usage add constraint siftah_usage_super_saiyan_used_check check (super_saiyan_used between 0 and 100);
+alter table siftah_usage add constraint siftah_usage_siftah_used_check check (siftah_used between 0 and 100);
