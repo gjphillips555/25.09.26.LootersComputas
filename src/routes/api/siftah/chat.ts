@@ -80,6 +80,16 @@ export const Route = createFileRoute("/api/siftah/chat")({
           return json({ error: "Missing chat messages" }, 400);
         }
 
+        const tokenFromUser = typeof body.token === "string" ? body.token.trim() : "";
+        const token = tokenFromUser ||
+          (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
+        if (!token) {
+          return json({
+            error: "Siftah's AI service is not connected yet. No free reply has been used. Add the Hugging Face server token and try again.",
+            code: "AI_NOT_CONFIGURED",
+          }, 503);
+        }
+
         // Reserve one reply atomically so simultaneous tabs cannot exceed the cap.
         const [reserved] = await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
           `update siftah_usage
@@ -118,9 +128,6 @@ export const Route = createFileRoute("/api/siftah/chat")({
         }
 
         const stage = reserved.stage;
-        const tokenFromUser = typeof body.token === "string" ? body.token.trim() : "";
-        const token = tokenFromUser ||
-          (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
 
         try {
           let reply: string;
