@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { PageScrollKeys } from "@/components/page-scroll-keys";
+import { AdminToolbar } from "@/components/admin-toolbar";
+import { AnalyticsBeacon } from "@/components/analytics-beacon";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
@@ -11,7 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <SiteFooter />
-      <PageScrollKeys />
+      <PageScrollKeys />\n      <AnalyticsBeacon />
     </div>
   );
 }
