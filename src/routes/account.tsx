@@ -12,6 +12,7 @@ import {
   type ProfileRow,
 } from "@/lib/marketplace/profile";
 import { ARTWORK } from "@/lib/artwork";
+import { SiftahCreditsWallet } from "@/components/siftah-credits-wallet";
 
 export const Route = createFileRoute("/account")({
   component: AccountPage,
@@ -100,7 +101,7 @@ function AccountPage() {
               </div>
             </section>
 
-            {/* PayPal gate */}
+            <SiftahCreditsWallet />\n\n            {/* PayPal gate */}
             <section className="rounded-2xl border border-border bg-card p-6">
               <h2 className="mb-1 font-display text-lg font-semibold">Payment methods</h2>
               <p className="mb-4 text-sm text-muted-foreground">
