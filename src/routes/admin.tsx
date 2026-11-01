@@ -40,7 +40,12 @@ function AdminPage() {
     setData(payload);
     setSettings({ model: payload.settings.default_super_model, fallback: payload.settings.fallback_models, freeSuper: payload.settings.free_super_saiyan, freeSiftah: payload.settings.free_siftah, cooldown: payload.settings.cooldown_hours, guests: payload.settings.guest_enabled });
   }
-  useEffect(() => { if (!isPending && user) void load().catch((e) => setError(e.message)); }, [isPending, user?.id]);
+  useEffect(() => {
+    if (isPending || !user) return;
+    void load().catch((e) => setError(e.message));
+    const timer = window.setInterval(() => { void load().catch(() => undefined); }, 30000);
+    return () => window.clearInterval(timer);
+  }, [isPending, user?.id]);
 
   async function post(body: Record<string, unknown>) {
     setBusy(true); setError("");
