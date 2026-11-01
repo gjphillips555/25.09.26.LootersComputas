@@ -241,6 +241,9 @@ function SiftahPage() {
     setReplyTarget(null);
     const userMessage: Msg = { id: makeId(), role: "user", content: text, at: Date.now() };
     const nextMessages = hiddenPrompt ? messages : [...messages, userMessage];
+    const continuationTargetId = hiddenPrompt
+      ? [...messages].reverse().find((message) => message.role === "assistant")?.id ?? null
+      : null;
     if (!hiddenPrompt) updateConversation(nextMessages);
     setBusy(true);
     setLastRoute("Connecting…");
@@ -265,10 +268,21 @@ function SiftahPage() {
         : data.stage === "paid"
           ? "Credits · Siftah model pool"
           : "Siftah · Automatic model pool");
-      updateConversation([
-        ...nextMessages,
-        { id: makeId(), role: "assistant", content: data.reply || "(No response returned)", at: Date.now() },
-      ]);
+      const replyText = data.reply || "(No response returned)";
+      if (continuationTargetId) {
+        // Keep every Continue segment in the original assistant message so
+        // code fences/files can be parsed as one complete artifact.
+        updateConversation(nextMessages.map((message) =>
+          message.id === continuationTargetId
+            ? { ...message, content: message.content + (message.content.endsWith("\n") ? "\n" : "\n\n") + replyText }
+            : message
+        ));
+      } else {
+        updateConversation([
+          ...nextMessages,
+          { id: makeId(), role: "assistant", content: replyText, at: Date.now() },
+        ]);
+      }
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Something went wrong.";
       setError(message);
