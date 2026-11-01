@@ -6,6 +6,8 @@ import {
   PanelRightClose, PanelRightOpen, Plus, Reply, Sparkles, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminToolbar } from "@/components/admin-toolbar";
+import { AnalyticsBeacon } from "@/components/analytics-beacon";
 
 export const Route = createFileRoute("/siftah")({
   head: () => ({
