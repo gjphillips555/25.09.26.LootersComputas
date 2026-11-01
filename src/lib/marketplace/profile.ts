@@ -27,9 +27,10 @@ export const getMyProfile = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const sql = await getSql();
-    const rows = await sql<
-      ProfileRow[]
-    >`select * from profiles where user_id = ${context.userId} limit 1`;
+    // neon/postgres: generic is the *row* type; result is always an array of rows
+    const rows = await sql<ProfileRow>`
+      select * from profiles where user_id = ${context.userId} limit 1
+    `;
     return rows[0] ?? null;
   });
 
@@ -79,9 +80,9 @@ export const savePayPalConnection = createServerFn({ method: "POST" })
 /** Throw if the current user has not connected PayPal. Use inside any deal/listing server fn. */
 export async function requirePayPalConnected(userId: string) {
   const sql = await getSql();
-  const rows = await sql<
-    { paypal_payer_id: string | null; paypal_email: string | null }[]
-  >`select paypal_payer_id, paypal_email from profiles where user_id = ${userId} limit 1`;
+  const rows = await sql<{ paypal_payer_id: string | null; paypal_email: string | null }>`
+    select paypal_payer_id, paypal_email from profiles where user_id = ${userId} limit 1
+  `;
 
   const p = rows[0];
   if (!p?.paypal_payer_id || !p?.paypal_email) {
