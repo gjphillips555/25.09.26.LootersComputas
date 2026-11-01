@@ -59,6 +59,36 @@ function Home() {
     <AppShell>
       <BrandTicker />
 
+      <section className="siftah-home-ad relative mt-4 overflow-hidden rounded-2xl border border-red-500/30 bg-[#08080b] text-white shadow-[0_18px_55px_rgba(0,0,0,.3)]">
+        <style>{`
+          @keyframes siftahAdGlow { 0%,100% { opacity:.35; transform:scale(.9) } 50% { opacity:.85; transform:scale(1.12) } }
+          @keyframes siftahAdSweep { 0% { transform:translateX(-140%) skewX(-18deg) } 65%,100% { transform:translateX(480%) skewX(-18deg) } }
+          @keyframes siftahAdFloat { 0%,100% { transform:translateY(0) rotate(-3deg) } 50% { transform:translateY(-8px) rotate(3deg) } }
+          .siftah-ad-glow { animation:siftahAdGlow 3.8s ease-in-out infinite }
+          .siftah-ad-sweep { animation:siftahAdSweep 5s ease-in-out infinite }
+          .siftah-ad-feather { animation:siftahAdFloat 3s ease-in-out infinite }
+          @media (prefers-reduced-motion: reduce) { .siftah-ad-glow,.siftah-ad-sweep,.siftah-ad-feather { animation:none } }
+        `}</style>
+        <div className="pointer-events-none absolute -right-10 -top-20 size-72 rounded-full bg-red-600/25 blur-3xl siftah-ad-glow" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-red-400/15 to-transparent siftah-ad-sweep" />
+        <div className="relative grid items-center gap-5 px-5 py-6 sm:px-8 md:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="flex items-center gap-4">
+            <img src="/siftah-mobile-logo.svg" alt="Siftah Mobile" className="w-28 shrink-0 drop-shadow-[0_0_20px_rgba(239,35,22,.22)] sm:w-36" />
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[.24em] text-red-400">Meet your new thinking partner</p>
+              <h2 className="mt-1 text-balance font-display text-2xl font-black leading-tight sm:text-3xl">Big ideas. Faster answers.</h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/70">Siftah Mobile — AI chat, code help and a workspace built for getting things done.</p>
+              <p className="mt-2 text-xs font-semibold text-red-300">Special delivery for curious minds.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 md:flex-col md:items-end">
+            <span className="siftah-ad-feather hidden text-3xl text-red-500 sm:inline-block" aria-hidden="true">✦</span>
+            <Link to="/siftah" className="inline-flex shrink-0 items-center justify-center rounded-xl bg-red-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-red-950/50 transition hover:-translate-y-0.5 hover:bg-red-500">Try Siftah Mobile <span aria-hidden="true" className="ml-2">→</span></Link>
+          </div>
+        </div>
+      </section>
+
+
       <section className="relative mt-2 bg-transparent">
         <div
           className="pointer-events-none absolute inset-0 opacity-50"
