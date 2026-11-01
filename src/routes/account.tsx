@@ -95,8 +95,8 @@ function AccountPage() {
                   </div>
                 )}
                 <div>
-                  <p className="font-medium">{user?.name || "Looter"}</p>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                  <p className="font-medium">{user?.displayName || "Looter"}</p>
+                  <p className="text-sm text-muted-foreground">{user?.primaryEmail}</p>
                 </div>
               </div>
             </section>
