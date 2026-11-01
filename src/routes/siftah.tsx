@@ -400,6 +400,7 @@ function SiftahPage() {
               <span className="hidden rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] text-zinc-400 sm:inline-flex">
                 {mode === "guest" ? "Guest mode" : "Looters account"}
               </span>
+              {mode === "guest" && <a href="/login?callbackURL=%2Fsiftah" className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-white/[0.06]">Sign in</a>}
               <button type="button" onClick={() => setMobilePanelOpen(true)}
                 className="inline-flex size-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300 hover:bg-white/[0.08] md:hidden"
                 aria-label="Open code files"><FileCode2 className="size-4" /></button>
@@ -468,8 +469,9 @@ function SiftahPage() {
 
               <div className="sticky bottom-0 -mx-3 border-t border-white/[0.06] bg-[#09090b]/95 px-3 pb-4 pt-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
                 {error && <div className="mb-2 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs text-red-200">{error}</div>}
-                {locked && <div className="mb-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-zinc-400">
-                  Your free allowance refreshes in {cooldownLabel}. {mode === "account" ? "Use the Credits menu above to continue now." : "Sign in to use purchased Credits."}
+                {locked && <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-zinc-400">
+                  <span>Your free allowance refreshes in {cooldownLabel}. {mode === "account" ? "Use the Credits menu above to continue now." : "Sign in to use purchased Credits."}</span>
+                  {mode === "guest" && <a href="/login?callbackURL=%2Fsiftah" className="font-semibold underline" style={{ color: palette.value }}>Sign in</a>}
                 </div>}
                 <form onSubmit={(event) => { event.preventDefault(); void send(); }}
                   className="rounded-2xl border border-white/[0.12] bg-[#17171b] p-2 shadow-[0_8px_36px_rgba(0,0,0,.28)] focus-within:border-white/25">
