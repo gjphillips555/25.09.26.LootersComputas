@@ -1,6 +1,6 @@
 {
   "name": "app-builder-workspace",
-  "engines": { "node": ">=22.12.0" },
+  "engines": { "node": "24.x" },
   "private": true,
   "sideEffects": false,
   "type": "module",
