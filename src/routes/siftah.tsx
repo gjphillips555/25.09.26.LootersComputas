@@ -10,7 +10,7 @@ export const Route = createFileRoute("/siftah")({
       { title: "Siftah Mobile | Looters Computas" },
       {
         name: "description",
-        content: "Siftah Mobile — 5 Super Saiyan free uses, then 5 automatic Siftah fallback replies, followed by a five-hour cooldown.",
+        content: "Siftah Mobile — 5 Super Saiyan free uses, then 5 automatic Siftah backup uses, followed by a five-hour cooldown.",
       },
     ],
   }),
@@ -298,14 +298,14 @@ function SiftahPage() {
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {[
-              { id: "starter" as const, name: "Starter", credits: 40, price: "NZ$4.99", replies: "20 AI responses" },
-              { id: "standard" as const, name: "Standard", credits: 100, price: "NZ$9.99", replies: "50 AI responses" },
-              { id: "premium" as const, name: "Premium", credits: 200, price: "NZ$19.99", replies: "100 AI responses" },
+              { id: "starter" as const, name: "Starter", credits: 40, price: "NZ$4.99", responses: "20 AI responses" },
+              { id: "standard" as const, name: "Standard", credits: 100, price: "NZ$9.99", responses: "50 AI responses" },
+              { id: "premium" as const, name: "Premium", credits: 200, price: "NZ$19.99", responses: "100 AI responses" },
             ].map((pack) => (
               <div key={pack.id} className="rounded-xl border border-border bg-background/70 p-3">
                 <p className="text-sm font-bold">{pack.name}</p>
                 <p className="mt-1 text-xl font-black">{pack.credits} Credits</p>
-                <p className="text-xs text-muted-foreground">{pack.replies}</p>
+                <p className="text-xs text-muted-foreground">{pack.responses}</p>
                 <p className="mt-3 text-lg font-bold">{pack.price}</p>
                 <button
                   type="button"
@@ -363,7 +363,7 @@ function SiftahPage() {
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
             {messages.length === 0 && !busy && (
               <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-6 text-center text-sm text-muted-foreground">
-                Start a conversation. You'll get five Super Saiyan replies, then five Siftah backup replies.
+                Start a conversation. Your free allowance includes five Super Saiyan uses, then five Siftah backup uses.
               </div>
             )}
             {messages.map((message) => (
@@ -382,7 +382,7 @@ function SiftahPage() {
             {busy && (
               <div className="mr-auto flex items-center gap-3 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
                 <Spinner className="size-4 text-red-600" />
-                {lastRoute === "Connecting…" ? "Connecting…" : "Generating reply…"}
+                {lastRoute === "Connecting…" ? "Connecting…" : "Generating response…"}
               </div>
             )}
             <div ref={bottomRef} />
