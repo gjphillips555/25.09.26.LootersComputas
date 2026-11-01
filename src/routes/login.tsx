@@ -18,7 +18,7 @@ function Login() {
   const [message, setMessage] = useState("");
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("callbackURL");
-    if (requested === "/siftah") setCallbackURL("/siftah");
+    if (requested === "/siftah" || requested === "/admin") setCallbackURL(requested);
   }, []);
 
   async function submitEmail(event: React.FormEvent<HTMLFormElement>) {
