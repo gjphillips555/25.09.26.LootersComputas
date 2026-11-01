@@ -98,7 +98,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
               and (cooldown_until is null or cooldown_until <= now())
               and (super_saiyan_used < $2 or siftah_used < $3)
           returning super_saiyan_used, siftah_used, cooldown_until,
-                    case when super_saiyan_used <= $2 then 'super_saiyan' else 'siftah' end as stage`,
+                    case when siftah_used > 0 then 'siftah' else 'super_saiyan' end as stage`,
           [userId, FREE_SUPER_SAIYAN, FREE_SIFTAH, String(COOLDOWN_HOURS)],
         );
 
@@ -125,11 +125,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
         try {
           let reply: string;
           let modelUsed: string;
-          if (!token) {
-            const last = [...messages].reverse().find((m) => m.role === "user");
-            reply = "Siftah demo mode: connect a Hugging Face API token on the server to enable live model replies. Your free allowance is being tested, but no AI model was called.";
-            modelUsed = "demo";
-          } else if (stage === "super_saiyan") {
+          if (stage === "super_saiyan") {
             const requested = typeof body.model === "string" ? body.model : "";
             const chosen = (SUPER_SAIYAN_MODELS as readonly string[]).includes(requested)
               ? requested
