@@ -547,10 +547,7 @@ function SiftahPage() {
 }
 
 function SiftahWordmark({ compact = false }: { compact?: boolean }) {
-  return <div className={cn("flex select-none items-center gap-2", compact ? "text-left" : "justify-center")} aria-label="Siftah Mobile">
-    <div><div className="siftah-wordmark">SIFTAH</div><div className={cn("siftah-submark", compact && "siftah-submark-small")}>MOBILE</div></div>
-    <Crown aria-hidden="true" className={cn("shrink-0 text-red-500 drop-shadow-[0_2px_5px_rgba(239,68,68,.45)]", compact ? "size-5" : "size-8")} fill="rgba(239,68,68,.22)" strokeWidth={2.6} />
-  </div>;
+  return <img src="/siftah-mobile-logo.svg" alt="Siftah Mobile" className={cn("h-auto select-none object-contain", compact ? "w-[132px]" : "mx-auto w-[min(340px,80vw)]")} />;
 }
 
 function WelcomePanel({ palette, onPrompt }: { palette: string; onPrompt: (prompt: string) => void }) {
