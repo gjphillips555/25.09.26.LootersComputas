@@ -28,41 +28,76 @@ type ModelOpt = {
   id: string;
   label: string;
   blurb: string;
-  /** Hugging Face model id for Inference API */
+  /** Hugging Face model id for Inference Providers / router */
   hf: string;
 };
 
-/** Curated selectable backends. Swap IDs as models move on HF. */
+/**
+ * Prefer the largest checkpoints that are actually reachable via HF Inference
+ * Providers (Featherless / router, etc.). Size is irrelevant when a provider hosts it.
+ * GGUF-only packs (e.g. SC117 Qwen3.8 Flash ~80GB) are download/local only — not listed.
+ * Availability can change; swap IDs if a provider drops a route.
+ */
 const MODELS: ModelOpt[] = [
   {
-    id: "dolphin-llama3",
-    label: "Dolphin · Llama 3",
-    blurb: "Helpful, low-refusal chat",
-    hf: "cognitivecomputations/dolphin-2.9-llama3-8b",
+    id: "llama33-70b-ablit",
+    label: "Llama 3.3 70B Abliterated",
+    blurb: "Largest common abliterated Llama · HF Inference",
+    hf: "huihui-ai/Llama-3.3-70B-Instruct-abliterated",
   },
   {
-    id: "wizard-uncensored",
-    label: "WizardLM Uncensored",
-    blurb: "Classic open uncensored style",
-    hf: "TheBloke/WizardLM-13B-Uncensored-GPTQ",
+    id: "hermes3-70b",
+    label: "Hermes 3 70B",
+    blurb: "Strong general / agentic · low refusal",
+    hf: "NousResearch/Hermes-3-Llama-3.1-70B",
   },
   {
-    id: "mythomax",
-    label: "MythoMax",
-    blurb: "Creative / roleplay leaning",
-    hf: "Gryphe/MythoMax-L2-13B",
+    id: "euryale-70b",
+    label: "Euryale v2.3 70B",
+    blurb: "Creative / RP heavyweight",
+    hf: "Sao10K/L3-70B-Euryale-v2.3",
   },
   {
-    id: "openhermes",
-    label: "OpenHermes 2.5",
-    blurb: "Strong general assistant",
-    hf: "teknium/OpenHermes-2.5-Mistral-7B",
+    id: "magnum-72b",
+    label: "Magnum v4 72B",
+    blurb: "~72B creative line",
+    hf: "anthracite-org/magnum-v4-72b",
   },
   {
-    id: "abliterated-demo",
-    label: "Abliterated (demo id)",
-    blurb: "Placeholder — point at your preferred abliterated checkpoint",
-    hf: "huihui-ai/Llama-3.2-3B-Instruct-abliterated",
+    id: "dolphin-70b",
+    label: "Dolphin 2.1 70B",
+    blurb: "Classic uncensored fine-tune · Featherless",
+    hf: "dphn/dolphin-2.1-70b",
+  },
+  {
+    id: "qwen35-27b-ablit",
+    label: "Qwen3.5 27B Abliterated",
+    blurb: "Top abliterated Qwen tier on HF Inference",
+    hf: "huihui-ai/Huihui-Qwen3.5-27B-abliterated",
+  },
+  {
+    id: "qwen35-27b-derestrict",
+    label: "Qwen3.5 27B Derestricted",
+    blurb: "ArliAI derestricted 27B",
+    hf: "ArliAI/Qwen3.5-27B-Derestricted",
+  },
+  {
+    id: "gemma3-27b-ablit",
+    label: "Gemma 3 27B Abliterated",
+    blurb: "mlabonne abliteration · well known",
+    hf: "mlabonne/gemma-3-27b-it-abliterated",
+  },
+  {
+    id: "dolphin-mistral-24b",
+    label: "Dolphin Mistral 24B",
+    blurb: "Dolphin 3 · solid mid-large uncensored",
+    hf: "dphn/Dolphin3.0-Mistral-24B",
+  },
+  {
+    id: "gemma3-12b-heretic",
+    label: "Gemma 3 12B Heretic",
+    blurb: "Smaller / faster heretic abliteration",
+    hf: "p-e-w/gemma-3-12b-it-heretic",
   },
 ];
 
@@ -81,9 +116,10 @@ function loadPersist(): Persist {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { used: 0, modelId: MODELS[0].id, byoToken: "", messages: [] };
     const p = JSON.parse(raw) as Persist;
+    const modelId = MODELS.some((m) => m.id === p.modelId) ? p.modelId : MODELS[0].id;
     return {
       used: Number(p.used) || 0,
-      modelId: p.modelId || MODELS[0].id,
+      modelId,
       byoToken: typeof p.byoToken === "string" ? p.byoToken : "",
       messages: Array.isArray(p.messages) ? p.messages.slice(-80) : [],
     };
@@ -200,24 +236,22 @@ function SiftahPage() {
   return (
     <AppShell>
       <div className="mx-auto flex max-w-4xl flex-col gap-6 py-8 sm:py-10">
-        {/* Brand block */}
         <header className="flex flex-col items-center text-center">
           <SiftahLogo />
           <p className="mt-3 max-w-xl text-sm text-muted-foreground">
-            Chat with selectable open models. Modern chat UI up front — backends you can swap.
-            Free trial of {FREE_TRIAL} messages, then sign up or bring your own Hugging Face token.
+            Chat with the largest open models that have public Hugging Face Inference.
+            Free trial of {FREE_TRIAL} messages, then sign up or bring your own HF token.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
             <SiteDomainLine />
           </p>
         </header>
 
-        {/* Controls */}
         <section className="rounded-2xl border border-red-500/25 bg-card p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <label className="block min-w-0 flex-1 text-left">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Model backend
+                Model backend (largest first)
               </span>
               <select
                 value={modelId}
@@ -264,8 +298,8 @@ function SiftahPage() {
           {showToken && (
             <div className="mt-4 space-y-2 rounded-xl border border-dashed border-border bg-secondary/30 p-3">
               <p className="text-xs text-muted-foreground">
-                Optional: paste a Hugging Face access token to skip the trial limit and use your own quota.
-                Stored only in this browser. Never force HF signup at the door — trial first.
+                Optional: paste a Hugging Face access token (needs Inference Providers access).
+                Stored only in this browser.
               </p>
               <input
                 type="password"
@@ -282,8 +316,7 @@ function SiftahPage() {
             <div className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm">
               <p className="font-semibold text-red-700 dark:text-red-300">Trial finished</p>
               <p className="mt-1 text-muted-foreground">
-                Create a Looters account to continue on the shared pool, or paste your own HF token above
-                for unlimited local use.
+                Create a Looters account to continue on the shared pool, or paste your own HF token above.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link
@@ -304,7 +337,6 @@ function SiftahPage() {
           )}
         </section>
 
-        {/* Chat */}
         <section className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="text-left">
@@ -322,7 +354,8 @@ function SiftahPage() {
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
             {messages.length === 0 && (
               <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-6 text-center text-sm text-muted-foreground">
-                Ask anything. Pick a backend above. Free trial tracks in this browser only for now.
+                Ask anything. Default is the largest abliterated model with public Inference.
+                Provider routes can change — if a call fails, try the next model down.
               </div>
             )}
             {messages.map((m) => (
@@ -371,8 +404,8 @@ function SiftahPage() {
         </section>
 
         <p className="text-center text-xs text-muted-foreground">
-          Models are third-party open weights. Availability on Hugging Face changes; point the picker at
-          checkpoints you control. Shared-trial replies use the site token when configured on the server.
+          Models are third-party open weights served by Hugging Face Inference Providers when available.
+          Giant GGUF-only packs (e.g. SC117 Qwen3.8 Flash) need local hardware — not listed here.
         </p>
 
         <p className="pb-4 text-center text-sm font-semibold tracking-wide">
@@ -385,13 +418,10 @@ function SiftahPage() {
 
 function SiftahLogo() {
   return (
-    <div
-      className="select-none"
-      aria-label="Siftah Mobile"
-    >
+    <div className="select-none" aria-label="Siftah Mobile">
       <div
         className="mx-auto flex w-full max-w-[280px] flex-col items-center justify-center rounded-2xl border-2 border-red-600 bg-white px-6 py-4 shadow-sm dark:bg-neutral-950"
-        style={{ fontFamily: "\"Arial Black\", Impact, system-ui, sans-serif" }}
+        style={{ fontFamily: '"Arial Black", Impact, system-ui, sans-serif' }}
       >
         <span className="text-[clamp(1.75rem,6vw,2.35rem)] font-black leading-none tracking-tight text-red-600">
           SIFTAH
