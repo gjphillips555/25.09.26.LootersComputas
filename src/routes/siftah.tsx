@@ -132,7 +132,7 @@ function SiftahPage() {
         body: JSON.stringify({ orderId }),
       })
         .then(async (response) => {
-          const data = await response.json();
+          const data = await readApiResponse(response);
           if (!response.ok) throw new Error(data.error || "PayPal payment could not be confirmed.");
           setError(null);
           await refreshUsage();
@@ -176,7 +176,7 @@ function SiftahPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "status" }),
       });
-      const data = (await response.json()) as ApiResponse;
+      const data = (await readApiResponse(response)) as ApiResponse;
       if (response.status === 401) {
         setAuthState("signed_out");
         setMode(null);
@@ -201,7 +201,7 @@ function SiftahPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "guest" }),
       });
-      const data = await response.json();
+      const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || "Guest mode could not be started.");
       await refreshUsage();
     } catch (cause) {
@@ -249,7 +249,7 @@ function SiftahPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "chat", messages: history }),
       });
-      const data = (await response.json()) as ApiResponse;
+      const data = (await readApiResponse(response)) as ApiResponse;
       if (data.usage) setUsage(data.usage);
       if (response.status === 401) {
         setAuthState("signed_out");
@@ -287,7 +287,7 @@ function SiftahPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ packageId }),
       });
-      const data = await response.json();
+      const data = await readApiResponse(response);
       if (!response.ok || !data.approvalUrl) throw new Error(data.error || "Could not start PayPal checkout.");
       window.location.assign(data.approvalUrl);
     } catch (cause) {
@@ -604,6 +604,17 @@ const languageExtensions: Record<string, string> = {
   json: "json", py: "py", python: "py", sql: "sql", bash: "sh", sh: "sh",
   md: "md", yaml: "yml", yml: "yml", xml: "xml", rust: "rs", go: "go",
 };
+
+async function readApiResponse(response: Response): Promise<ApiResponse> {
+  const raw = await response.text();
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as ApiResponse;
+  } catch {
+    const preview = raw.replace(/\\s+/g, " ").slice(0, 240);
+    return { error: preview || `Server returned a non-JSON response (HTTP ${response.status}).` };
+  }
+}
 
 function formatDuration(milliseconds: number) {
   const total = Math.max(0, Math.ceil(milliseconds / 1000));
