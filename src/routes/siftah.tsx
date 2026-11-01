@@ -23,6 +23,11 @@ const CHAT_STORAGE_KEY = "siftah-mobile-conversations-v6";
 const THEME_STORAGE_KEY = "siftah-mobile-accent-v1";
 const FREE_SUPER_SAIYAN = 5;
 const FREE_SIFTAH = 5;
+const CREDIT_PACKAGES = [
+  { id: "starter" as const, name: "Starter", credits: 40, price: "NZ$4.99", responses: "20 responses" },
+  { id: "standard" as const, name: "Standard", credits: 100, price: "NZ$9.99", responses: "50 responses" },
+  { id: "premium" as const, name: "Premium", credits: 200, price: "NZ$19.99", responses: "100 responses" },
+];
 
 type Role = "user" | "assistant";
 type Msg = { id: string; role: Role; content: string; at: number };
@@ -80,6 +85,7 @@ function SiftahPage() {
   const [busy, setBusy] = useState(false);
   const [guestBusy, setGuestBusy] = useState(false);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [creditsOpen, setCreditsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastRoute, setLastRoute] = useState("Ready");
   const [now, setNow] = useState(Date.now());
@@ -272,6 +278,7 @@ function SiftahPage() {
 
   async function buyCredits(packageId: "starter" | "standard" | "premium") {
     if (checkoutBusy || mode !== "account") return;
+    setCreditsOpen(false);
     setCheckoutBusy(true);
     setError(null);
     try {
@@ -372,6 +379,24 @@ function SiftahPage() {
                   </button>)}
                 </div>}
               </div>
+              {mode === "account" && <div className="relative">
+                <button type="button" onClick={() => setCreditsOpen((open) => !open)}
+                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-zinc-200 hover:bg-white/[0.08]"
+                  aria-expanded={creditsOpen}>
+                  <span className="tabular-nums">{usage.creditsBalance} Credits</span><ChevronDown className="size-3.5" />
+                </button>
+                {creditsOpen && <div className="absolute right-0 top-11 z-50 w-64 rounded-xl border border-white/10 bg-[#17171b] p-3 shadow-2xl">
+                  <p className="px-1 text-xs font-semibold text-zinc-200">Buy Credits</p>
+                  <p className="px-1 pb-2 pt-1 text-[11px] text-zinc-500">2 Credits per paid AI response · PayPal NZD</p>
+                  {CREDIT_PACKAGES.map((pack) => <button key={pack.id} type="button" onClick={() => void buyCredits(pack.id)}
+                    disabled={checkoutBusy}
+                    className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-2 text-left hover:bg-white/[0.06] disabled:opacity-50">
+                    <span><span className="block text-xs font-semibold text-zinc-200">{pack.name} · {pack.credits} Credits</span><span className="text-[10px] text-zinc-500">{pack.responses}</span></span>
+                    <span className="shrink-0 text-xs font-semibold text-zinc-200">{pack.price}</span>
+                  </button>)}
+                  {checkoutBusy && <p className="px-2 pt-2 text-[11px] text-zinc-500">Opening PayPal checkout…</p>}
+                </div>}
+              </div>}
               <span className="hidden rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] text-zinc-400 sm:inline-flex">
                 {mode === "guest" ? "Guest mode" : "Looters account"}
               </span>
@@ -444,7 +469,7 @@ function SiftahPage() {
               <div className="sticky bottom-0 -mx-3 border-t border-white/[0.06] bg-[#09090b]/95 px-3 pb-4 pt-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
                 {error && <div className="mb-2 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs text-red-200">{error}</div>}
                 {locked && <div className="mb-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-zinc-400">
-                  Your free allowance refreshes in {cooldownLabel}. {mode === "account" ? "Buy Credits to continue now." : "Sign in to use purchased Credits."}
+                  Your free allowance refreshes in {cooldownLabel}. {mode === "account" ? "Use the Credits menu above to continue now." : "Sign in to use purchased Credits."}
                 </div>}
                 <form onSubmit={(event) => { event.preventDefault(); void send(); }}
                   className="rounded-2xl border border-white/[0.12] bg-[#17171b] p-2 shadow-[0_8px_36px_rgba(0,0,0,.28)] focus-within:border-white/25">
@@ -513,6 +538,7 @@ function WelcomePanel({ palette, onPrompt }: { palette: string; onPrompt: (promp
     <div className="mb-6 flex size-14 items-center justify-center rounded-2xl text-white shadow-lg" style={{ backgroundColor: palette }}><Sparkles className="size-7" /></div>
     <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">What can I help with?</h1>
     <p className="mt-3 max-w-lg text-sm leading-6 text-zinc-500">Choose a starting point or type your own question. Super Saiyan handles your first five free messages, then Siftah takes over.</p>
+    <p className="mt-2 max-w-lg text-[11px] leading-5 text-zinc-600">Super Saiyan uses a less-filtered experimental model. Check important outputs and avoid sharing sensitive information.</p>
     <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">
       {prompts.map((item) => <button key={item.title} type="button" onClick={() => onPrompt(item.prompt)}
         className="rounded-xl border border-white/[0.09] bg-white/[0.025] p-4 text-left transition hover:border-white/20 hover:bg-white/[0.05]">
