@@ -605,21 +605,21 @@ function ArtifactPanel({ artifacts, active, onSelect, onCopy, onDownload }: {
 
 function extractArtifacts(messages: Msg[]): Artifact[] {
   const files: Artifact[] = [];
-  const filenamePattern = /(?:^|[\\s\x60*])([\\w./-]+\\.(?:tsx?|jsx?|html?|css|json|py|sql|sh|md|ya?ml|xml|rs|go))(?:[\\x60*:]|\\s|$)/i;
+  const filenamePattern = /(?:^|[\s\x60*])([\w./-]+\.(?:tsx?|jsx?|html?|css|json|py|sql|sh|md|ya?ml|xml|rs|go))(?:[\x60*:]|\s|$)/i;
   for (const message of messages) {
     if (message.role !== "assistant") continue;
-    const pattern = /```([^\\n`]*?)\\n([\\s\\S]*?)```/g;
+    const pattern = /```([^\n`]*?)\n([\s\S]*?)```/g;
     let match: RegExpExecArray | null;
     let index = 0;
     while ((match = pattern.exec(message.content)) !== null) {
       const info = match[1].trim();
-      const language = info.split(/\\s+/)[0] || "text";
-      const explicit = info.match(/(?:file|filename)=([^\\s]+)/i)?.[1];
-      const infoPath = info.split(/\\s+/).find((part) => /\\.[a-z0-9]{1,8}$/i.test(part) || part.includes("/"));
+      const language = info.split(/\s+/)[0] || "text";
+      const explicit = info.match(/(?:file|filename)=([^\s]+)/i)?.[1];
+      const infoPath = info.split(/\s+/).find((part) => /\.[a-z0-9]{1,8}$/i.test(part) || part.includes("/"));
       const nearbyPath = message.content.slice(Math.max(0, match.index - 260), match.index).match(filenamePattern)?.[1];
       const extension = languageExtensions[language.toLowerCase()] || "txt";
       const name = explicit || infoPath || nearbyPath || `snippet-${files.length + 1}.${extension}`;
-      files.push({ id: `${message.id}-${index++}`, name: name.split("/").pop() || name, language, code: match[2].replace(/\\n$/, "") });
+      files.push({ id: `${message.id}-${index++}`, name: name.split("/").pop() || name, language, code: match[2].replace(/\n$/, "") });
     }
   }
   return files;
