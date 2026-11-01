@@ -28,6 +28,7 @@ type Usage = {
   superSaiyanUsed: number;
   siftahUsed: number;
   cooldownUntil: string | null;
+  creditsBalance: number;
 };
 type ApiResponse = {
   reply?: string;
@@ -49,6 +50,7 @@ const DEFAULT_USAGE: Usage = {
   superSaiyanUsed: 0,
   siftahUsed: 0,
   cooldownUntil: null,
+  creditsBalance: 0,
 };
 
 function readMessages(): Msg[] {
@@ -75,10 +77,11 @@ function SiftahPage() {
   const [authRequired, setAuthRequired] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [lastRoute, setLastRoute] = useState("Ready");
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const cooldownUntil = usage.cooldownUntil ? new Date(usage.cooldownUntil).getTime() : 0;
-  const locked = cooldownUntil > now;
+  const locked = cooldownUntil > now && usage.creditsBalance < 2;
   const superSaiyanLeft = Math.max(0, FREE_SUPER_SAIYAN - usage.superSaiyanUsed);
   const siftahLeft = Math.max(0, FREE_SIFTAH - usage.siftahUsed);
   const totalFreeLeft = superSaiyanLeft + siftahLeft;
@@ -90,6 +93,32 @@ function SiftahPage() {
     setMessages(readMessages());
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     void refreshUsage();
+    const params = new URLSearchParams(window.location.search);
+    const paypalStatus = params.get("paypal");
+    const orderId = params.get("token");
+    if (paypalStatus === "success" && orderId) {
+      setCheckoutBusy(true);
+      fetch("/api/paypal/capture-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      })
+        .then(async (response) => {
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "PayPal payment could not be confirmed.");
+          setError(null);
+          await refreshUsage();
+          setLastRoute("Credits added to your account");
+        })
+        .catch((cause) => setError(cause instanceof Error ? cause.message : "Payment confirmation failed."))
+        .finally(() => {
+          setCheckoutBusy(false);
+          window.history.replaceState({}, "", window.location.pathname);
+        });
+    } else if (paypalStatus === "cancelled") {
+      setError("PayPal checkout was cancelled. No Credits were added.");
+      window.history.replaceState({}, "", window.location.pathname);
+    }
     return () => window.clearInterval(timer);
   }, []);
 
@@ -116,6 +145,25 @@ function SiftahPage() {
       if (data.usage) setUsage(data.usage);
     } catch {
       // Chat remains usable; the server enforces the actual allowance.
+    }
+  }
+
+  async function buyCredits(packageId: "starter" | "standard" | "premium") {
+    if (checkoutBusy || authRequired) return;
+    setCheckoutBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packageId }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.approvalUrl) throw new Error(data.error || "Could not start PayPal checkout.");
+      window.location.assign(data.approvalUrl);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not start PayPal checkout.");
+      setCheckoutBusy(false);
     }
   }
 
@@ -233,9 +281,43 @@ function SiftahPage() {
           )}
 
           <p className="mt-3 text-xs text-muted-foreground">
-            Paid continuation is not switched on yet: PayPal payments need server-side verification before
-            extra replies can safely be credited. No payment is taken from this screen.
+            Purchased Credits remain in your account and can be used after the free allowance is exhausted.
           </p>
+        </section>
+
+        <section className="rounded-2xl border border-amber-500/25 bg-card p-4 sm:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Purchased balance</p>
+              <p className="mt-1 text-2xl font-black tabular-nums">{usage.creditsBalance} Credits</p>
+              <p className="mt-1 text-xs text-muted-foreground">2 Credits are used for each AI response after your free allowance.</p>
+            </div>
+            <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">PayPal · NZD</span>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {[
+              { id: "starter" as const, name: "Starter", credits: 40, price: "NZ$4.99", replies: "20 AI responses" },
+              { id: "standard" as const, name: "Standard", credits: 100, price: "NZ$9.99", replies: "50 AI responses" },
+              { id: "premium" as const, name: "Premium", credits: 200, price: "NZ$19.99", replies: "100 AI responses" },
+            ].map((pack) => (
+              <div key={pack.id} className="rounded-xl border border-border bg-background/70 p-3">
+                <p className="text-sm font-bold">{pack.name}</p>
+                <p className="mt-1 text-xl font-black">{pack.credits} Credits</p>
+                <p className="text-xs text-muted-foreground">{pack.replies}</p>
+                <p className="mt-3 text-lg font-bold">{pack.price}</p>
+                <button
+                  type="button"
+                  onClick={() => void buyCredits(pack.id)}
+                  disabled={checkoutBusy || authRequired}
+                  className="mt-3 w-full rounded-lg bg-amber-500 px-3 py-2 text-sm font-bold text-black hover:bg-amber-400 disabled:opacity-50"
+                >
+                  {checkoutBusy ? "Please wait…" : "Buy Credits"}
+                </button>
+              </div>
+            ))}
+          </div>
+          {authRequired && <p className="mt-3 text-xs text-muted-foreground">Sign in to purchase and save Credits to your account.</p>}
+          <p className="mt-3 text-xs text-muted-foreground">Credits are added only after PayPal confirms the payment. Checkout is in New Zealand dollars.</p>
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-4">
@@ -322,7 +404,7 @@ function SiftahPage() {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 disabled={busy || locked || authRequired}
-                placeholder={locked ? `Cooldown · ${cooldownLabel} remaining` : "Message Siftah…"}
+                placeholder={locked ? `Free allowance refreshes in ${cooldownLabel}` : "Message Siftah…"}
                 className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-red-500 disabled:opacity-60"
               />
               <button
