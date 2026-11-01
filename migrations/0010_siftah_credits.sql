@@ -1,0 +1,5 @@
+-- Purchased Siftah Credits and idempotent PayPal fulfilment.
+create table if not exists siftah_credit_accounts (user_id text primary key not null, balance integer not null default 0 check (balance >= 0), updated_at timestamptz not null default now());
+create table if not exists siftah_paypal_orders (order_id text primary key not null, user_id text not null, package_id text not null, credits integer not null check (credits > 0), amount_nzd numeric(10,2) not null, currency text not null default 'NZD' check (currency = 'NZD'), status text not null default 'PENDING' check (status in ('PENDING','COMPLETED','CANCELLED')), capture_id text, created_at timestamptz not null default now(), completed_at timestamptz);
+create index if not exists siftah_paypal_orders_user_created on siftah_paypal_orders (user_id, created_at desc);
+create table if not exists siftah_credit_ledger (paypal_order_id text primary key not null references siftah_paypal_orders(order_id), user_id text not null, credits integer not null check (credits > 0), created_at timestamptz not null default now());
