@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { SignedIn, SignedOut } from "@/lib/auth/gates";
 import { AuthModal } from "@/components/AuthModal";
 import {
@@ -30,14 +30,13 @@ const CATEGORIES = [
 const CONDITIONS = ["New", "Excellent", "Good", "Fair", "For parts"];
 
 function SellPage() {
-  const { user } = useCurrentUser();
+  const { user } = useCurrentUserState();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
 
-  // Listing form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -63,17 +62,31 @@ function SellPage() {
     e.preventDefault();
     if (!canSell) {
       toast.error("Connect PayPal on your Account page before listing.");
-      navigate({ to: "/account" });
+      void navigate({ to: "/account" });
       return;
     }
     if (publishing) return;
     setPublishing(true);
     try {
-      await createListing({ data: { title, description, category, condition, priceNzd: price.trim() ? Number(price) : null, acceptsSwaps, location } });
+      await createListing({
+        data: {
+          title,
+          description,
+          category,
+          condition,
+          priceNzd: price.trim() ? Number(price) : null,
+          acceptsSwaps,
+          location,
+        },
+      });
       toast.success("Your listing is live!");
       await navigate({ to: "/market" });
     } catch (error) {
-      toast.error(error instanceof Error && error.message.includes("PAYPAL_REQUIRED") ? "Please reconnect PayPal before listing." : "Could not publish your listing. Please check the details and try again.");
+      toast.error(
+        error instanceof Error && error.message.includes("PAYPAL_REQUIRED")
+          ? "Please reconnect PayPal before listing."
+          : "Could not publish your listing. Please check the details and try again.",
+      );
     } finally {
       setPublishing(false);
     }
