@@ -60,8 +60,8 @@ export function DaVinciWorkspace() {
       setError("Choose an image file.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Reference images must be 5 MB or smaller.");
+    if (file.size > 3 * 1024 * 1024) {
+      setError("Reference images must be 3 MB or smaller.");
       return;
     }
     try {
