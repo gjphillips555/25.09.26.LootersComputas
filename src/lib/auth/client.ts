@@ -41,8 +41,16 @@ function setBearerToken(token: string | null): void {
 
 function inLivePreview(): boolean {
   if (typeof window === "undefined") return false;
+  return window.location.hostname.endsWith(".grok-sandbox.com");
+}
+
+function onLootersProduction(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
   return (
-    window.location.hostname.endsWith(".grok-sandbox.com")
+    host === "looterscomputas.online" ||
+    host === "www.looterscomputas.online" ||
+    host.endsWith(".vercel.app")
   );
 }
 
@@ -54,6 +62,14 @@ export async function signIn(
 ): Promise<void> {
   const callbackURL = opts.callbackURL ?? "/";
   const errorCallbackURL = opts.errorCallbackURL ?? "/";
+
+  // Production must never use the xAI/Grok broker — map legacy id to native Google.
+  if (
+    (providerId === "grok-google" || providerId === "google") &&
+    onLootersProduction()
+  ) {
+    providerId = "google";
+  }
 
   const popup = inLivePreview() ? openSignInPopup(providerId) : null;
 
@@ -84,9 +100,6 @@ export async function signIn(
     return;
   }
 
-  // The app's Google button uses the shared auth broker provider ID.
-  // Use Better Auth's native Google provider only when explicitly requested
-  // with "google"; "grok-google" must match the server's genericOAuth plugin.
   if (providerId === "google") {
     const { data, error } = await authClient.signIn.social({
       provider: "google",
@@ -98,7 +111,6 @@ export async function signIn(
     return;
   }
 
-  // Other broker-backed providers continue using the generic OAuth plugin.
   const { data, error } = await authClient.signIn.oauth2({
     providerId,
     callbackURL,
