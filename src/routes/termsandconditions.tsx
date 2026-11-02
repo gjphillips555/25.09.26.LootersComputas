@@ -97,6 +97,17 @@ function TermsPage() {
         </li>
       </ul>
       <p>
+        <strong className="text-foreground">
+          Accounts are restricted to users aged 18 or over.
+        </strong>{" "}
+        We require this because the marketplace involves real-world deals and
+        payments, and because Siftah provides broad, less-filtered AI tools.
+        New Zealand does not currently impose a statutory 18+ age gate on
+        general-purpose AI chat tools of this kind; the 18+ rule is our service
+        requirement and a condition of membership. If you are under 18 you must
+        not create an account or use signed-in Siftah features.
+      </p>
+      <p>
         When you sign in with Google, Google authenticates you and shares with
         us the profile information you permit (typically your name, email
         address and profile photo). We use that information only to identify
@@ -109,16 +120,36 @@ function TermsPage() {
         at any time. Signing out does not cancel orders already placed.
       </p>
 
-      <h2>5. Siftah and AI tools</h2>
+      <h2>5. Siftah and AI tools — your responsibility</h2>
       <p>
-        Siftah provides AI chat, coding, image and related creative tools. To
-        deliver these features, your prompts, conversation context and any
+        Siftah provides AI chat, coding, image and related creative tools. Some
+        modes are intentionally less restricted than mainstream assistants so
+        you can brainstorm, debug and create with fewer soft refusals. That
+        flexibility does <strong className="text-foreground">not</strong>{" "}
+        transfer legal responsibility to Looters Computas.
+      </p>
+      <p>
+        <strong className="text-foreground">
+          You alone are responsible for every prompt you submit, every output
+          you receive, and every action you take based on Siftah.
+        </strong>{" "}
+        You must ensure your use is lawful in New Zealand and in any other
+        place that applies to you. You must not use Siftah to create, seek or
+        distribute content that is illegal under New Zealand law (including
+        objectionable material under the Films, Videos, and Publications
+        Classification Act 1993), or to plan, assist or commit crime, fraud,
+        scams, unauthorised system access, malware, threats, harassment,
+        exploitation, privacy breaches or infringement of another person’s
+        rights.
+      </p>
+      <p>
+        To deliver these features, your prompts, conversation context and any
         images or files you choose to upload may be sent to third-party AI
         processing providers, including Hugging Face, Stable Horde for some
         media-generation requests, and providers made available through those
-        services. Those providers process the submitted
-        material to generate a response. We may change the providers or
-        underlying systems used without changing the Siftah interface.
+        services. Those providers process the submitted material to generate a
+        response. We may change the providers or underlying systems used without
+        changing the Siftah interface.
       </p>
       <p>
         Do not submit passwords, payment-card details, confidential business
@@ -129,12 +160,12 @@ function TermsPage() {
       </p>
       <p>
         AI responses and generated content can be inaccurate, incomplete,
-        misleading or unsuitable. You are responsible for checking outputs
-        before relying on, publishing, sharing or acting on them. Siftah is not
-        a substitute for qualified legal, medical, financial, engineering or
-        other professional advice. You remain responsible for how you use
-        prompts, outputs, code and generated media, including checking that
-        your use does not infringe another person's rights.
+        misleading, biased or unsuitable. You are responsible for checking
+        outputs before relying on, publishing, sharing, deploying or acting on
+        them. Siftah is not a substitute for qualified legal, medical,
+        financial, engineering, security or other professional advice. Code and
+        technical suggestions must be reviewed by a competent human before use
+        in production systems.
       </p>
 
       <h2>6. Guest trials, Credits and paid access</h2>
@@ -151,27 +182,28 @@ function TermsPage() {
         Credits through PayPal. The current charge is 2 Credits per completed
         chat response or successful image or video generation. Failed generation
         attempts do not consume Credits or trial uses. Credits are attached to
-        the member account that made the purchase,
-        cannot be transferred or exchanged for cash, and are subject to
-        applicable consumer law and any refund rights that cannot legally be
-        excluded. Verified authorised administrators may receive separate
-        access privileges.
+        the member account that made the purchase, cannot be transferred or
+        exchanged for cash, and are subject to applicable consumer law and any
+        refund rights that cannot legally be excluded. Verified authorised
+        administrators may receive separate access privileges.
       </p>
 
       <h2>7. Responsible AI use</h2>
       <p>
-        Some Siftah tools may allow a broader range of creative or technical
-        outputs than conventional assistants. That does not authorise misuse.
-        You are solely responsible for your use of the tools and must not use
-        them to facilitate unlawful activity, fraud, threats, harassment,
-        exploitation, privacy violations, infringement, unauthorised access,
-        malware or other harm. You must not use AI outputs as a substitute for
-        your own legal obligations or to evade applicable safeguards or laws.
+        Unrestricted or lightly filtered tools increase the risk of harmful or
+        unlawful prompts. You accept that risk when you use Siftah. You must not
+        use the tools to facilitate unlawful activity, fraud, threats,
+        harassment, exploitation, privacy violations, infringement, unauthorised
+        access, malware or other harm. You must not use AI outputs as a
+        substitute for your own legal obligations or to evade applicable
+        safeguards or laws.
       </p>
       <p>
-        We may restrict or suspend access where we reasonably believe a user
-        has misused Siftah, breached these Terms, created a risk to another
-        person, or threatened the security or availability of the Site.
+        We may restrict, suspend or terminate access where we reasonably believe
+        a user has misused Siftah, breached these Terms, created a risk to
+        another person, or threatened the security or availability of the Site.
+        We are not obliged to monitor every prompt, but we may cooperate with
+        lawful requests from authorities where required.
       </p>
 
       <h2>8. Acceptable use</h2>
@@ -186,9 +218,12 @@ function TermsPage() {
       <p>
         To the maximum extent permitted by New Zealand law, we are not liable
         for indirect, incidental or consequential loss, or for loss of profit,
-        data or business opportunity. Our aggregate liability arising out of
-        any order is limited to the amount you paid for the relevant goods.
-        This clause does not exclude liability that cannot be excluded by law.
+        data or business opportunity, including loss arising from reliance on
+        AI outputs, marketplace dealings between members, or third-party payment
+        providers. Our aggregate liability arising out of any order placed with
+        Looters Computas as seller is limited to the amount you paid for the
+        relevant goods. This clause does not exclude liability that cannot be
+        excluded by law.
       </p>
 
       <h2>10. Changes</h2>
