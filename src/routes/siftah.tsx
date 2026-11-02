@@ -258,7 +258,7 @@ function SiftahPage() {
     setMobilePanelOpen(false);
   }
 
-  async function send(overrideText?: string, hiddenPrompt = false) {
+  async function send(overrideText?: string, hiddenPrompt = false, continueTargetId?: string) {
     const text = (overrideText ?? input).trim();
     if (!text || busy || authState !== "ready" || locked) return;
     if (persona === "super-saiyan" && (mode !== "account" || usage.creditsBalance < 2)) {
@@ -273,7 +273,7 @@ function SiftahPage() {
     const userMessage: Msg = { id: makeId(), role: "user", content: text, at: Date.now() };
     const nextMessages = hiddenPrompt ? messages : [...messages, userMessage];
     const continuationTargetId = hiddenPrompt
-      ? [...messages].reverse().find((message) => message.role === "assistant")?.id ?? null
+      ? continueTargetId ?? [...messages].reverse().find((message) => message.role === "assistant")?.id ?? null
       : null;
     if (!hiddenPrompt) updateConversation(nextMessages);
     setBusy(true);
@@ -328,8 +328,8 @@ function SiftahPage() {
     }
   }
 
-  function continueLastResponse() {
-    void send("Continue your previous response from exactly where it stopped. Do not repeat completed sections. If you were writing a complete file, continue the file without omitting code.", true);
+  function continueLastResponse(messageId?: string) {
+    void send("Continue your previous response from exactly where it stopped. Do not repeat completed sections. If you were writing a complete file, continue the file without omitting code.", true, messageId);
   }
 
   function startReply(messageId: string) {
@@ -541,7 +541,6 @@ function SiftahPage() {
               <div className="flex-1 space-y-5 pb-8">
                 {messages.length === 0 && !busy && <WelcomePanel palette={palette.value} onPrompt={(prompt) => { setInput(prompt); textareaRef.current?.focus(); }} />}
                 {messages.map((message, messageIndex) => {
-                  const isLastAssistant = message.role === "assistant" && !messages.slice(messageIndex + 1).some((item) => item.role === "assistant");
                   return <article key={message.id} className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}>
                     {message.role === "assistant" && <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-300"><Sparkles className="size-4" /></div>}
                     <div className={cn("max-w-[min(92%,760px)] rounded-2xl border px-4 py-3 text-[14px] leading-7 shadow-sm",
@@ -554,7 +553,7 @@ function SiftahPage() {
                       {message.role === "assistant" && <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/[0.08] pt-2">
                         <button type="button" onClick={() => void copyMessage(message.content)} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"><Copy className="size-3.5" /> Copy</button>
                         <button type="button" onClick={() => startReply(message.id)} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"><Reply className="size-3.5" /> Reply</button>
-                        {isLastAssistant && <button type="button" onClick={continueLastResponse} disabled={busy || locked} className="inline-flex items-center gap-1.5 rounded-lg border border-red-400/25 bg-red-500/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-red-200 transition hover:bg-red-500/[0.15] disabled:opacity-40"><Sparkles className="size-3.5" /> Continue</button>}
+                        <button type="button" onClick={() => continueLastResponse(message.id)} disabled={busy || locked} className="inline-flex items-center gap-1.5 rounded-lg border border-red-400/25 bg-red-500/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-red-200 transition hover:bg-red-500/[0.15] disabled:opacity-40"><Sparkles className="size-3.5" /> Continue</button>
                       </div>}
                     </div>
                     {message.role === "user" && <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.06] text-xs font-semibold text-zinc-300">You</div>}
