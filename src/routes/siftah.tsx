@@ -464,9 +464,9 @@ function SiftahPage() {
                 {mode === "guest" ? "Guest mode" : "Looters account"}
               </span>
               {mode === "guest" && <a href="/login?callbackURL=%2Fsiftah" className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-white/[0.06]">Sign in</a>}
-              <button type="button" onClick={() => setMobilePanelOpen(true)}
+              {persona !== "da-vinci" && <button type="button" onClick={() => setMobilePanelOpen(true)}
                 className="inline-flex size-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300 hover:bg-white/[0.08] md:hidden"
-                aria-label="Open code files"><FileCode2 className="size-4" /></button>
+                aria-label="Open code files"><FileCode2 className="size-4" /></button>}
             </div>
           </div>
         </header>
@@ -548,7 +548,7 @@ function SiftahPage() {
                       message.role === "user" ? "border-[var(--siftah-accent)]/45 text-white shadow-[0_6px_22px_rgba(0,0,0,.16)]" : "border-white/[0.13] bg-[#151518] text-zinc-200")}
                       style={message.role === "user" ? { backgroundColor: `color-mix(in srgb, ${palette.value} 88%, #09090b)` } : undefined}>
                       <div className="mb-2 flex items-center justify-between gap-4 border-b border-current/10 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-65">
-                        <span>{message.role === "user" ? "You" : "Siftah"}</span><span>{new Date(message.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                        <span>{message.role === "user" ? "You" : persona === "dexter" ? "Dexter" : persona === "super-saiyan" ? "Super Saiyan" : "Siftah"}</span><span>{new Date(message.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
                       <MessageContent content={message.content} />
                       {message.role === "assistant" && <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/[0.08] pt-2">
@@ -581,7 +581,7 @@ function SiftahPage() {
                   className="rounded-2xl border border-white/[0.12] bg-[#17171b] p-2 shadow-[0_8px_36px_rgba(0,0,0,.28)] focus-within:border-white/25">
                   <textarea ref={textareaRef} value={input} onChange={(event) => setInput(event.target.value)}
                     onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void send(); } }}
-                    rows={2} disabled={busy || locked} placeholder={locked ? "Your free allowance is cooling down…" : "Message Siftah…"}
+                    rows={2} disabled={busy || locked} placeholder={locked ? "Your free allowance is cooling down…" : persona === "dexter" ? "Ask Dexter to write, debug or explain code…" : persona === "super-saiyan" ? "Ask Super Saiyan Premium…" : "Message Siftah…"}
                     className="max-h-40 min-h-[54px] w-full resize-y bg-transparent px-3 py-2 text-sm leading-6 text-zinc-100 outline-none placeholder:text-zinc-600 disabled:opacity-50" />
                   <div className="flex items-center justify-between gap-2 px-1">
                     <div className="flex items-center gap-2 text-[11px] text-zinc-500">
