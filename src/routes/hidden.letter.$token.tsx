@@ -39,7 +39,7 @@ function DenLetter() {
         <div className="den-card">
           <h1>Sign in to continue</h1>
           <p>Use your Looters Computas account before opening this member page.</p>
-          <a href={`/login?callbackURL=${encodeURIComponent(window.location.pathname)}`}>Sign in / Create account</a>
+          <a href={`/login?callbackURL=${encodeURIComponent(`/hidden/letter/${token}`)}`}>Sign in / Create account</a>
         </div>
       </main>
     );
