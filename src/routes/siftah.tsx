@@ -540,7 +540,7 @@ function SiftahPage() {
 
               <div className="flex-1 space-y-5 pb-8">
                 {messages.length === 0 && !busy && <WelcomePanel palette={palette.value} onPrompt={(prompt) => { setInput(prompt); textareaRef.current?.focus(); }} />}
-                {messages.map((message, messageIndex) => {
+                {messages.map((message) => {
                   return <article key={message.id} className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}>
                     {message.role === "assistant" && <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-300"><Sparkles className="size-4" /></div>}
                     <div className={cn("max-w-[min(92%,760px)] rounded-2xl border px-4 py-3 text-[14px] leading-7 shadow-sm",
