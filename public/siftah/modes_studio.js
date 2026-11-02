@@ -424,7 +424,7 @@
         if (window.siftahModes) window.siftahModes.addToGallery(url, prompt, "i2i");
       } catch (e) {
         status.textContent = "The service could not complete this request. Please try again.";
-        preview.innerHTML = '<div class="placeholder">Failed \u2014 try SDXL</div>';
+        preview.innerHTML = '<div class="placeholder">Failed \u2014 try another setting</div>';
         toast(status.textContent);
       } finally { btn.disabled = false; }
     };
