@@ -11,6 +11,7 @@
   var signedIn = false;
   var balance = 0;
   var busy = false;
+  var captureStarted = false;
 
   function toast(message) {
     if (typeof window.showToast === "function") window.showToast(message);
@@ -110,12 +111,15 @@
     var params = new URLSearchParams(window.location.search);
     var result = params.get("paypal");
     if (result === "cancelled") {
+      if (captureStarted) return;
+      captureStarted = true;
       window.history.replaceState(null, "", "/siftah/?mode=super-saiyan");
       toast("PayPal checkout cancelled.");
       if (window.siftahModes) window.siftahModes.setMode("super-saiyan");
       return;
     }
-    if (result !== "success") return;
+    if (result !== "success" || captureStarted) return;
+    captureStarted = true;
     var orderId = params.get("token");
     if (!orderId) {
       toast("PayPal returned without an order ID.");
