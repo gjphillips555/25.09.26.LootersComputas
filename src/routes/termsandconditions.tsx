@@ -10,22 +10,24 @@ export const Route = createFileRoute("/termsandconditions")({
 
 function TermsPage() {
   return (
-    <LegalPage title="Terms and Conditions" updated="12 September 2026">
+    <LegalPage title="Terms and Conditions" updated="3 November 2026">
       <p>
         These Terms and Conditions (“Terms”) govern your access to and use of
-        the Looters Computas website at looterscomputas.online (the “Site”),
-        and any purchase of goods from Looters Computas (“we”, “us”, “our”).
-        By browsing the Site, creating an account, or placing an order, you
-        agree to be bound by these Terms and by our{" "}
+        Looters Computas at looterscomputas.online (the “Site”), including the
+        marketplace, member accounts and Siftah AI workspace (“we”, “us”, “our”).
+        By creating an account or using member-only services, you confirm that
+        you have read and agree to these Terms and our{" "}
         <a href="/storepolicy">Store Policy</a>. If you do not agree, please
         do not use the Site or purchase from us.
       </p>
 
       <h2>1. Who we are</h2>
       <p>
-        Looters Computas is a New Zealand retailer of refurbished computers,
-        laptops, graphics cards, components and related accessories. We trade
-        online only. Enquiries:{" "}
+        Looters Computas is a New Zealand technology marketplace where members
+        can list, browse, buy, sell and arrange swaps of computers, electronics,
+        gaming equipment and related goods. We may also offer our own products.
+        We provide the platform and are not automatically the seller of goods
+        listed by members. Enquiries:{" "}
         <a href="mailto:LootersRetail@protonmail.com">
           LootersRetail@protonmail.com
         </a>
@@ -73,8 +75,8 @@ function TermsPage() {
       <h2>4. Terms of signing up to Looters Computas</h2>
       <p>
         An account with us is optional. You may browse and purchase as a guest.
-        If you choose to sign in, you may do so with Google or any other sign-up
-        method we make available from time to time.
+        You may register with Google or an email address, including Proton
+        Mail, using the sign-up methods we make available.
       </p>
       <p>
         By creating an account, or by signing in with Google or another
@@ -108,7 +110,68 @@ function TermsPage() {
         at any time. Signing out does not cancel orders already placed.
       </p>
 
-      <h2>5. Acceptable use</h2>
+      <h2>5. Siftah and AI tools</h2>
+      <p>
+        Siftah provides AI chat, coding, image and related creative tools. To
+        deliver these features, your prompts, conversation context and any
+        images or files you choose to upload may be sent to third-party AI
+        processing providers, including Hugging Face and providers made
+        available through that service. Those providers process the submitted
+        material to generate a response. We may change the providers or
+        underlying systems used without changing the Siftah interface.
+      </p>
+      <p>
+        Do not submit passwords, payment-card details, confidential business
+        information, sensitive personal information, or private material about
+        another person unless you have the right and permission to do so.
+        Review the privacy information and terms of any third-party provider
+        whose services process your content.
+      </p>
+      <p>
+        AI responses and generated content can be inaccurate, incomplete,
+        misleading or unsuitable. You are responsible for checking outputs
+        before relying on, publishing, sharing or acting on them. Siftah is not
+        a substitute for qualified legal, medical, financial, engineering or
+        other professional advice. You remain responsible for how you use
+        prompts, outputs, code and generated media, including checking that
+        your use does not infringe another person's rights.
+      </p>
+
+      <h2>6. Guest trials, Credits and paid access</h2>
+      <p>
+        Siftah's limited free trial is available in guest mode only. The current
+        guest trial allowance is limited and, once used, a five-hour cooldown
+        applies before the guest allowance resets. Trial limits may be adjusted
+        to protect availability and prevent abuse. Signing in with a standard
+        member account does not create a new free trial or remove a cooldown.
+      </p>
+      <p>
+        Signed-in members can continue using paid Siftah features by purchasing
+        Credits through PayPal. The current charge is 2 Credits per AI response.
+        Credits are attached to the member account that made the purchase,
+        cannot be transferred or exchanged for cash, and are subject to
+        applicable consumer law and any refund rights that cannot legally be
+        excluded. Verified authorised administrators may receive separate
+        access privileges.
+      </p>
+
+      <h2>7. Responsible AI use</h2>
+      <p>
+        Some Siftah tools may allow a broader range of creative or technical
+        outputs than conventional assistants. That does not authorise misuse.
+        You are solely responsible for your use of the tools and must not use
+        them to facilitate unlawful activity, fraud, threats, harassment,
+        exploitation, privacy violations, infringement, unauthorised access,
+        malware or other harm. You must not use AI outputs as a substitute for
+        your own legal obligations or to evade applicable safeguards or laws.
+      </p>
+      <p>
+        We may restrict or suspend access where we reasonably believe a user
+        has misused Siftah, breached these Terms, created a risk to another
+        person, or threatened the security or availability of the Site.
+      </p>
+
+      <h2>8. Acceptable use</h2>
       <p>
         You must not misuse the Site, attempt to interfere with its security or
         availability, scrape it in a way that imposes an unreasonable load, or
@@ -116,7 +179,7 @@ function TermsPage() {
         are not for public use.
       </p>
 
-      <h2>6. Liability</h2>
+      <h2>9. Liability</h2>
       <p>
         To the maximum extent permitted by New Zealand law, we are not liable
         for indirect, incidental or consequential loss, or for loss of profit,
@@ -125,7 +188,7 @@ function TermsPage() {
         This clause does not exclude liability that cannot be excluded by law.
       </p>
 
-      <h2>7. Changes</h2>
+      <h2>10. Changes</h2>
       <p>
         We may update these Terms from time to time. The version published on
         this page is the current version. Continued use of the Site after a
@@ -133,7 +196,7 @@ function TermsPage() {
         to warranty or returns are described in the Store Policy.
       </p>
 
-      <h2>8. Governing law</h2>
+      <h2>11. Governing law</h2>
       <p>
         These Terms are governed by the laws of New Zealand. The New Zealand
         courts have exclusive jurisdiction, except that we may seek injunctive
