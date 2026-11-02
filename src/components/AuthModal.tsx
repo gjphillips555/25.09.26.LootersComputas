@@ -33,7 +33,8 @@ export function AuthModal({
     setAgreedTerms();
     setBusy(true);
     try {
-      await signIn("grok-google", { callbackURL });
+      // Native Better Auth Google — shows "Looters Computas" (your OAuth client), not xAI.
+      await signIn("google", { callbackURL });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Sign-in failed";
       toast.error(msg);
@@ -43,7 +44,6 @@ export function AuthModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <button
         type="button"
         aria-label="Close"
@@ -51,7 +51,6 @@ export function AuthModal({
         onClick={onClose}
       />
 
-      {/* Dialog */}
       <div
         role="dialog"
         aria-modal="true"
@@ -61,7 +60,6 @@ export function AuthModal({
           "shadow-[0_25px_80px_-12px_rgba(0,0,0,0.7)]",
         )}
       >
-        {/* Fun top banner */}
         <div className="relative overflow-hidden bg-gradient-to-r from-orange-500 via-amber-400 to-purple-600 px-6 pb-8 pt-6">
           <div className="absolute -right-6 -top-6 size-28 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -left-4 bottom-0 size-20 rounded-full bg-purple-800/40 blur-xl" />
@@ -88,7 +86,6 @@ export function AuthModal({
             </p>
           </div>
 
-          {/* Terms checkbox */}
           <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left text-xs leading-snug text-white/70">
             <input
               type="checkbox"
@@ -120,7 +117,6 @@ export function AuthModal({
             </span>
           </label>
 
-          {/* Google button */}
           {authEnabled ? (
             <button
               type="button"
@@ -140,7 +136,15 @@ export function AuthModal({
             <p className="text-center text-sm text-white/50">Sign-in is currently disabled.</p>
           )}
 
-          <Link to="/login" search={{ callbackURL }} onClick={onClose} className="block w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-white/10">Use email instead · Proton Mail supported</Link>\n\n          {/* PayPal note with graphics */}
+          <Link
+            to="/login"
+            search={{ callbackURL }}
+            onClick={onClose}
+            className="block w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-white/10"
+          >
+            Use email instead · Proton Mail supported
+          </Link>
+
           <div className="rounded-xl border border-[#0070ba]/30 bg-[#003087]/20 px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0070ba]">

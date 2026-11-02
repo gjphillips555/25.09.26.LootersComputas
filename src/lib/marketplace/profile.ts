@@ -27,8 +27,9 @@ export const getMyProfile = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const sql = await getSql();
+    // Sql<T> resolves to Promise<T[]> — T is the *row* type, not an array.
     const rows = await sql<
-      ProfileRow[]
+      ProfileRow
     >`select * from profiles where user_id = ${context.userId} limit 1`;
     return rows[0] ?? null;
   });
@@ -80,7 +81,7 @@ export const savePayPalConnection = createServerFn({ method: "POST" })
 export async function requirePayPalConnected(userId: string) {
   const sql = await getSql();
   const rows = await sql<
-    { paypal_payer_id: string | null; paypal_email: string | null }[]
+    { paypal_payer_id: string | null; paypal_email: string | null }
   >`select paypal_payer_id, paypal_email from profiles where user_id = ${userId} limit 1`;
 
   const p = rows[0];

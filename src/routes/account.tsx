@@ -14,9 +14,13 @@ import {
 import { ARTWORK } from "@/lib/artwork";
 import { SiftahCreditsWallet } from "@/components/siftah-credits-wallet";
 
+export type AccountSearch = {
+  paypal?: "connected" | "error" | string;
+};
+
 export const Route = createFileRoute("/account")({
   component: AccountPage,
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): AccountSearch => ({
     paypal: typeof s.paypal === "string" ? s.paypal : undefined,
   }),
 });
@@ -79,13 +83,12 @@ function AccountPage() {
           <p className="text-muted-foreground">Loading…</p>
         ) : (
           <div className="space-y-6">
-            {/* Profile card */}
             <section className="rounded-2xl border border-border bg-card p-6">
               <h2 className="mb-4 font-display text-lg font-semibold">Profile</h2>
               <div className="flex items-center gap-4">
                 {user?.profileImageUrl ? (
                   <img
-                    src={user.image}
+                    src={user.profileImageUrl}
                     alt=""
                     className="size-14 rounded-full border border-border object-cover"
                   />
@@ -101,7 +104,8 @@ function AccountPage() {
               </div>
             </section>
 
-            <SiftahCreditsWallet />\n\n            {/* PayPal gate */}
+            <SiftahCreditsWallet />
+
             <section className="rounded-2xl border border-border bg-card p-6">
               <h2 className="mb-1 font-display text-lg font-semibold">Payment methods</h2>
               <p className="mb-4 text-sm text-muted-foreground">
@@ -114,7 +118,6 @@ function AccountPage() {
               />
             </section>
 
-            {/* Actions */}
             <section className="flex flex-wrap gap-3">
               {isPayPalConnected(profile) ? (
                 <Link
@@ -134,10 +137,10 @@ function AccountPage() {
                 </button>
               )}
               <Link
-                to="/inbox"
+                to="/siftah"
                 className="rounded-xl border border-border bg-secondary px-5 py-2.5 text-sm font-semibold hover:bg-secondary/80"
               >
-                Inbox
+                Siftah Mobile
               </Link>
               <Link
                 to="/"

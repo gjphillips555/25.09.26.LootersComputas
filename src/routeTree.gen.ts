@@ -10,26 +10,48 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as HiddenRouteImport } from './routes/hidden'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OverlayRouteImport } from './routes/overlay'
+import { Route as SellRouteImport } from './routes/sell'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as SiftahRouteImport } from './routes/siftah'
 import { Route as StorepolicyRouteImport } from './routes/storepolicy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TermsandconditionsRouteImport } from './routes/termsandconditions'
 import { Route as HiddenForumRouteImport } from './routes/hidden.forum'
 import { Route as ListingListingIdRouteImport } from './routes/listing.$listingId'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopCategoryRouteImport } from './routes/shop.$category'
+import { Route as ApiAdminRouteImport } from './routes/api/admin'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAnalyticsVisitRouteImport } from './routes/api/analytics/visit'
+import { Route as ApiPaypalCallbackRouteImport } from './routes/api/paypal/callback'
+import { Route as ApiPaypalCaptureOrderRouteImport } from './routes/api/paypal/capture-order'
+import { Route as ApiPaypalCreateOrderRouteImport } from './routes/api/paypal/create-order'
+import { Route as ApiPaypalWebhookRouteImport } from './routes/api/paypal/webhook'
+import { Route as ApiSiftahChatRouteImport } from './routes/api/siftah/chat'
 import { Route as HiddenLetterTokenRouteImport } from './routes/hidden.letter.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArcadeRoute = ArcadeRouteImport.update({
@@ -62,14 +84,29 @@ const OverlayRoute = OverlayRouteImport.update({
   path: '/overlay',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SellRoute = SellRouteImport.update({
+  id: '/sell',
+  path: '/sell',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SiftahRoute = SiftahRouteImport.update({
+  id: '/siftah',
+  path: '/siftah',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StorepolicyRoute = StorepolicyRouteImport.update({
   id: '/storepolicy',
   path: '/storepolicy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsandconditionsRoute = TermsandconditionsRouteImport.update({
@@ -102,9 +139,44 @@ const ShopCategoryRoute = ShopCategoryRouteImport.update({
   path: '/$category',
   getParentRoute: () => ShopRoute,
 } as any)
+const ApiAdminRoute = ApiAdminRouteImport.update({
+  id: '/api/admin',
+  path: '/api/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAnalyticsVisitRoute = ApiAnalyticsVisitRouteImport.update({
+  id: '/api/analytics/visit',
+  path: '/api/analytics/visit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaypalCallbackRoute = ApiPaypalCallbackRouteImport.update({
+  id: '/api/paypal/callback',
+  path: '/api/paypal/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaypalCaptureOrderRoute = ApiPaypalCaptureOrderRouteImport.update({
+  id: '/api/paypal/capture-order',
+  path: '/api/paypal/capture-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaypalCreateOrderRoute = ApiPaypalCreateOrderRouteImport.update({
+  id: '/api/paypal/create-order',
+  path: '/api/paypal/create-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaypalWebhookRoute = ApiPaypalWebhookRouteImport.update({
+  id: '/api/paypal/webhook',
+  path: '/api/paypal/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSiftahChatRoute = ApiSiftahChatRouteImport.update({
+  id: '/api/siftah/chat',
+  path: '/api/siftah/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HiddenLetterTokenRoute = HiddenLetterTokenRouteImport.update({
@@ -115,134 +187,218 @@ const HiddenLetterTokenRoute = HiddenLetterTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/arcade': typeof ArcadeRoute
   '/build': typeof BuildRoute
   '/checkout': typeof CheckoutRoute
   '/hidden': typeof HiddenRouteWithChildren
   '/login': typeof LoginRoute
   '/overlay': typeof OverlayRoute
+  '/sell': typeof SellRoute
   '/shop': typeof ShopRouteWithChildren
+  '/siftah': typeof SiftahRoute
   '/storepolicy': typeof StorepolicyRoute
+  '/terms': typeof TermsRoute
   '/termsandconditions': typeof TermsandconditionsRoute
   '/hidden/forum': typeof HiddenForumRoute
   '/listing/$listingId': typeof ListingListingIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/shop/$category': typeof ShopCategoryRoute
   '/shop/': typeof ShopIndexRoute
+  '/api/admin': typeof ApiAdminRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/analytics/visit': typeof ApiAnalyticsVisitRoute
+  '/api/paypal/callback': typeof ApiPaypalCallbackRoute
+  '/api/paypal/capture-order': typeof ApiPaypalCaptureOrderRoute
+  '/api/paypal/create-order': typeof ApiPaypalCreateOrderRoute
+  '/api/paypal/webhook': typeof ApiPaypalWebhookRoute
+  '/api/siftah/chat': typeof ApiSiftahChatRoute
   '/hidden/letter/$token': typeof HiddenLetterTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/arcade': typeof ArcadeRoute
   '/build': typeof BuildRoute
   '/checkout': typeof CheckoutRoute
   '/hidden': typeof HiddenRouteWithChildren
   '/login': typeof LoginRoute
   '/overlay': typeof OverlayRoute
+  '/sell': typeof SellRoute
+  '/siftah': typeof SiftahRoute
   '/storepolicy': typeof StorepolicyRoute
+  '/terms': typeof TermsRoute
   '/termsandconditions': typeof TermsandconditionsRoute
   '/hidden/forum': typeof HiddenForumRoute
   '/listing/$listingId': typeof ListingListingIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/shop/$category': typeof ShopCategoryRoute
   '/shop': typeof ShopIndexRoute
+  '/api/admin': typeof ApiAdminRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/analytics/visit': typeof ApiAnalyticsVisitRoute
+  '/api/paypal/callback': typeof ApiPaypalCallbackRoute
+  '/api/paypal/capture-order': typeof ApiPaypalCaptureOrderRoute
+  '/api/paypal/create-order': typeof ApiPaypalCreateOrderRoute
+  '/api/paypal/webhook': typeof ApiPaypalWebhookRoute
+  '/api/siftah/chat': typeof ApiSiftahChatRoute
   '/hidden/letter/$token': typeof HiddenLetterTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/admin': typeof AdminRoute
   '/arcade': typeof ArcadeRoute
   '/build': typeof BuildRoute
   '/checkout': typeof CheckoutRoute
   '/hidden': typeof HiddenRouteWithChildren
   '/login': typeof LoginRoute
   '/overlay': typeof OverlayRoute
+  '/sell': typeof SellRoute
   '/shop': typeof ShopRouteWithChildren
+  '/siftah': typeof SiftahRoute
   '/storepolicy': typeof StorepolicyRoute
+  '/terms': typeof TermsRoute
   '/termsandconditions': typeof TermsandconditionsRoute
   '/hidden/forum': typeof HiddenForumRoute
   '/listing/$listingId': typeof ListingListingIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/shop/$category': typeof ShopCategoryRoute
   '/shop/': typeof ShopIndexRoute
+  '/api/admin': typeof ApiAdminRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/analytics/visit': typeof ApiAnalyticsVisitRoute
+  '/api/paypal/callback': typeof ApiPaypalCallbackRoute
+  '/api/paypal/capture-order': typeof ApiPaypalCaptureOrderRoute
+  '/api/paypal/create-order': typeof ApiPaypalCreateOrderRoute
+  '/api/paypal/webhook': typeof ApiPaypalWebhookRoute
+  '/api/siftah/chat': typeof ApiSiftahChatRoute
   '/hidden/letter/$token': typeof HiddenLetterTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
+    | '/admin'
     | '/arcade'
     | '/build'
     | '/checkout'
     | '/hidden'
     | '/login'
     | '/overlay'
+    | '/sell'
     | '/shop'
+    | '/siftah'
     | '/storepolicy'
+    | '/terms'
     | '/termsandconditions'
     | '/hidden/forum'
     | '/listing/$listingId'
     | '/order/$orderId'
     | '/shop/$category'
     | '/shop/'
+    | '/api/admin'
     | '/api/auth/$'
+    | '/api/analytics/visit'
+    | '/api/paypal/callback'
+    | '/api/paypal/capture-order'
+    | '/api/paypal/create-order'
+    | '/api/paypal/webhook'
+    | '/api/siftah/chat'
     | '/hidden/letter/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
+    | '/admin'
     | '/arcade'
     | '/build'
     | '/checkout'
     | '/hidden'
     | '/login'
     | '/overlay'
+    | '/sell'
+    | '/siftah'
     | '/storepolicy'
+    | '/terms'
     | '/termsandconditions'
     | '/hidden/forum'
     | '/listing/$listingId'
     | '/order/$orderId'
     | '/shop/$category'
     | '/shop'
+    | '/api/admin'
     | '/api/auth/$'
+    | '/api/analytics/visit'
+    | '/api/paypal/callback'
+    | '/api/paypal/capture-order'
+    | '/api/paypal/create-order'
+    | '/api/paypal/webhook'
+    | '/api/siftah/chat'
     | '/hidden/letter/$token'
   id:
     | '__root__'
     | '/'
+    | '/account'
+    | '/admin'
     | '/arcade'
     | '/build'
     | '/checkout'
     | '/hidden'
     | '/login'
     | '/overlay'
+    | '/sell'
     | '/shop'
+    | '/siftah'
     | '/storepolicy'
+    | '/terms'
     | '/termsandconditions'
     | '/hidden/forum'
     | '/listing/$listingId'
     | '/order/$orderId'
     | '/shop/$category'
     | '/shop/'
+    | '/api/admin'
     | '/api/auth/$'
+    | '/api/analytics/visit'
+    | '/api/paypal/callback'
+    | '/api/paypal/capture-order'
+    | '/api/paypal/create-order'
+    | '/api/paypal/webhook'
+    | '/api/siftah/chat'
     | '/hidden/letter/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
+  AdminRoute: typeof AdminRoute
   ArcadeRoute: typeof ArcadeRoute
   BuildRoute: typeof BuildRoute
   CheckoutRoute: typeof CheckoutRoute
   HiddenRoute: typeof HiddenRouteWithChildren
   LoginRoute: typeof LoginRoute
   OverlayRoute: typeof OverlayRoute
+  SellRoute: typeof SellRoute
   ShopRoute: typeof ShopRouteWithChildren
+  SiftahRoute: typeof SiftahRoute
   StorepolicyRoute: typeof StorepolicyRoute
+  TermsRoute: typeof TermsRoute
   TermsandconditionsRoute: typeof TermsandconditionsRoute
   ListingListingIdRoute: typeof ListingListingIdRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
+  ApiAdminRoute: typeof ApiAdminRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiAnalyticsVisitRoute: typeof ApiAnalyticsVisitRoute
+  ApiPaypalCallbackRoute: typeof ApiPaypalCallbackRoute
+  ApiPaypalCaptureOrderRoute: typeof ApiPaypalCaptureOrderRoute
+  ApiPaypalCreateOrderRoute: typeof ApiPaypalCreateOrderRoute
+  ApiPaypalWebhookRoute: typeof ApiPaypalWebhookRoute
+  ApiSiftahChatRoute: typeof ApiSiftahChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +408,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arcade': {
@@ -296,6 +466,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OverlayRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sell': {
+      id: '/sell'
+      path: '/sell'
+      fullPath: '/sell'
+      preLoaderRoute: typeof SellRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -303,11 +480,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/siftah': {
+      id: '/siftah'
+      path: '/siftah'
+      fullPath: '/siftah'
+      preLoaderRoute: typeof SiftahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/storepolicy': {
       id: '/storepolicy'
       path: '/storepolicy'
       fullPath: '/storepolicy'
       preLoaderRoute: typeof StorepolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/termsandconditions': {
@@ -352,11 +543,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopCategoryRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/api/admin': {
+      id: '/api/admin'
+      path: '/api/admin'
+      fullPath: '/api/admin'
+      preLoaderRoute: typeof ApiAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/analytics/visit': {
+      id: '/api/analytics/visit'
+      path: '/api/analytics/visit'
+      fullPath: '/api/analytics/visit'
+      preLoaderRoute: typeof ApiAnalyticsVisitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/paypal/callback': {
+      id: '/api/paypal/callback'
+      path: '/api/paypal/callback'
+      fullPath: '/api/paypal/callback'
+      preLoaderRoute: typeof ApiPaypalCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/paypal/capture-order': {
+      id: '/api/paypal/capture-order'
+      path: '/api/paypal/capture-order'
+      fullPath: '/api/paypal/capture-order'
+      preLoaderRoute: typeof ApiPaypalCaptureOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/paypal/create-order': {
+      id: '/api/paypal/create-order'
+      path: '/api/paypal/create-order'
+      fullPath: '/api/paypal/create-order'
+      preLoaderRoute: typeof ApiPaypalCreateOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/paypal/webhook': {
+      id: '/api/paypal/webhook'
+      path: '/api/paypal/webhook'
+      fullPath: '/api/paypal/webhook'
+      preLoaderRoute: typeof ApiPaypalWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/siftah/chat': {
+      id: '/api/siftah/chat'
+      path: '/api/siftah/chat'
+      fullPath: '/api/siftah/chat'
+      preLoaderRoute: typeof ApiSiftahChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hidden/letter/$token': {
@@ -396,18 +636,30 @@ const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
+  AdminRoute: AdminRoute,
   ArcadeRoute: ArcadeRoute,
   BuildRoute: BuildRoute,
   CheckoutRoute: CheckoutRoute,
   HiddenRoute: HiddenRouteWithChildren,
   LoginRoute: LoginRoute,
   OverlayRoute: OverlayRoute,
+  SellRoute: SellRoute,
   ShopRoute: ShopRouteWithChildren,
+  SiftahRoute: SiftahRoute,
   StorepolicyRoute: StorepolicyRoute,
+  TermsRoute: TermsRoute,
   TermsandconditionsRoute: TermsandconditionsRoute,
   ListingListingIdRoute: ListingListingIdRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
+  ApiAdminRoute: ApiAdminRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiAnalyticsVisitRoute: ApiAnalyticsVisitRoute,
+  ApiPaypalCallbackRoute: ApiPaypalCallbackRoute,
+  ApiPaypalCaptureOrderRoute: ApiPaypalCaptureOrderRoute,
+  ApiPaypalCreateOrderRoute: ApiPaypalCreateOrderRoute,
+  ApiPaypalWebhookRoute: ApiPaypalWebhookRoute,
+  ApiSiftahChatRoute: ApiSiftahChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
