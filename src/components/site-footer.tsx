@@ -48,6 +48,9 @@ export function SiteFooter() {
           className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground"
           aria-label="Footer"
         >
+          <Link to="/arcade" className="hover:text-foreground">
+            Arcade
+          </Link>
           <Link to="/sell" className="hover:text-foreground">
             Sell
           </Link>
