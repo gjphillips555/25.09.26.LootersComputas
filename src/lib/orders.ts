@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { authMiddleware } from "@/lib/auth/middleware";
 import type { CartLine } from "@/lib/cart-store";
 
 export type Customer = {
@@ -139,6 +140,7 @@ function asOrder(input: unknown): PlacedOrder {
 }
 
 export const placeOrder = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((input: unknown) => asOrder(input))
   .handler(async ({ data }) => {
     const { getSql } = await import("@/lib/db");
@@ -170,6 +172,7 @@ export const placeOrder = createServerFn({ method: "POST" })
   });
 
 export const markOrderPaid = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((input: unknown) => {
     const id = String((input as { id?: unknown } | null)?.id ?? "");
     if (!/^LR-[A-Z0-9-]+$/.test(id)) throw new Error("Invalid order id");
