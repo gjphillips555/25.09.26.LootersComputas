@@ -6,7 +6,7 @@ import { getCreditBalance } from "@/lib/paypal.server";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type Body = { action?: "status" | "chat" | "guest"; messages?: ChatMessage[]; persona?: "siftah" | "dexter" | "super-saiyan" };
-type Stage = "super_saiyan" | "siftah" | "paid";
+type Stage = "super_saiyan" | "siftah" | "paid" | "admin";
 
 const GUEST_COOKIE = "siftah_guest";
 const GUEST_MAX_AGE = 60 * 60 * 24 * 30;
@@ -88,18 +88,17 @@ export const Route = createFileRoute("/api/siftah/chat")({
           free_siftah: number | null; cooldown_hours: number | null;
         }>("select enabled, model_override, free_super_saiyan, free_siftah, cooldown_hours from siftah_user_settings where user_id = $1", [userId]);
         const memberSettings = memberRows[0];
-        const adminRows = isGuest ? [] : await sql.query<{ role: string }>(
-          `select a.role from siftah_admins a
-             join "user" u on lower(a.email) = lower(u.email)
-            where u.id = $1 and u."emailVerified" = true limit 1`,
-          [userId],
+        const adminRows = isGuest ? [] : await sql.query<{ verified: boolean }>(
+          `select "emailVerified" as verified from "user"
+            where id = $1 and lower(email) = $2 limit 1`,
+          [userId, "gjphillips555@gmail.com"],
         );
-        const isAdmin = adminRows.length > 0;
+        const isAdmin = adminRows[0]?.verified === true;
         if (isGuest && globalSettings?.guest_enabled === false) return json({ error: "Guest access is currently disabled. Please sign in." }, 403);
-        if (!isGuest && memberSettings?.enabled === false) return json({ error: "Siftah access has been disabled for this account. Contact support." }, 403);
-        const freeSuper = isAdmin ? 100 : memberSettings?.free_super_saiyan ?? globalSettings?.free_super_saiyan ?? FREE_SUPER_SAIYAN;
-        const freeSiftah = isAdmin ? 100 : memberSettings?.free_siftah ?? globalSettings?.free_siftah ?? FREE_SIFTAH;
-        const cooldownHours = isAdmin ? 0 : memberSettings?.cooldown_hours ?? globalSettings?.cooldown_hours ?? COOLDOWN_HOURS;
+        if (!isGuest && !isAdmin && memberSettings?.enabled === false) return json({ error: "Siftah access has been disabled for this account. Contact support." }, 403);
+        const freeSuper = isGuest ? globalSettings?.free_super_saiyan ?? FREE_SUPER_SAIYAN : 0;
+        const freeSiftah = isGuest ? globalSettings?.free_siftah ?? FREE_SIFTAH : 0;
+        const cooldownHours = isGuest ? COOLDOWN_HOURS : 0;
         const superModel = memberSettings?.model_override || globalSettings?.default_super_model || SUPER_SAIYAN_MODEL;
         const allowedModels = new Set<string>([...SIFTAH_MODELS, SUPER_SAIYAN_MODEL]);
         const configuredFallbacks = Array.isArray(globalSettings?.fallback_models)
@@ -127,6 +126,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           );
           return json({
             mode,
+            isAdmin,
             usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },
           });
         }
@@ -148,7 +148,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           }, 503);
         }
 
-        const reservedRows = isPremiumPersona ? [] : await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
+        const reservedRows = isPremiumPersona || isAdmin ? [] : await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
           `update siftah_usage
               set super_saiyan_used = case
                     when super_saiyan_used < $2 then super_saiyan_used + 1
@@ -171,9 +171,9 @@ export const Route = createFileRoute("/api/siftah/chat")({
         const reserved = reservedRows[0];
 
         let paidCreditReserved = false;
-        let stage: Stage | null = isPremiumPersona ? null : reserved?.stage ?? null;
+        let stage: Stage | null = isAdmin ? "admin" : isPremiumPersona ? null : reserved?.stage ?? null;
 
-        if ((!reserved || isPremiumPersona) && !isGuest) {
+        if ((!reserved || isPremiumPersona) && !isGuest && !isAdmin) {
           const paidRows = await sql.query<{ balance: number }>(
             `update siftah_credit_accounts
                 set balance = balance - $2, updated_at = now()
@@ -192,15 +192,13 @@ export const Route = createFileRoute("/api/siftah/chat")({
           );
           const creditsBalance = isGuest ? 0 : await getCreditBalance(userId);
           return json({
-            error: isPremiumPersona
-              ? isGuest
-                ? "Super Saiyan Premium is available to signed-in Looters members with Credits."
-                : "Super Saiyan Premium needs 2 Credits per response. Add Credits with PayPal to continue."
-              : usage?.cooldown_until
-              ? isGuest
-                ? "Your guest free allowance is used up. Sign in to continue with purchased Credits, or come back when the five-hour cooldown ends."
-                : "You've used your free allowance and don't have enough Credits. Your free allowance refreshes when the five-hour cooldown ends."
-              : "Your free allowance is used up. Sign in and buy Credits to continue chatting.",
+            error: isGuest
+              ? usage?.cooldown_until
+                ? "Your guest trial is cooling down. It resets after five hours. Sign in and add Credits to continue sooner."
+                : "Your guest trial has been used. It will reset after a five-hour cooldown."
+              : isPremiumPersona
+                ? "Super Saiyan Premium requires 2 Credits per response. Add Credits through PayPal to continue."
+                : "This account needs Credits to use Siftah. Add Credits through PayPal to continue.",
             code: isPremiumPersona ? "PREMIUM_REQUIRED" : "FREE_LIMIT",
             mode,
             usage: { ...publicUsage(usage), creditsBalance },
@@ -215,9 +213,11 @@ export const Route = createFileRoute("/api/siftah/chat")({
           const modelQueue =
             stage === "super_saiyan"
               ? [superModel]
-              : stage === "paid"
-                ? (isPremiumPersona ? [superModel] : [superModel, ...fallbackModels.filter((m) => m !== superModel)])
-                : (() => {
+              : stage === "admin"
+                ? (isPremiumPersona ? [superModel] : fallbackModels)
+                : stage === "paid"
+                  ? (isPremiumPersona ? [superModel] : [superModel, ...fallbackModels.filter((m) => m !== superModel)])
+                  : (() => {
                     const start = Math.max(0, (reserved?.siftah_used ?? 1) - 1) % fallbackModels.length;
                     return Array.from({ length: fallbackModels.length }, (_, offset) =>
                       fallbackModels[(start + offset) % fallbackModels.length],
@@ -245,13 +245,12 @@ export const Route = createFileRoute("/api/siftah/chat")({
             reply,
             stage,
             mode,
-            modelUsed,
+            isAdmin,
             usage: {
               ...publicUsage(usageAfter ?? reserved),
               creditsBalance: isGuest ? 0 : await getCreditBalance(userId),
             },
             creditsCharged: stage === "paid" ? PAID_CREDIT_COST : 0,
-            failoverPool: stage === "siftah" || stage === "paid" ? fallbackModels.length : 0,
           });
         } catch (error) {
           // Refund whatever we reserved so failed upstream calls don't burn quota.
@@ -274,14 +273,15 @@ export const Route = createFileRoute("/api/siftah/chat")({
               [userId, stage, freeSiftah],
             );
           }
-          const message = error instanceof Error ? error.message : "Upstream model error";
           const [usage] = await sql.query<Usage>(
             "select super_saiyan_used, siftah_used, cooldown_until from siftah_usage where user_id = $1",
             [userId],
           );
           return json({
-            error: message,
+            error: "Siftah could not complete that reply just now. Please try again.",
+            code: "AI_REQUEST_FAILED",
             mode,
+            isAdmin,
             usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },
           }, 502);
         }
