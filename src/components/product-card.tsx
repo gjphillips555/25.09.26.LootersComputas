@@ -8,6 +8,7 @@ import { cartProductFrom, isInCart, useCart } from "@/lib/cart-store";
 import { categoryBadge } from "@/lib/product-search";
 import type { Product } from "@/lib/products";
 import { cn } from "@/lib/utils";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 export function ProductCard({
   product,
@@ -23,6 +24,7 @@ export function ProductCard({
   imageFit?: "cover" | "contain";
 }) {
   const navigate = useNavigate();
+  const { user } = useCurrentUserState();
   const add = useCart((s) => s.add);
   const lines = useCart((s) => s.lines);
   const [added, setAdded] = useState(false);
@@ -51,7 +53,7 @@ export function ProductCard({
   async function handleAdd(e: MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (soldOut) {
+    if (!user || soldOut) {
       void navigate({
         to: "/listing/$listingId",
         params: { listingId: product.id },
@@ -161,24 +163,26 @@ export function ProductCard({
             {product.priceLabel}
           </p>
           {product.amount > 0 ? <AfterpayLine amount={product.amount} /> : null}
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={!soldOut && (alreadyMaxed || adding || !canBuy)}
-            className="shop-add"
-          >
-            {alreadyMaxed || added ? (
-              <>
-                <Check className="size-4" />
-                {alreadyMaxed ? "In cart" : "Added"}
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="size-4" />
-                {adding ? "Adding" : "Add to cart"}
-              </>
-            )}
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={!soldOut && (alreadyMaxed || adding || !canBuy)}
+              className="shop-add"
+            >
+              {alreadyMaxed || added ? (
+                <>
+                  <Check className="size-4" />
+                  {alreadyMaxed ? "In cart" : "Added"}
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="size-4" />
+                  {adding ? "Adding" : "Add to cart"}
+                </>
+              )}
+            </button>
+          ) : null}
         </div>
       </div>
     </article>
