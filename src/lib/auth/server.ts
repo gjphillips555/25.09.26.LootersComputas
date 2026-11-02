@@ -43,6 +43,11 @@ const env = (key: string): string | undefined => {
 
 const authDisabled = env("VITE_AUTH_ENABLED") === "false";
 const isProduction = env("VERCEL_ENV") === "production";
+const configuredAuthSecret = env("BETTER_AUTH_SECRET");
+
+if (isProduction && !configuredAuthSecret) {
+  throw new Error("BETTER_AUTH_SECRET must be configured in Vercel Production.");
+}
 
 const grokIssuer = env("GROK_AUTH_ISSUER") ?? GROK_ISSUER_DEFAULT;
 const grokClientId = env("GROK_AUTH_CLIENT_ID") ?? PREVIEW_CLIENT_ID;
@@ -134,7 +139,7 @@ const grokOAuthPlugin =
 
 export const auth = betterAuth({
   baseURL,
-  secret: env("BETTER_AUTH_SECRET") ?? previewAuthSecret(),
+  secret: configuredAuthSecret ?? previewAuthSecret(),
   database,
   trustedOrigins,
   account: {
