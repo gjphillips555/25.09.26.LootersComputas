@@ -14,9 +14,15 @@ import { cartProductFrom, isInCart, useCart } from "@/lib/cart-store";
 import { cartCheckoutSearch } from "@/lib/orders";
 import { nzd, type Product } from "@/lib/products";
 import { similarAvailable } from "@/lib/product-search";
+import { hasSignedInSession } from "@/lib/auth/route-access";
 
 export const Route = createFileRoute("/listing/$listingId")({
   loader: async ({ params }) => {
+    try {
+      await hasSignedInSession();
+    } catch {
+      return { product: null, suggestions: [] as Product[] };
+    }
     const product = await getProduct({ data: { id: params.listingId } });
     if (!product) throw notFound();
     let suggestions: Product[] = [];
@@ -47,6 +53,13 @@ function ProductNotFound() {
 function ProductPage() {
   const { product, suggestions } = Route.useLoaderData();
   const navigate = useNavigate();
+  if (!product) {
+    return (
+      <AppShell>
+        <p className="py-24 text-center text-sm text-muted-foreground">Sign in to view this listing.</p>
+      </AppShell>
+    );
+  }
   const add = useCart((s) => s.add);
   const setQty = useCart((s) => s.setQty);
   const setShipping = useCart((s) => s.setShipping);
