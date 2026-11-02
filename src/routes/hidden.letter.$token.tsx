@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { denSubmitPuzzle } from "@/lib/den";
+import { authEnabled } from "@/lib/auth/client";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 export const Route = createFileRoute("/hidden/letter/$token")({
   component: DenLetter,
@@ -11,6 +13,7 @@ export const Route = createFileRoute("/hidden/letter/$token")({
 
 function DenLetter() {
   const { token } = Route.useParams();
+  const { user, isPending } = useCurrentUserState();
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [won, setWon] = useState(false);
@@ -28,6 +31,18 @@ function DenLetter() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (authEnabled && (isPending || !user)) {
+    return (
+      <main className="den-shell">
+        <div className="den-card">
+          <h1>Sign in to continue</h1>
+          <p>Use your Looters Computas account before opening this member page.</p>
+          <a href={`/login?callbackURL=${encodeURIComponent(window.location.pathname)}`}>Sign in / Create account</a>
+        </div>
+      </main>
+    );
   }
 
   return (
