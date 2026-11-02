@@ -40,7 +40,23 @@ Set these for authenticated API access (higher rate limits / reliability):
 
 Without them the app still works against the public endpoints where available.
 
-Auth and database are **off** by default (cart/orders use client-side storage for the demo flow).
+### Authentication (Better Auth)
+
+This app uses **Better Auth** as its single authentication system. Do not add
+Auth0 or a second authentication provider.
+
+For production Google sign-in, configure these Vercel environment variables:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `BETTER_AUTH_SECRET` (a long, random secret)
+- `BETTER_AUTH_URL` (the canonical application URL, e.g. `https://www.looterscomputas.online`)
+- `DATABASE_URL` (the production PostgreSQL connection string)
+
+Set `VITE_AUTH_ENABLED=true` in the production environment. The legacy Grok
+OAuth broker is retained only for isolated live-preview environments; production
+never falls back to it. Never place OAuth secrets in client-side variables or
+commit them to this repository.
 
 ## Scripts
 
