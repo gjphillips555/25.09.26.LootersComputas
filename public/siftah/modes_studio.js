@@ -12,6 +12,39 @@
       return (s.token || localStorage.getItem("siftah_token") || "").trim();
     } catch (e) { return ""; }
   }
+  async function checkMediaAccess() {
+    if (window.siftahAccess && window.siftahAccess.ready) await window.siftahAccess.ready;
+    var response = await fetch("/api/siftah/chat", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "status" })
+    });
+    var data = await response.json().catch(function () { return {}; });
+    if (!response.ok) throw new Error(data.error || "Sign in or start a guest trial to continue.");
+    if (data.isAdmin) return data;
+    var usage = data.usage || {};
+    if (data.mode === "guest") {
+      var used = Number(usage.superSaiyanUsed || 0) + Number(usage.siftahUsed || 0);
+      var limit = Number(data.trialLimit || 10);
+      if ((usage.cooldownUntil && Date.parse(usage.cooldownUntil) > Date.now()) || used >= limit) {
+        throw new Error("Your guest trial is used. It resets after a five-hour cooldown.");
+      }
+    } else if (data.mode === "account" && Number(usage.creditsBalance || 0) < 2) {
+      throw new Error("This account needs 2 Credits for each image or video request. Add Credits through PayPal.");
+    }
+    return data;
+  }
+  async function consumeMedia() {
+    var response = await fetch("/api/siftah/chat", {
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "media_access" })
+    });
+    var data = await response.json().catch(function () { return {}; });
+    if (!response.ok) throw new Error(data.error || "Siftah access is unavailable.");
+    if (window.siftahAccess) void window.siftahAccess.refresh();
+    return data;
+  }
   function blobToDataUrl(blob) {
     return new Promise(function (resolve, reject) {
       var r = new FileReader(); r.onload = function () { resolve(r.result); }; r.onerror = reject; r.readAsDataURL(blob);
@@ -341,6 +374,7 @@
       preview.innerHTML = '<div class="placeholder">Working\u2026</div>';
       document.getElementById("studioCreateActions").style.display = "none";
       try {
+        await checkMediaAccess();
         if (isHorde) {
           lastCreateBlob = await generateHorde(prompt, model.slice(6), function (c) {
             var pos = c && c.queue_position ? " \u00b7 position " + c.queue_position : "";
@@ -351,6 +385,7 @@
           var out = await client.textToImage({ model: model, inputs: prompt, provider: "auto" });
           lastCreateBlob = await normalizeOut(out);
         }
+        await consumeMedia();
         showPreview(preview, lastCreateBlob);
         document.getElementById("studioCreateActions").style.display = "flex";
         status.textContent = "Done · saved to Gallery for 30 days";
@@ -414,9 +449,11 @@
       preview.innerHTML = '<div class="placeholder">Working\u2026</div>';
       document.getElementById("studioEditActions").style.display = "none";
       try {
+        await checkMediaAccess();
         var client = await loadHFClient(t);
         var out = await client.imageToImage({ model: model, inputs: editSourceBlob, parameters: { prompt: prompt } });
         lastEditBlob = await normalizeOut(out);
+        await consumeMedia();
         showPreview(preview, lastEditBlob);
         document.getElementById("studioEditActions").style.display = "flex";
         status.textContent = "Done · saved to Gallery for 30 days";
@@ -464,9 +501,11 @@
       preview.innerHTML = '<div class="placeholder">Working\u2026 stay on this screen</div>';
       document.getElementById("studioVidActions").style.display = "none";
       try {
+        await checkMediaAccess();
         var client = await loadHFClient(t);
         var out = await client.textToVideo({ model: model, inputs: prompt, provider: "auto" });
         lastVidBlob = await normalizeVideo(out);
+        await consumeMedia();
         var url = URL.createObjectURL(lastVidBlob);
         preview.innerHTML = '<video src="' + url + '" controls autoplay loop playsinline></video>';
         document.getElementById("studioVidActions").style.display = "flex";
