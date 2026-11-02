@@ -142,16 +142,19 @@ function TermsPage() {
 
       <h2>6. Guest trials, Credits and paid access</h2>
       <p>
-        Siftah's limited free trial is available in guest mode only. The current
-        guest trial allowance is limited and, once used, a five-hour cooldown
-        applies before the guest allowance resets. Trial limits may be adjusted
-        to protect availability and prevent abuse. Signing in with a standard
-        member account does not create a new free trial or remove a cooldown.
+        Siftah's limited free trial is available in guest mode only. Successful
+        chat replies and completed image or video generations count towards the
+        guest trial allowance. Once the allowance is used, a five-hour cooldown
+        applies before it resets. Trial limits may be adjusted to protect
+        availability and prevent abuse. Signing in with a standard member
+        account does not create a new free trial or remove a cooldown.
       </p>
       <p>
         Signed-in members can continue using paid Siftah features by purchasing
-        Credits through PayPal. The current charge is 2 Credits per AI response.
-        Credits are attached to the member account that made the purchase,
+        Credits through PayPal. The current charge is 2 Credits per completed
+        chat response or successful image or video generation. Failed generation
+        attempts do not consume Credits or trial uses. Credits are attached to
+        the member account that made the purchase,
         cannot be transferred or exchanged for cash, and are subject to
         applicable consumer law and any refund rights that cannot legally be
         excluded. Verified authorised administrators may receive separate
