@@ -44,7 +44,7 @@ function inLivePreview(): boolean {
   return window.location.hostname.endsWith(".grok-sandbox.com");
 }
 
-function onLootersProduction(): boolean {
+function onLootersSite(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location.hostname;
   return (
@@ -56,29 +56,73 @@ function onLootersProduction(): boolean {
 
 type PopupMessage = { source: "grok-auth-popup"; token: string | null; error?: string };
 
+function resolveProviderId(providerId: string): string {
+  if (providerId === "grok-google" || providerId === "google") {
+    if (onLootersSite() || !inLivePreview()) return "google";
+  }
+  return providerId;
+}
+
+async function fetchGoogleAuthorizeUrl(
+  callbackURL: string,
+  errorCallbackURL: string,
+): Promise<string> {
+  const res = await fetch("/api/auth/sign-in/social", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      provider: "google",
+      callbackURL,
+      errorCallbackURL,
+    }),
+  });
+
+  const text = await res.text();
+  let body: { url?: string; redirect?: boolean; message?: string; error?: string } | null =
+    null;
+  try {
+    body = text ? (JSON.parse(text) as typeof body) : null;
+  } catch {
+    /* non-JSON */
+  }
+
+  if (!res.ok) {
+    const detail =
+      body?.message || body?.error || text.slice(0, 180) || `HTTP ${res.status}`;
+    throw new Error(`Google sign-in failed: ${detail}`);
+  }
+
+  if (body?.url) return body.url;
+
+  throw new Error(
+    "Google sign-in did not return a redirect URL. Check GOOGLE_CLIENT_ID/SECRET and the Google Cloud redirect URI.",
+  );
+}
+
 export async function signIn(
   providerId: string,
   opts: { callbackURL?: string; errorCallbackURL?: string } = {},
 ): Promise<void> {
   const callbackURL = opts.callbackURL ?? "/";
   const errorCallbackURL = opts.errorCallbackURL ?? "/";
-
-  // Production must never use the xAI/Grok broker — map legacy id to native Google.
-  if (
-    (providerId === "grok-google" || providerId === "google") &&
-    onLootersProduction()
-  ) {
-    providerId = "google";
-  }
+  providerId = resolveProviderId(providerId);
 
   const popup = inLivePreview() ? openSignInPopup(providerId) : null;
 
-  await runPreSignInSignOut({
-    livePreview: inLivePreview(),
-    hasBearer: Boolean(getBearerToken()),
-    requestSignOut: () => authClient.signOut(),
-    clearToken: () => setBearerToken(null),
-  });
+  try {
+    await runPreSignInSignOut({
+      livePreview: inLivePreview(),
+      hasBearer: Boolean(getBearerToken()),
+      requestSignOut: () => authClient.signOut(),
+      clearToken: () => setBearerToken(null),
+    });
+  } catch {
+    setBearerToken(null);
+  }
 
   if (inLivePreview()) {
     if (!popup) throw new Error("Pop-up blocked — allow pop-ups for sign-in");
@@ -88,12 +132,16 @@ export async function signIn(
     try {
       await authClient.getSession();
     } catch {
-      /* session store will recover on next useSession fetch */
+      /* recover */
     }
     if (typeof window !== "undefined") {
       const dest = new URL(callbackURL, window.location.origin);
       const here = window.location;
-      if (dest.origin !== here.origin || dest.pathname !== here.pathname || dest.search !== here.search) {
+      if (
+        dest.origin !== here.origin ||
+        dest.pathname !== here.pathname ||
+        dest.search !== here.search
+      ) {
         window.location.href = callbackURL;
       }
     }
@@ -101,14 +149,13 @@ export async function signIn(
   }
 
   if (providerId === "google") {
-    const { data, error } = await authClient.signIn.social({
-      provider: "google",
-      callbackURL,
-      errorCallbackURL,
-    });
-    if (error) throw new Error(error.message ?? "Google sign-in failed");
-    if (data?.url) window.location.href = data.url;
+    const url = await fetchGoogleAuthorizeUrl(callbackURL, errorCallbackURL);
+    window.location.assign(url);
     return;
+  }
+
+  if (onLootersSite()) {
+    throw new Error("Only Google sign-in is available on this site.");
   }
 
   const { data, error } = await authClient.signIn.oauth2({
@@ -117,7 +164,7 @@ export async function signIn(
     errorCallbackURL,
   });
   if (error) throw new Error(error.message ?? "Sign-in failed");
-  if (data?.url) window.location.href = data.url;
+  if (data?.url) window.location.assign(data.url);
 }
 
 function openSignInPopup(providerId: string): Window | null {
