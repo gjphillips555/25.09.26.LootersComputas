@@ -1,0 +1,1 @@
+(function(){var P=["p0.js","p1.js","p2.js","p3.js","p4.js","p5.js"],i=0,c="";function n(){if(i>=P.length){var s=document.createElement("script");s.textContent=c;document.body.appendChild(s);return}fetch("./"+P[i++]).then(function(r){return r.text()}).then(function(t){c+=t;n()}).catch(function(e){console.error(e)})}n()})();

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0a0a0c">
+<title>Siftah Mobile</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="icon" href="./favicon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="./favicon-16.png" type="image/png" sizes="16x16">
+<link rel="apple-touch-icon" href="./apple-icon.png">
+<link rel="stylesheet" href="./siftah.css">
+<link rel="stylesheet" href="./v15.css">
+</head>
+<body>
+<div class="app">
+  <div class="main-row">
+    <div class="chat-col">
+      <header>
+        <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+        <div class="brand">
+          <div class="brand-logo"><span class="crown">♛</span> Siftah</div>
+          <span class="brand-sub">Mobile</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="files-toggle" id="filesToggle" aria-label="Project files" title="Project files">📁<span class="badge" id="filesBadge">0</span></button>
+          <button class="settings-btn" id="settingsBtn" aria-label="Settings">⚙</button>
+        </div>
+      </header>
+      <div class="model-bar">
+        <div class="model-info">
+          <div class="bot-icon">🤖</div>
+          <div><div>Siftah Mobile</div><div class="model-meta">Unrestricted · Coding focused</div></div>
+        </div>
+        <div class="user-chip" id="userChip" title="Account" style="display:none">
+          <img id="userAvatar" alt="" width="22" height="22">
+          <span id="userName"></span>
+        </div>
+      </div>
+      <main class="chat" id="chat">
+        <div class="messages" id="messages">
+          <div class="empty-state" id="empty">
+            <div class="logo-big">♛</div>
+            <h2>Siftah Mobile</h2>
+            <p>Unrestricted coding chatbot.<br>Ask anything — code, debug, build, brainstorm.<br><span style="opacity:.8">Cloud or Local models. Guest mode works without sign-in.</span></p>
+          </div>
+        </div>
+      </main>
+      <div class="composer-wrap">
+        <div class="composer">
+          <textarea id="input" rows="1" placeholder="Type a message..." autocomplete="off"></textarea>
+          <button class="icon-btn send-btn" id="send" title="Send">➤</button>
+        </div>
+      </div>
+    </div>
+    <aside class="files-panel" id="filesPanel">
+      <div class="files-head">
+        <h3>📁 Project</h3>
+        <div class="files-head-actions"><button type="button" id="filesCollapse" title="Hide panel">⟩</button></div>
+      </div>
+      <div class="task-bar">
+        <label class="task-label">Task</label>
+        <select id="taskSelect" title="Active software task"></select>
+        <button type="button" id="btnNewTask" title="New task">+</button>
+      </div>
+      <div class="files-toolbar">
+        <button type="button" id="btnNewFolder">+ Folder</button>
+        <button type="button" id="btnAutoAssemble" title="Sort files into folders by type">⚡ Assemble</button>
+        <button type="button" class="primary" id="btnZipAll">⬇ ZIP</button>
+      </div>
+      <div class="files-tree" id="filesTree"></div>
+    </aside>
+  </div>
+</div>
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-drawer" id="menuDrawer">
+    <div class="menu-head">
+      <div class="brand-logo"><span class="crown">♛</span> Menu</div>
+      <button type="button" id="menuClose" aria-label="Close">✕</button>
+    </div>
+    <div class="menu-user" id="menuUserBlock">
+      <div id="menuSignedOut">
+        <button type="button" class="google-btn" id="btnGoogleSignIn">
+          <span class="g-icon">G</span> Sign in with Google
+        </button>
+        <p class="menu-hint">Guest mode is on — chat works without signing in.<br>Sign in is optional.</p>
+        <button type="button" class="menu-item" id="btnContinueGuest" style="margin-top:8px">Continue as guest</button>
+      </div>
+      <div id="menuSignedIn" style="display:none">
+        <div class="menu-user-row">
+          <img id="menuAvatar" width="36" height="36" alt="">
+          <div>
+            <div id="menuDisplayName" class="menu-name"></div>
+            <div id="menuEmail" class="menu-email"></div>
+          </div>
+        </div>
+        <button type="button" class="menu-item danger" id="btnSignOut">Sign out</button>
+      </div>
+    </div>
+    <nav class="menu-nav">
+      <div class="menu-section-label">WORKSPACE</div>
+      <button type="button" class="menu-item" id="menuChat">💬 Siftah</button>
+      <button type="button" class="menu-item" id="menuCode">⌨ Dexter</button>
+      <button type="button" class="menu-item" id="menuImages">🎨 Da Vinci</button>
+      <div class="menu-section-label">TOOLS & SETTINGS</div>
+      <button type="button" class="menu-item" id="menuSettings">⚙ Settings</button>
+      <a class="menu-item" href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener">🔑 Get your HF token</a>
+      <button type="button" class="menu-item" id="menuForum">💬 Siftah Forum <span class="soon">soon</span></button>
+      <button type="button" class="menu-item" id="menu3d">🖨 3D Blueprints <span class="soon">soon</span></button>
+    </nav>
+    <div class="menu-foot">Siftah Mobile v2.0</div>
+  </div>
+</div>
+<div class="preview-overlay" id="previewOverlay">
+  <div class="preview-card">
+    <div class="preview-head">
+      <span id="previewName">file</span>
+      <div>
+        <button type="button" id="previewDl">⬇ Download</button>
+        <button type="button" id="previewClose">✕</button>
+      </div>
+    </div>
+    <pre id="previewBody"></pre>
+  </div>
+</div>
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <div class="sheet-header">
+      <h2>Settings</h2>
+      <button class="close-x" id="closeBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="section siftah-advanced">
+        <div class="section-title">🔑 Access Token</div>
+        <div class="field">
+          <input id="token" type="password" placeholder="hf_..." autocomplete="off">
+          <div class="hint">Chat token. Needed for <strong>Cloud</strong> mode. Local mode skips this.</div>
+        </div>
+      </div>
+      <div class="section siftah-advanced">
+        <div class="section-title">🎨 FLUX token</div>
+        <div class="field">
+          <input id="fluxToken" type="password" placeholder="hf_... optional, images only" autocomplete="off">
+          <div class="hint">Separate Hugging Face token for FLUX and other images. If empty, images use the chat token.</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">🧠 Model</div>
+        <div class="field">
+          <input id="model" type="text" placeholder="model-id or model-id:provider">
+          <div class="hint">Uncensored / Full is the weight switch. Pick the bot in the dropdown.</div>
+        </div>
+      </div>
+      <div class="section siftah-advanced">
+        <div class="section-title">🆓 AI Horde key</div>
+        <div class="field">
+          <input id="hordeToken" type="password" placeholder="optional — blank uses the anonymous key" autocomplete="off">
+          <div class="hint">Free images. Leave this blank to use the slow anonymous key. A personal key from stablehorde.net/register jumps the queue. Then pick an AI Horde model under Image/Video → Create.</div>
+        </div>
+      </div>
+      <div class="section siftah-advanced">
+        <div class="section-title">🎚 Model Settings</div>
+        <div class="slider-row"><label>Temperature</label><input type="range" class="slider-track" id="temperature" min="0" max="2" step="0.05" value="0.7"><div class="slider-value" id="tempVal">0.7</div></div>
+        <div class="slider-row"><label>Max Tokens</label><input type="range" class="slider-track" id="maxTokens" min="256" max="8192" step="64" value="2048"><div class="slider-value" id="maxVal">2048</div></div>
+      </div>
+      <div class="section">
+        <div class="section-title">💬 Chat Settings</div>
+        <div class="toggle-row"><div class="toggle-label">💾 Save Chat History</div><label class="toggle"><input type="checkbox" id="saveHistory" checked><span class="slider"></span></label></div>
+        <div class="toggle-row"><div class="toggle-label">🕒 Show Timestamps</div><label class="toggle"><input type="checkbox" id="showTimestamps"><span class="slider"></span></label></div>
+        <div class="toggle-row"><div class="toggle-label">📁 Auto-add code to active Task</div><label class="toggle"><input type="checkbox" id="autoAddFiles" checked><span class="slider"></span></label></div>
+      </div>
+      <div class="section siftah-advanced">
+        <div class="section-title">🔐 Google sign-in (optional)</div>
+        <div class="field">
+          <textarea id="firebaseConfig" rows="4" placeholder="Paste Firebase web config JSON"></textarea>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">⚡ Actions</div>
+        <button class="clear-btn" id="toggleAdvanced" type="button">Advanced</button>
+        <button class="clear-btn" id="clearBtn" style="margin-top:8px">🗑 Clear Chat</button>
+        <button class="clear-btn" id="clearProjectBtn" style="margin-top:8px">🗑 Clear Project Files</button>
+      </div>
+    </div>
+    <div class="sheet-footer"><span>Siftah Mobile v2.0</span><span>Unrestricted</span></div>
+  </div>
+</div>
+<div class="status-toast" id="toast"></div>
+<script src="./app.js"></script>
+<script>
+/* Phone: the project drawer was covering Image/Video and Send. Keep it shut until the folder button is tapped. */
+(function () {
+  if (window.innerWidth > 800 || typeof setFilesPanel !== "function") return;
+  var saved = null;
+  try { saved = localStorage.getItem("siftah_files_open"); } catch (e) {}
+  setFilesPanel(false);
+  try {
+    if (saved === null) localStorage.removeItem("siftah_files_open");
+    else localStorage.setItem("siftah_files_open", saved);
+  } catch (e) {}
+})();
+</script>
+<script src="./expose.js"></script>
+<script src="./tasks_addon.js"></script>
+<script src="./file_actions.js"></script>
+<script src="./name_fix.js"></script>
+<script src="./vault.js"></script>
+<script src="./media_gen.js"></script>
+<script src="./reorder.js"></script>
+<script src="./tabs.js"></script>
+<script src="./links.js"></script>
+<script src="./auth.js"></script>
+<script src="./enhancements.js"></script>
+<script src="./enhancements_ui.js"></script>
+<script src="./upgrades.js"></script>
+<script src="./modes.js"></script>
+<script src="./group.js"></script>
+</body>
+</html>
