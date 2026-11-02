@@ -5,7 +5,7 @@ import { getSessionUser } from "@/lib/auth/verify.server";
 import { getCreditBalance } from "@/lib/paypal.server";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
-type Body = { action?: "status" | "chat" | "guest"; messages?: ChatMessage[]; persona?: "siftah" | "dexter" | "super-saiyan" };
+type Body = { action?: "status" | "chat" | "guest" | "media_access"; messages?: ChatMessage[]; persona?: "siftah" | "dexter" | "super-saiyan" };
 type Stage = "super_saiyan" | "siftah" | "paid" | "admin";
 
 const GUEST_COOKIE = "siftah_guest";
@@ -128,6 +128,74 @@ export const Route = createFileRoute("/api/siftah/chat")({
             mode,
             isAdmin,
             usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },
+          });
+        }
+
+        if (body.action === "media_access") {
+          if (isAdmin) return json({ ok: true, mode, isAdmin: true });
+          if (isGuest) {
+            const mediaTrialRows = await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
+              `update siftah_usage
+                  set super_saiyan_used = case
+                        when super_saiyan_used < $2 then super_saiyan_used + 1
+                        else super_saiyan_used end,
+                      siftah_used = case
+                        when super_saiyan_used >= $2 and siftah_used < $3 then siftah_used + 1
+                        else siftah_used end,
+                      cooldown_until = case
+                        when super_saiyan_used >= $2 and siftah_used = $3 - 1
+                          then now() + ($4 || ' hours')::interval
+                        else cooldown_until end,
+                      updated_at = now()
+                where user_id = $1
+                  and (cooldown_until is null or cooldown_until <= now())
+                  and (super_saiyan_used < $2 or siftah_used < $3)
+              returning super_saiyan_used, siftah_used, cooldown_until,
+                        case when super_saiyan_used <= $2 and siftah_used = 0 then 'super_saiyan' else 'siftah' end as stage`,
+              [userId, freeSuper, freeSiftah, String(COOLDOWN_HOURS)],
+            );
+            if (!mediaTrialRows[0]) {
+              const [usage] = await sql.query<Usage>(
+                "select super_saiyan_used, siftah_used, cooldown_until from siftah_usage where user_id = $1",
+                [userId],
+              );
+              return json({
+                error: usage?.cooldown_until
+                  ? "Your guest trial is cooling down. It resets after five hours."
+                  : "Your guest trial has been used. It will reset after a five-hour cooldown.",
+                code: "GUEST_TRIAL_LIMIT",
+                mode,
+                usage: publicUsage(usage),
+              }, 429);
+            }
+            return json({
+              ok: true,
+              mode,
+              isAdmin: false,
+              usage: { ...publicUsage(mediaTrialRows[0]), creditsBalance: 0 },
+            });
+          }
+
+          const mediaCreditRows = await sql.query<{ balance: number }>(
+            `update siftah_credit_accounts
+                set balance = balance - $2, updated_at = now()
+              where user_id = $1 and balance >= $2
+            returning balance`,
+            [userId, PAID_CREDIT_COST],
+          );
+          if (!mediaCreditRows[0]) {
+            return json({
+              error: "This account needs 2 Credits for each image or video request. Add Credits through PayPal to continue.",
+              code: "CREDITS_REQUIRED",
+              mode,
+              usage: { creditsBalance: await getCreditBalance(userId) },
+            }, 429);
+          }
+          return json({
+            ok: true,
+            mode,
+            isAdmin: false,
+            usage: { creditsBalance: mediaCreditRows[0].balance },
           });
         }
 
