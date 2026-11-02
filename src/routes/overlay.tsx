@@ -3,6 +3,8 @@ import { Moon, Sun } from "lucide-react";
 import { LegalLinks } from "@/components/legal-links";
 import { OverlayStudio } from "@/components/overlay-studio";
 import { useTheme } from "@/lib/theme";
+import { authEnabled } from "@/lib/auth/client";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 export const Route = createFileRoute("/overlay")({
   component: OverlayPage,
@@ -37,6 +39,18 @@ function PlainThemeToggle() {
 
 /** Minimal chrome — full wordmark, no shop BrandLogo / keyboard chrome. */
 function OverlayPage() {
+  const { user, isPending } = useCurrentUserState();
+  if (authEnabled && (isPending || !user)) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-background p-6 text-center">
+        <section className="max-w-md rounded-2xl border border-border bg-card p-7">
+          <h1 className="font-display text-2xl font-semibold">Sign in to continue</h1>
+          <p className="mt-3 text-sm text-muted-foreground">Create or sign in to your Looters account to use this tool.</p>
+          <a href="/login?callbackURL=%2Foverlay" className="mt-6 inline-flex rounded-xl bg-[#ff9a00] px-6 py-3 font-semibold text-[#1a1000]">Sign in / Create account</a>
+        </section>
+      </main>
+    );
+  }
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
