@@ -24,7 +24,7 @@
     bar.innerHTML =
       '<div><strong>⚡ Super Saiyan Premium</strong> <span id="ssCredits">Checking Looters Credits…</span></div>' +
       '<div class="ss-actions">' +
-        '<a id="ssLogin" href="/login?callbackURL=%2Fsiftah%2F" style="display:none">Sign in to Looters</a>' +
+        '<a id="ssLogin" href="/login?callbackURL=%2Fsiftah" style="display:none">Sign in to Looters</a>' +
         '<button type="button" id="ssBuyToggle">Buy Credits</button>' +
       '</div>' +
       '<div class="ss-buy-menu" id="ssBuyMenu">' +
@@ -94,7 +94,7 @@
       });
       var data = await response.json().catch(function () { return {}; });
       if (response.status === 401) {
-        window.location.assign("/login?callbackURL=%2Fsiftah%2F%3Fmode%3Dsuper-saiyan");
+        window.location.assign("/login?callbackURL=%2Fsiftah");
         return;
       }
       if (!response.ok || !data.approvalUrl) throw new Error(data.error || "Could not start PayPal checkout.");
