@@ -50,23 +50,16 @@ export function BrandedGoogleSignIn({
     <div
       className={cn(
         "overflow-hidden rounded-2xl border border-white/10",
-        "bg-gradient-to-b from-[#2a1f3d] to-[#12101a]",
+        "bg-[#0a0a0c]",
         "shadow-[0_20px_60px_-16px_rgba(0,0,0,0.55)]",
         className,
       )}
     >
-      <div className="relative bg-gradient-to-r from-orange-500 via-amber-400 to-red-600 px-6 pb-8 pt-7">
-        <div className="absolute -right-8 -top-8 size-32 rounded-full bg-white/15 blur-2xl" />
-        <div className="absolute -left-6 bottom-0 size-24 rounded-full bg-black/20 blur-xl" />
-        <div className="relative space-y-3 text-center">
-          <BrandLogoCrossfade heightClass="h-14 sm:h-16" />
-          <p className="text-sm font-medium text-white/95">
-            One account for Looters Computas & Siftah Mobile
-          </p>
-        </div>
+      <div className="relative bg-black px-6 pb-6 pt-8">
+        <BrandLogoCrossfade heightClass="h-28 sm:h-32" />
       </div>
 
-      <div className="space-y-4 px-5 py-5 sm:px-6">
+      <div className="space-y-4 border-t border-white/10 px-5 py-5 sm:px-6">
         <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-left text-xs leading-snug text-white/70">
           <input
             type="checkbox"
@@ -92,7 +85,7 @@ export function BrandedGoogleSignIn({
             >
               Store Policy
             </Link>
-            .
+            . I confirm I am 18 or older.
           </span>
         </label>
 
@@ -115,11 +108,7 @@ export function BrandedGoogleSignIn({
           <p className="text-center text-[11px] text-white/45">
             Tick the box to enable Google sign-in.
           </p>
-        ) : (
-          <p className="text-center text-[11px] text-white/45">
-            You’ll use the same login on the marketplace and Siftah.
-          </p>
-        )}
+        ) : null}
       </div>
     </div>
   );
