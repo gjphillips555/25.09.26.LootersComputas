@@ -321,7 +321,41 @@ async function getCachedCatalog(): Promise<Catalog> {
 
 export const getCatalog = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    return await getCachedCatalog();
+    const catalog = await getCachedCatalog();
+    let signedIn = false;
+    try {
+      const { getSessionUser } = await import("@/lib/auth/verify.server");
+      signedIn = Boolean(await getSessionUser());
+    } catch {
+      signedIn = false;
+    }
+    if (signedIn) return catalog;
+    return {
+      ...catalog,
+      seller: null,
+      products: catalog.products.map((product) => ({
+        id: product.id,
+        title: product.title,
+        categoryPath: product.categoryPath,
+        categoryNumber: product.categoryNumber,
+        categoryName: product.categoryName,
+        priceLabel: product.priceLabel,
+        amount: product.amount,
+        buyNow: false,
+        photo: product.photo,
+        photos: product.photo ? [product.photo] : [],
+        region: null,
+        suburb: null,
+        listingUrl: "",
+        isNew: product.isNew,
+        shipping: [],
+        maxQty: 0,
+        description: null,
+        attributes: [],
+        viewCount: null,
+        soldOut: product.soldOut,
+      })),
+    } satisfies Catalog;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[looters] catalog error:", message);
