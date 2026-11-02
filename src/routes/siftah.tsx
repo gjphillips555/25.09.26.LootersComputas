@@ -563,7 +563,7 @@ function SiftahPage() {
                 {busy && <div className="flex items-start gap-3">
                   <div className="flex size-8 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-300">{usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? <Crown className="size-4 fill-red-500/20" /> : <Feather className="size-4" />}</div>
                   <div className="flex flex-col gap-2 rounded-2xl border border-white/[0.13] bg-[#151518] px-4 py-3 text-sm text-zinc-400">
-                    <div className="flex items-center gap-2">{usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? <Crown className="size-4 fill-red-500/20 text-red-500" /> : <Feather className="size-4 text-red-500" />}<span className="font-semibold text-zinc-200">{usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? "Super Saiyan is typing" : "Siftah is typing"}</span><Spinner /></div>
+                    <div className="flex items-center gap-2">{persona === "super-saiyan" || (persona === "siftah" && usage.superSaiyanUsed < FREE_SUPER_SAIYAN) ? <Crown className="size-4 fill-red-500/20 text-red-500" /> : persona === "dexter" ? <FileCode2 className="size-4 text-red-500" /> : <Feather className="size-4 text-red-500" />}<span className="font-semibold text-zinc-200">{persona === "super-saiyan" ? "Super Saiyan Premium is typing" : persona === "dexter" ? "Dexter is typing" : usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? "Super Saiyan is typing" : "Siftah is typing"}</span><Spinner /></div>
                     <span className="text-xs text-zinc-500">Working on your response…</span>
                   </div>
                 </div>}
@@ -585,7 +585,7 @@ function SiftahPage() {
                     className="max-h-40 min-h-[54px] w-full resize-y bg-transparent px-3 py-2 text-sm leading-6 text-zinc-100 outline-none placeholder:text-zinc-600 disabled:opacity-50" />
                   <div className="flex items-center justify-between gap-2 px-1">
                     <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-                      <span className="rounded-md border border-white/10 px-2 py-1">{usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? "Super Saiyan" : "Siftah"}</span>
+                      <span className="rounded-md border border-white/10 px-2 py-1">{persona === "super-saiyan" ? "Super Saiyan Premium" : persona === "dexter" ? "Dexter" : usage.superSaiyanUsed < FREE_SUPER_SAIYAN ? "Super Saiyan" : "Siftah"}</span>
                       <span>{totalFreeLeft} free uses left</span>
                     </div>
                     <button type="submit" disabled={busy || locked || !input.trim()}
@@ -661,8 +661,8 @@ function WelcomePanel({ palette, onPrompt }: { palette: string; onPrompt: (promp
   return <div className="mx-auto flex max-w-2xl flex-col items-center px-3 pb-12 pt-12 text-center sm:pt-20">
     <div className="mb-6 flex size-14 items-center justify-center rounded-2xl text-white shadow-lg" style={{ backgroundColor: palette }}><Sparkles className="size-7" /></div>
     <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">What can I help with?</h1>
-    <p className="mt-3 max-w-lg text-sm leading-6 text-zinc-500">Choose a starting point or type your own question. Super Saiyan handles your first five free messages, then Siftah takes over.</p>
-    <p className="mt-2 max-w-lg text-[11px] leading-5 text-zinc-600">Super Saiyan uses a less-filtered experimental model. Check important outputs and avoid sharing sensitive information.</p>
+    <p className="mt-3 max-w-lg text-sm leading-6 text-zinc-500">Choose Siftah for general chat, Dexter for coding, Da Vinci for image creation, or Super Saiyan Premium for advanced paid responses.</p>
+    <p className="mt-2 max-w-lg text-[11px] leading-5 text-zinc-600">Super Saiyan uses an experimental abliterated model. Provider limits and applicable safety boundaries still apply.</p>
     <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">
       {prompts.map((item) => <button key={item.title} type="button" onClick={() => onPrompt(item.prompt)}
         className="rounded-xl border border-white/[0.09] bg-white/[0.025] p-4 text-left transition hover:border-white/20 hover:bg-white/[0.05]">
