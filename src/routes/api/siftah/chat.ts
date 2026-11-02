@@ -6,6 +6,7 @@ import { getCreditBalance } from "@/lib/paypal.server";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type Body = { action?: "status" | "chat" | "guest"; messages?: ChatMessage[] };
+type Stage = "super_saiyan" | "siftah" | "paid";
 
 const GUEST_COOKIE = "siftah_guest";
 const GUEST_MAX_AGE = 60 * 60 * 24 * 30;
@@ -18,6 +19,8 @@ const SIFTAH_MODELS = [
 const FREE_SUPER_SAIYAN = 5;
 const FREE_SIFTAH = 5;
 const COOLDOWN_HOURS = 5;
+/** Credits charged per paid message (both directions accounted as 2). */
+const PAID_CREDIT_COST = 2;
 
 type Usage = {
   super_saiyan_used: number;
@@ -138,7 +141,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
         const token = (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
         if (!token) {
           return json({
-            error: "Siftah's Hugging Face service is not connected yet. No free use has been consumed.",
+            error: "Siftah's AI service is not connected yet. No free use has been consumed.",
             code: "AI_NOT_CONFIGURED",
           }, 503);
         }
@@ -160,22 +163,26 @@ export const Route = createFileRoute("/api/siftah/chat")({
               and (cooldown_until is null or cooldown_until <= now())
               and (super_saiyan_used < $2 or siftah_used < $3)
           returning super_saiyan_used, siftah_used, cooldown_until,
-                    case when siftah_used > 0 then 'siftah' else 'super_saiyan' end as stage`,
+                    case when super_saiyan_used <= $2 and siftah_used = 0 then 'super_saiyan' else 'siftah' end as stage`,
           [userId, freeSuper, freeSiftah, String(cooldownHours)],
         );
 
         let paidCreditReserved = false;
+        let stage: Stage | null = reserved?.stage ?? null;
+
         if (!reserved && !isGuest) {
           const paidRows = await sql.query<{ balance: number }>(
             `update siftah_credit_accounts
-                set balance = balance - 2, updated_at = now()
-              where user_id = $1 and balance >= 2
+                set balance = balance - $2, updated_at = now()
+              where user_id = $1 and balance >= $2
             returning balance`,
-            [userId],
+            [userId, PAID_CREDIT_COST],
           );
           paidCreditReserved = paidRows.length > 0;
+          if (paidCreditReserved) stage = "paid";
         }
-        if (!reserved && !paidCreditReserved) {
+
+        if (!stage) {
           const [usage] = await sql.query<Usage>(
             "select super_saiyan_used, siftah_used, cooldown_until from siftah_usage where user_id = $1",
             [userId],
@@ -193,28 +200,39 @@ export const Route = createFileRoute("/api/siftah/chat")({
           }, 429);
         }
 
-        const stage = reserved?.stage ?? "paid";
         try {
           let reply = "";
           let modelUsed = "";
-          if (stage === "super_saiyan") {
-            reply = await hfChat(superModel, messages, token);
-            modelUsed = superModel;
-          } else {
-            const start = Math.max(0, (reserved?.siftah_used ?? 1) - 1) % fallbackModels.length;
-            let lastError: unknown;
-            for (let offset = 0; offset < fallbackModels.length; offset += 1) {
-              const candidate = fallbackModels[(start + offset) % fallbackModels.length];
-              try {
-                reply = await hfChat(candidate, messages, token);
-                modelUsed = candidate;
-                break;
-              } catch (error) {
-                lastError = error;
-              }
+
+          // Paid subscribers get Super Saiyan first, then the same fallback pool.
+          const modelQueue =
+            stage === "super_saiyan"
+              ? [superModel]
+              : stage === "paid"
+                ? [superModel, ...fallbackModels.filter((m) => m !== superModel)]
+                : (() => {
+                    const start = Math.max(0, (reserved?.siftah_used ?? 1) - 1) % fallbackModels.length;
+                    return Array.from({ length: fallbackModels.length }, (_, offset) =>
+                      fallbackModels[(start + offset) % fallbackModels.length],
+                    );
+                  })();
+
+          let lastError: unknown;
+          for (const candidate of modelQueue) {
+            try {
+              reply = await hfChat(candidate, messages, token);
+              modelUsed = candidate;
+              break;
+            } catch (error) {
+              lastError = error;
             }
-            if (!modelUsed) throw lastError ?? new Error("All Siftah models are currently busy.");
           }
+          if (!modelUsed) throw lastError ?? new Error("All Siftah models are currently busy.");
+
+          const [usageAfter] = await sql.query<Usage>(
+            "select super_saiyan_used, siftah_used, cooldown_until from siftah_usage where user_id = $1",
+            [userId],
+          );
 
           return json({
             reply,
@@ -222,24 +240,28 @@ export const Route = createFileRoute("/api/siftah/chat")({
             mode,
             modelUsed,
             usage: {
-              ...publicUsage(reserved),
+              ...publicUsage(usageAfter ?? reserved),
               creditsBalance: isGuest ? 0 : await getCreditBalance(userId),
             },
-            creditsCharged: stage === "paid" ? 2 : 0,
+            creditsCharged: stage === "paid" ? PAID_CREDIT_COST : 0,
             failoverPool: stage === "siftah" || stage === "paid" ? fallbackModels.length : 0,
           });
         } catch (error) {
-          if (stage === "paid") {
+          // Refund whatever we reserved so failed upstream calls don't burn quota.
+          if (stage === "paid" && paidCreditReserved) {
             await sql.query(
-              "update siftah_credit_accounts set balance = balance + 2, updated_at = now() where user_id = $1",
-              [userId],
+              "update siftah_credit_accounts set balance = balance + $2, updated_at = now() where user_id = $1",
+              [userId, PAID_CREDIT_COST],
             );
-          } else {
+          } else if (stage === "super_saiyan" || stage === "siftah") {
             await sql.query(
               `update siftah_usage
                   set super_saiyan_used = greatest(0, super_saiyan_used - case when $2 = 'super_saiyan' then 1 else 0 end),
                       siftah_used = greatest(0, siftah_used - case when $2 = 'siftah' then 1 else 0 end),
-                      cooldown_until = case when $2 = 'siftah' and siftah_used = $3 then null else cooldown_until end,
+                      cooldown_until = case
+                        when $2 = 'siftah' and siftah_used = $3 then null
+                        else cooldown_until
+                      end,
                       updated_at = now()
                 where user_id = $1`,
               [userId, stage, freeSiftah],
@@ -326,7 +348,7 @@ async function hfChat(model: string, messages: ChatMessage[], token: string) {
   };
   if (!response.ok) {
     const detail = typeof data.error === "string" ? data.error : data.error?.message || data.message;
-    throw new Error(detail || `Hugging Face inference failed (${response.status}).`);
+    throw new Error(detail || `Inference failed (${response.status}).`);
   }
   const content = data.choices?.[0]?.message?.content;
   const reply = typeof content === "string"
