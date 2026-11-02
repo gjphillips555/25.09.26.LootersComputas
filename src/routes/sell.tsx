@@ -36,7 +36,8 @@ const CATEGORIES = [
 const CONDITIONS = ["New", "Excellent", "Good", "Fair", "For parts"];
 
 function SellPage() {
-  const { user } = useCurrentUser();
+  // useCurrentUser() returns AppUser | null — not { user }.
+  const user = useCurrentUser();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -67,7 +68,7 @@ function SellPage() {
     e.preventDefault();
     if (!canSell) {
       toast.error("Connect PayPal on your Account page before listing.");
-      navigate({ to: "/account" });
+      void navigate({ to: "/account" });
       return;
     }
     toast.message("Listing form ready — full save coming in the next update.", {
