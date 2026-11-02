@@ -68,6 +68,25 @@ function resolveProviderId(providerId: string): string {
  * Native Google only. When GOOGLE_CLIENT_* is set the server does NOT mount
  * /api/auth/sign-in/oauth2 — that path 404s. Always use /sign-in/social.
  */
+function parseGoogleAuthorizeResponse(
+  raw: string,
+): { url?: string; message?: string; error?: string } | null {
+  if (!raw) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return null;
+
+    const record = parsed as Record<string, unknown>;
+    return {
+      url: typeof record.url === "string" ? record.url : undefined,
+      message: typeof record.message === "string" ? record.message : undefined,
+      error: typeof record.error === "string" ? record.error : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function fetchGoogleAuthorizeUrl(
   callbackURL: string,
   errorCallbackURL: string,
@@ -87,13 +106,7 @@ async function fetchGoogleAuthorizeUrl(
   });
 
   const text = await res.text();
-  let body: { url?: string; redirect?: boolean; message?: string; error?: string } | null =
-    null;
-  try {
-    body = text ? (JSON.parse(text) as typeof body) : null;
-  } catch {
-    /* non-JSON */
-  }
+  const body = parseGoogleAuthorizeResponse(text);
 
   if (!res.ok) {
     const detail =
