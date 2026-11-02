@@ -50,13 +50,13 @@
     });
   }
 
-  function showStatus(message, needsLogin) {
+  function showStatus(message, needsLogin, isAdmin) {
     var el = $("ssCredits");
     if (el) el.textContent = message;
     var login = $("ssLogin");
     if (login) login.style.display = needsLogin ? "inline-flex" : "none";
     var buy = $("ssBuyToggle");
-    if (buy) buy.style.display = needsLogin ? "none" : "inline-flex";
+    if (buy) buy.style.display = needsLogin || isAdmin ? "none" : "inline-flex";
   }
 
   async function refreshStatus() {
@@ -71,13 +71,15 @@
       if (response.status === 401) {
         signedIn = false;
         balance = 0;
-        showStatus("Sign in to your Looters account to unlock paid access.", true);
+        showStatus("Sign in to your Looters account to unlock paid access.", true, false);
         return;
       }
       if (!response.ok) throw new Error(data.error || "Could not load Credits.");
       signedIn = data.mode === "account";
       balance = Number(data.usage && data.usage.creditsBalance || 0);
-      showStatus(balance + " Credits available · 2 per response", !signedIn);
+      if (data.isAdmin) showStatus("Administrator access · unlimited", false, true);
+      else if (!signedIn) showStatus("Premium requires a Looters account and Credits.", true, false);
+      else showStatus(balance + " Credits available · 2 per response", false, false);
     } catch (error) {
       showStatus(error && error.message ? error.message : "Credits status unavailable.", true);
     }
@@ -194,7 +196,7 @@
       if (!response.ok) {
         if (data.usage && typeof data.usage.creditsBalance === "number") {
           balance = data.usage.creditsBalance;
-          showStatus(balance + " Credits available · 2 per response", false);
+          showStatus(balance + " Credits available · 2 per response", false, false);
         }
         throw new Error(data.error || "Super Saiyan could not complete that request.");
       }
