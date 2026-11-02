@@ -4,6 +4,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { GoogleMark } from "@/components/google-mark";
 import { KeyButton } from "@/components/key-button";
 import { authEnabled, signIn } from "@/lib/auth/client";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { denLogin, denSignup } from "@/lib/den";
 
 export const Route = createFileRoute("/hidden")({
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/hidden")({
 
 function HiddenGate() {
   const navigate = useNavigate();
+  const { user, isPending } = useCurrentUserState();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -46,6 +48,18 @@ function HiddenGate() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (authEnabled && (isPending || !user)) {
+    return (
+      <main className="den-shell">
+        <div className="den-card">
+          <h1>Sign in to continue</h1>
+          <p>Use your Looters Computas account before entering this member area.</p>
+          <a href="/login?callbackURL=%2Fhidden">Sign in / Create account</a>
+        </div>
+      </main>
+    );
   }
 
   return (
