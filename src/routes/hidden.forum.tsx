@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { denApprove, denForum, denMe } from "@/lib/den";
+import { authEnabled } from "@/lib/auth/client";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 export const Route = createFileRoute("/hidden/forum")({
   component: DenForum,
@@ -11,6 +13,7 @@ export const Route = createFileRoute("/hidden/forum")({
 
 function DenForum() {
   const navigate = useNavigate();
+  const { user, isPending } = useCurrentUserState();
   const [data, setData] = useState<Awaited<ReturnType<typeof denForum>> | null>(
     null,
   );
@@ -24,8 +27,20 @@ function DenForum() {
   }
 
   useEffect(() => {
-    void reload();
-  }, []);
+    if (user) void reload();
+  }, [user]);
+
+  if (authEnabled && (isPending || !user)) {
+    return (
+      <main className="den-shell">
+        <div className="den-card">
+          <h1>Sign in to continue</h1>
+          <p>Use your Looters Computas account before entering this member area.</p>
+          <Link to="/login?callbackURL=%2Fhidden%2Fforum">Sign in / Create account</Link>
+        </div>
+      </main>
+    );
+  }
 
   if (!me || !data) {
     return <main className="den-shell">loading…</main>;
