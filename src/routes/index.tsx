@@ -449,8 +449,6 @@ function NewsCard({
         </span>
         <span aria-hidden="true">·</span>
         <time dateTime={dateTime}>{date}</time>
-        <span aria-hidden="true">·</span>
-        <span>Posted today</span>
         <span className="ml-auto normal-case tracking-normal">Looters</span>
       </header>
       <div className="space-y-5 px-4 py-6 sm:px-6 sm:py-8">{children}</div>
