@@ -66,8 +66,9 @@
     var s = document.createElement("style");
     s.id = "modesCSS";
     s.textContent =
-      ".mode-tabs{display:flex;gap:4px;padding:6px 10px;border-bottom:1px solid var(--border,#2a2e38);background:#0c0e12;flex-shrink:0}" +
-      ".mode-tabs button{flex:1;border:1px solid var(--border,#2a2e38);background:#12151c;color:var(--muted,#8b909a);border-radius:8px;padding:7px 6px;font-size:11px;font-weight:600;cursor:pointer}" +
+      ".mode-tabs{display:flex;gap:4px;padding:6px 10px;border-bottom:1px solid var(--border,#2a2e38);background:#0c0e12;flex-shrink:0;overflow-x:auto;scrollbar-width:none}" +
+      ".mode-tabs button{flex:0 0 auto;min-width:76px;white-space:nowrap;border:1px solid var(--border,#2a2e38);background:#12151c;color:var(--muted,#8b909a);border-radius:8px;padding:7px 8px;font-size:11px;font-weight:600;cursor:pointer}" +
+      "@media(min-width:760px){.mode-tabs button{flex:1}}" +
       ".mode-tabs button.on{background:rgba(225,29,46,0.22);border-color:var(--red,#e11d2e);color:#fff}" +
       ".mode-tabs button[data-mode='super-saiyan']{border-color:rgba(246,196,83,.35);color:#e8c56c}" +
       ".mode-tabs button[data-mode='super-saiyan'].on{background:rgba(246,196,83,.15);border-color:#d8aa42;color:#ffe39a}" +
