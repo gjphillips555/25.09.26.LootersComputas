@@ -52,7 +52,6 @@ function ProductNotFound() {
 
 function ProductPage() {
   const { product, suggestions } = Route.useLoaderData();
-  const navigate = useNavigate();
   if (!product) {
     return (
       <AppShell>
@@ -60,6 +59,11 @@ function ProductPage() {
       </AppShell>
     );
   }
+  return <ProductPageContent product={product} suggestions={suggestions} />;
+}
+
+function ProductPageContent({ product, suggestions }: { product: Product; suggestions: Product[] }) {
+  const navigate = useNavigate();
   const add = useCart((s) => s.add);
   const setQty = useCart((s) => s.setQty);
   const setShipping = useCart((s) => s.setShipping);
