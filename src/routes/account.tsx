@@ -102,6 +102,15 @@ function AccountPage() {
                   <p className="text-sm text-muted-foreground">{user?.primaryEmail}</p>
                 </div>
               </div>
+              <p className="mt-4 text-sm text-muted-foreground">
+                Username, avatar and Siftah Message settings live in the messenger.
+              </p>
+              <Link
+                to="/siftah-message"
+                className="mt-3 inline-flex rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-500"
+              >
+                Open Siftah Message
+              </Link>
             </section>
 
             <SiftahCreditsWallet />
