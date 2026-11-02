@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Arcade | Looters Computas</title>
 <meta name="description" content="Thousands of free browser games from Looters Computas. No sign-up, just play.">
+<style>html.auth-check body{visibility:hidden}</style>
+<script>
+document.documentElement.classList.add("auth-check");
+(async function () {
+  try {
+    const response = await fetch("/api/auth/get-session", { credentials: "same-origin", cache: "no-store" });
+    const session = await response.json();
+    if (!response.ok || !session || !session.user) {
+      window.location.replace("/login?callbackURL=%2Farcade");
+      return;
+    }
+    document.documentElement.classList.remove("auth-check");
+  } catch {
+    window.location.replace("/login?callbackURL=%2Farcade");
+  }
+})();
+</script>
 <style>
 :root{--bg:#f2f2f0;--ink:#1d1a24;--mute:#6b6676;--card:#fff;--line:#dcdad6;--orange:#f26a1b;--purple:#5b3fa8}
 @media (prefers-color-scheme:dark){:root{--bg:#17141d;--ink:#f2f0f6;--mute:#a49fb0;--card:#221e2b;--line:#34303f;--orange:#ff8a45;--purple:#a58cf0}}
