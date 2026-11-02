@@ -6,6 +6,10 @@ export const ARTWORK = {
   logoPurple: "/artwork/logo-purple.png",
   logoOled: "/artwork/logo-oled.png",
   logoPixel: "/artwork/logo-pixel.png",
+  /** Shared sign-in / brand mark for Looters Computas */
+  logoLooters: "/artwork/logo-orange.png",
+  /** Siftah Mobile wordmark (red / white) */
+  logoSiftah: "/siftah-mobile-logo.svg",
   payments: "/artwork/payment-methods.png",
   afterpay: "/artwork/afterpay.webp",
   afterpayMark: "/artwork/afterpay-mark.png",
