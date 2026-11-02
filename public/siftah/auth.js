@@ -66,7 +66,7 @@
       if (cooldown && Date.parse(cooldown) > Date.now()) {
         text = "Guest trial used · resets in " + formatCooldown(cooldown);
       } else {
-        text = "Guest trial · " + Math.max(0, 10 - used) + " replies remaining · five-hour reset";
+        text = "Guest trial · " + Math.max(0, Number(data.trialLimit || 10) - used) + " replies remaining · five-hour reset";
       }
     } else if (mode === "account") {
       text = balance > 0
