@@ -127,6 +127,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           return json({
             mode,
             isAdmin,
+            trialLimit: isGuest ? freeSuper + freeSiftah : 0,
             usage: { ...publicUsage(usage), creditsBalance: isGuest ? 0 : await getCreditBalance(userId) },
           });
         }
