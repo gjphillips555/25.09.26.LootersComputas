@@ -37,7 +37,7 @@ type Conversation = { id: string; title: string; messages: Msg[]; updatedAt: num
 type Mode = "account" | "guest";
 type Usage = { superSaiyanUsed: number; siftahUsed: number; cooldownUntil: string | null; creditsBalance: number };
 type ApiResponse = {
-  reply?: string; error?: string; code?: string;
+  reply?: string; error?: string; code?: string; approvalUrl?: string;
   stage?: "super_saiyan" | "siftah" | "paid"; modelUsed?: string;
   usage?: Usage; mode?: Mode; creditsCharged?: number;
 };
