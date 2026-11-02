@@ -11,7 +11,7 @@ const NAV = [
   { to: "/siftah" as const, label: "Siftah", icon: Sparkles },
   { to: "/arcade" as const, label: "Arcade", icon: Gamepad2 },
   { to: "/sell" as const, label: "Sell", icon: Store },
-  { to: "/account" as const, label: "Inbox", icon: MessageSquare },
+  { to: "/siftah-message" as const, label: "Message", icon: MessageSquare },
   { to: "/hidden/forum" as const, label: "Forum", icon: MessagesSquare },
   { to: "/account" as const, label: "Wallet", icon: Wallet },
 ] as const;
