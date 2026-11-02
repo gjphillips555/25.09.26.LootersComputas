@@ -25,7 +25,14 @@ export const Route = createFileRoute("/api/admin")({
               (select count(*)::int from site_visit_events where created_at >= now() - interval '24 hours') as visits_24h,
               (select count(distinct visitor_id)::int from site_visit_events where created_at >= now() - interval '24 hours') as visitors_24h,
               (select count(*)::int from siftah_credit_accounts) as credit_accounts,
-              (select coalesce(sum(balance),0)::int from siftah_credit_accounts) as credits_outstanding`,
+              (select coalesce(sum(balance),0)::int from siftah_credit_accounts) as credits_outstanding,
+              (select count(*)::int from listings) as listings_total,
+              (select count(*)::int from listings where status = 'active') as listings_active,
+              (select count(*)::int from listings where status = 'sold') as listings_sold,
+              (select count(*)::int from listings where status = 'withdrawn') as listings_withdrawn,
+              (select count(*)::int from deals) as deals_total,
+              (select count(*)::int from deals where status = 'pending') as deals_pending,
+              (select count(*)::int from profiles where paypal_payer_id is not null or paypal_email is not null) as paypal_connected`,
           );
           const [settings] = await sql.query("select * from siftah_admin_settings where id = 1");
           const admins = await sql.query("select email, role, created_at from siftah_admins order by role, email");
@@ -39,7 +46,7 @@ export const Route = createFileRoute("/api/admin")({
                     coalesce(ust.enabled,true) as siftah_enabled,
                     ust.model_override, ust.free_super_saiyan, ust.free_siftah, ust.cooldown_hours,
                     coalesce(ust.features,'{}'::jsonb) as features,
-                    exists(select 1 from profiles p where p.user_id = u.id and p.paypal_payer_id is not null) as paypal_connected
+                    exists(select 1 from profiles p where p.user_id = u.id and (p.paypal_payer_id is not null or p.paypal_email is not null)) as paypal_connected
                from "user" u
                left join siftah_usage us on us.user_id = u.id
                left join siftah_credit_accounts ca on ca.user_id = u.id
@@ -51,7 +58,34 @@ export const Route = createFileRoute("/api/admin")({
                from site_visit_events where created_at >= now() - interval '7 days'
               group by path order by views desc limit 12`,
           );
-          return json({ admin, stats: counts, settings, admins, members, topPages: visits, models: ALLOWED_MODELS });
+          const listings = await sql.query(
+            `select l.id, l.title, l.category, l.condition, l.price_nzd, l.status, l.location,
+                    l.created_at, l.updated_at, u.email as seller_email, u.name as seller_name
+               from listings l
+               join "user" u on u.id = l.user_id
+              order by l.created_at desc
+              limit 100`,
+          );
+          const deals = await sql.query(
+            `select d.id, d.listing_id, d.deal_type, d.offer_price_nzd, d.status, d.created_at,
+                    l.title as listing_title, u.email as from_email
+               from deals d
+               join listings l on l.id = d.listing_id
+               join "user" u on u.id = d.from_user_id
+              order by d.created_at desc
+              limit 50`,
+          );
+          return json({
+            admin,
+            stats: counts,
+            settings,
+            admins,
+            members,
+            topPages: visits,
+            listings,
+            deals,
+            models: ALLOWED_MODELS,
+          });
         } catch (error) {
           return json({ error: error instanceof Error ? error.message : "Could not load admin dashboard." }, 500);
         }
@@ -64,16 +98,43 @@ export const Route = createFileRoute("/api/admin")({
           if (!admin) return json({ error: "Admin access required." }, 403);
           const body = await request.json().catch(() => ({})) as Record<string, unknown>;
           const sql = await getSql();
+
           if (body.action === "add_admin" || body.action === "remove_admin") {
-            return json({ error: "Only the verified owner account is authorised. Additional admin accounts are disabled." }, 403);
+            if (admin.role !== "owner") {
+              return json({ error: "Only the owner can manage the admin allowlist." }, 403);
+            }
+            const targetEmail = String(body.email || "").trim().toLowerCase();
+            if (!targetEmail || !targetEmail.includes("@")) {
+              return json({ error: "Valid email required." }, 400);
+            }
+            if (targetEmail === OWNER_EMAIL) {
+              return json({ error: "The owner account cannot be removed or demoted." }, 400);
+            }
+            if (body.action === "add_admin") {
+              await sql.query(
+                `insert into siftah_admins (email, role) values ($1, 'admin')
+                 on conflict (email) do update set role = 'admin'`,
+                [targetEmail],
+              );
+              return json({ success: true });
+            }
+            await sql.query(`delete from siftah_admins where lower(email) = $1 and role <> 'owner'`, [targetEmail]);
+            return json({ success: true });
           }
+
           if (body.action === "update_defaults") {
             const model = String(body.defaultSuperModel || "");
-            const fallback = Array.isArray(body.fallbackModels) ? body.fallbackModels.filter((m): m is string => typeof m === "string" && ALLOWED_MODELS.includes(m as typeof ALLOWED_MODELS[number])) : [];
+            const fallback = Array.isArray(body.fallbackModels)
+              ? body.fallbackModels.filter(
+                  (m): m is string => typeof m === "string" && ALLOWED_MODELS.includes(m as (typeof ALLOWED_MODELS)[number]),
+                )
+              : [];
             const freeSuper = clampInt(body.freeSuperSaiyan, 0, 100);
             const freeSiftah = clampInt(body.freeSiftah, 0, 100);
             const cooldown = clampInt(body.cooldownHours, 0, 168);
-            if (!ALLOWED_MODELS.includes(model as typeof ALLOWED_MODELS[number])) return json({ error: "Choose a supported model." }, 400);
+            if (!ALLOWED_MODELS.includes(model as (typeof ALLOWED_MODELS)[number])) {
+              return json({ error: "Choose a supported model." }, 400);
+            }
             if (!fallback.length) return json({ error: "Select at least one fallback model." }, 400);
             await sql.query(
               `update siftah_admin_settings set default_super_model=$1, fallback_models=$2::jsonb,
@@ -83,16 +144,22 @@ export const Route = createFileRoute("/api/admin")({
             );
             return json({ success: true });
           }
+
           if (body.action === "update_member") {
             const userId = typeof body.userId === "string" ? body.userId : "";
             if (!userId) return json({ error: "Missing member id." }, 400);
             const enabled = body.enabled !== false;
             const model = body.modelOverride ? String(body.modelOverride) : null;
-            if (model && !ALLOWED_MODELS.includes(model as typeof ALLOWED_MODELS[number])) return json({ error: "Unsupported model." }, 400);
+            if (model && !ALLOWED_MODELS.includes(model as (typeof ALLOWED_MODELS)[number])) {
+              return json({ error: "Unsupported model." }, 400);
+            }
             const freeSuper = body.freeSuperSaiyan == null ? null : clampInt(body.freeSuperSaiyan, 0, 100);
             const freeSiftah = body.freeSiftah == null ? null : clampInt(body.freeSiftah, 0, 100);
             const cooldown = body.cooldownHours == null ? null : clampInt(body.cooldownHours, 0, 168);
-            const features = body.features && typeof body.features === "object" && !Array.isArray(body.features) ? JSON.stringify(body.features) : "{}";
+            const features =
+              body.features && typeof body.features === "object" && !Array.isArray(body.features)
+                ? JSON.stringify(body.features)
+                : "{}";
             await sql.query(
               `insert into siftah_user_settings (user_id, enabled, model_override, free_super_saiyan, free_siftah, cooldown_hours, features, updated_at)
                values ($1,$2,$3,$4,$5,$6,$7::jsonb,now())
@@ -103,6 +170,21 @@ export const Route = createFileRoute("/api/admin")({
             );
             return json({ success: true });
           }
+
+          if (body.action === "set_listing_status") {
+            const listingId = typeof body.listingId === "string" ? body.listingId : "";
+            const status = String(body.status || "");
+            if (!listingId) return json({ error: "Missing listing id." }, 400);
+            if (!["active", "sold", "withdrawn"].includes(status)) {
+              return json({ error: "Status must be active, sold, or withdrawn." }, 400);
+            }
+            await sql.query(`update listings set status = $1, updated_at = now() where id = $2`, [
+              status,
+              listingId,
+            ]);
+            return json({ success: true });
+          }
+
           return json({ error: "Unknown admin action." }, 400);
         } catch (error) {
           return json({ error: error instanceof Error ? error.message : "Admin action failed." }, 500);
@@ -119,5 +201,8 @@ function clampInt(value: unknown, min: number, max: number) {
 }
 
 function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
 }
