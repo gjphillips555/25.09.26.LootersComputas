@@ -1,12 +1,12 @@
 /**
  * Self-hosted Better Auth for THIS app (server-only).
  *
- * Production Google sign-in uses Better Auth socialProviders.google when
- * GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are set. That talks to Google
- * directly and works on looterscomputas.online.
+ * Better Auth is the only application authentication system.
  *
- * The Grok auth broker path is kept only as a fallback for live preview
- * (*.grok-sandbox.com). It cannot complete OAuth on the custom domain.
+ * Production Google sign-in uses Better Auth socialProviders.google and the
+ * GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET environment variables. The legacy
+ * Grok broker is restricted to non-production live previews only; it is never
+ * used as a production authentication fallback.
  */
 import { betterAuth } from "better-auth";
 import { bearer, genericOAuth } from "better-auth/plugins";
@@ -42,6 +42,7 @@ const env = (key: string): string | undefined => {
 };
 
 const authDisabled = env("VITE_AUTH_ENABLED") === "false";
+const isProduction = env("VERCEL_ENV") === "production";
 
 const grokIssuer = env("GROK_AUTH_ISSUER") ?? GROK_ISSUER_DEFAULT;
 const grokClientId = env("GROK_AUTH_CLIENT_ID") ?? PREVIEW_CLIENT_ID;
@@ -51,9 +52,13 @@ const googleClientId = env("GOOGLE_CLIENT_ID");
 const googleClientSecret = env("GOOGLE_CLIENT_SECRET");
 const googleConfigured = Boolean(googleClientId && googleClientSecret);
 
+// The broker exists solely to support dynamic live-preview hosts. Production
+// must have its own Google OAuth credentials; never silently fall back to it.
+const previewBrokerConfigured =
+  !isProduction && Boolean(grokClientId && grokClientSecret);
+
 export const authConfigured =
-  !authDisabled &&
-  (googleConfigured || Boolean(grokClientId && grokClientSecret));
+  !authDisabled && (googleConfigured || previewBrokerConfigured);
 
 const explicitBaseURL = env("BETTER_AUTH_URL");
 const previewAllowedHosts: string[] = [...PREVIEW_ALLOWED_HOSTS];
@@ -112,7 +117,7 @@ const database = databaseUrl
 export const SESSION_TOKEN_COOKIE = "__Host-grok-auth.session_token";
 
 const grokOAuthPlugin =
-  authConfigured && !googleConfigured
+  !isProduction && authConfigured && !googleConfigured
     ? genericOAuth({
         config: GROK_PROVIDERS.map(({ providerId, idp }) => ({
           providerId,
