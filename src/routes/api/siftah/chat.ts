@@ -5,7 +5,7 @@ import { getSessionUser } from "@/lib/auth/verify.server";
 import { getCreditBalance } from "@/lib/paypal.server";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
-type Body = { action?: "status" | "chat" | "guest"; messages?: ChatMessage[] };
+type Body = { action?: "status" | "chat" | "guest"; messages?: ChatMessage[]; persona?: "siftah" | "dexter" | "super-saiyan" };
 type Stage = "super_saiyan" | "siftah" | "paid";
 
 const GUEST_COOKIE = "siftah_guest";
@@ -75,6 +75,8 @@ export const Route = createFileRoute("/api/siftah/chat")({
         }
 
         const { userId, mode } = access;
+        const persona = body.persona === "dexter" || body.persona === "super-saiyan" ? body.persona : "siftah";
+        const isPremiumPersona = persona === "super-saiyan";
         const isGuest = mode === "guest";
         const sql = await getSql();
         const [globalSettings] = await sql.query<{
@@ -146,7 +148,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           }, 503);
         }
 
-        const [reserved] = await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
+        const reservedRows = isPremiumPersona ? [] : await sql.query<Usage & { stage: "super_saiyan" | "siftah" }>(
           `update siftah_usage
               set super_saiyan_used = case
                     when super_saiyan_used < $2 then super_saiyan_used + 1
@@ -166,11 +168,12 @@ export const Route = createFileRoute("/api/siftah/chat")({
                     case when super_saiyan_used <= $2 and siftah_used = 0 then 'super_saiyan' else 'siftah' end as stage`,
           [userId, freeSuper, freeSiftah, String(cooldownHours)],
         );
+        const reserved = reservedRows[0];
 
         let paidCreditReserved = false;
-        let stage: Stage | null = reserved?.stage ?? null;
+        let stage: Stage | null = isPremiumPersona ? null : reserved?.stage ?? null;
 
-        if (!reserved && !isGuest) {
+        if ((!reserved || isPremiumPersona) && !isGuest) {
           const paidRows = await sql.query<{ balance: number }>(
             `update siftah_credit_accounts
                 set balance = balance - $2, updated_at = now()
@@ -189,12 +192,16 @@ export const Route = createFileRoute("/api/siftah/chat")({
           );
           const creditsBalance = isGuest ? 0 : await getCreditBalance(userId);
           return json({
-            error: usage?.cooldown_until
+            error: isPremiumPersona
+              ? isGuest
+                ? "Super Saiyan Premium is available to signed-in Looters members with Credits."
+                : "Super Saiyan Premium needs 2 Credits per response. Add Credits with PayPal to continue."
+              : usage?.cooldown_until
               ? isGuest
                 ? "Your guest free allowance is used up. Sign in to continue with purchased Credits, or come back when the five-hour cooldown ends."
                 : "You've used your free allowance and don't have enough Credits. Your free allowance refreshes when the five-hour cooldown ends."
               : "Your free allowance is used up. Sign in and buy Credits to continue chatting.",
-            code: "FREE_LIMIT",
+            code: isPremiumPersona ? "PREMIUM_REQUIRED" : "FREE_LIMIT",
             mode,
             usage: { ...publicUsage(usage), creditsBalance },
           }, 429);
@@ -209,7 +216,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
             stage === "super_saiyan"
               ? [superModel]
               : stage === "paid"
-                ? [superModel, ...fallbackModels.filter((m) => m !== superModel)]
+                ? (isPremiumPersona ? [superModel] : [superModel, ...fallbackModels.filter((m) => m !== superModel)])
                 : (() => {
                     const start = Math.max(0, (reserved?.siftah_used ?? 1) - 1) % fallbackModels.length;
                     return Array.from({ length: fallbackModels.length }, (_, offset) =>
@@ -220,7 +227,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           let lastError: unknown;
           for (const candidate of modelQueue) {
             try {
-              reply = await hfChat(candidate, messages, token);
+              reply = await hfChat(candidate, messages, token, persona);
               modelUsed = candidate;
               break;
             } catch (error) {
@@ -324,7 +331,7 @@ function json(data: unknown, status = 200, headers: HeadersInit = {}) {
   });
 }
 
-async function hfChat(model: string, messages: ChatMessage[], token: string) {
+async function hfChat(model: string, messages: ChatMessage[], token: string, persona: "siftah" | "dexter" | "super-saiyan") {
   const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -334,7 +341,11 @@ async function hfChat(model: string, messages: ChatMessage[], token: string) {
     body: JSON.stringify({
       model,
       messages: [
-        { role: "system", content: "You are a helpful, capable assistant. Be clear, practical, and honest. Follow applicable safety and legal boundaries." },
+        { role: "system", content: persona === "dexter"
+          ? "You are Dexter, Siftah's expert software engineer and coding partner. Diagnose carefully, explain decisions briefly, and produce complete, runnable code in clearly labelled fenced code blocks. Include filenames when useful. Never pretend code was tested when it was not. Follow applicable safety and legal boundaries."
+          : persona === "super-saiyan"
+            ? "You are Super Saiyan Premium, the advanced reasoning persona in Siftah. Be exceptionally thorough, strategic, creative and precise. Work through difficult problems carefully, state uncertainty honestly, and provide high-quality actionable answers. Follow applicable safety and legal boundaries."
+            : "You are Siftah, a helpful, capable general assistant. Be clear, practical, and honest. Follow applicable safety and legal boundaries." },
         ...messages,
       ],
       max_tokens: 1200,
