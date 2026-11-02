@@ -5,20 +5,15 @@ export const OWNER_EMAIL = "gjphillips555@gmail.com";
 
 export async function getAdminAccess() {
   const user = await getSessionUser();
-  if (!user?.email) return null;
-  const email = user.email.trim().toLowerCase();
+  if (!user?.email || user.email.trim().toLowerCase() !== OWNER_EMAIL) return null;
   const sql = await getSql();
-  const rows = await sql.query<{ role: "owner" | "admin" | null; verified: boolean }>(
-    `select a.role, u."emailVerified" as verified
-       from "user" u left join siftah_admins a on lower(a.email) = lower(u.email)
-      where u.id = $1 and lower(u.email) = $2 limit 1`,
-    [user.id, email],
+  const rows = await sql.query<{ verified: boolean }>(
+    `select "emailVerified" as verified from "user"
+      where id = $1 and lower(email) = $2 limit 1`,
+    [user.id, OWNER_EMAIL],
   );
-  // Only verified mailbox identities can enter the allowlist-protected toolbox.
-  if (!rows[0]?.verified) return null;
-  if (email === OWNER_EMAIL) return { userId: user.id, email, role: "owner" as const };
-  if (!rows[0].role) return null;
-  return { userId: user.id, email, role: rows[0].role };
+  if (rows[0]?.verified !== true) return null;
+  return { userId: user.id, email: OWNER_EMAIL, role: "owner" as const };
 }
 
 export async function requireAdmin() {
