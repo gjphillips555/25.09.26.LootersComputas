@@ -36,7 +36,7 @@ function DenForum() {
         <div className="den-card">
           <h1>Sign in to continue</h1>
           <p>Use your Looters Computas account before entering this member area.</p>
-          <Link to="/login?callbackURL=%2Fhidden%2Fforum">Sign in / Create account</Link>
+          <a href="/login?callbackURL=%2Fhidden%2Fforum">Sign in / Create account</a>
         </div>
       </main>
     );
