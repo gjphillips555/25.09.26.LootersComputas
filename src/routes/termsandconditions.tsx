@@ -34,42 +34,39 @@ function TermsPage() {
         .
       </p>
 
-      <h2>2. Terms of purchasing from Looters Computas</h2>
+      <h2>2. Marketplace listings, sales and payments</h2>
       <p>
-        All prices are displayed in New Zealand dollars (NZD) and are inclusive
-        of GST unless we state otherwise. A contract is formed when we accept
-        your order and payment is successfully received (including via PayPal
-        or Trade Me). We may decline or cancel an order if stock is unavailable,
-        if pricing is obviously in error, or if we reasonably suspect fraud.
+        Prices are displayed in New Zealand dollars (NZD). Listings may be
+        posted by individual members or by Looters Computas. Unless a listing
+        or checkout clearly identifies Looters Computas as the seller, a sale
+        or swap is an arrangement directly between the buyer and the member
+        seller. The seller is responsible for the accuracy and legality of the
+        listing, ownership of the item, condition, delivery and fulfilment.
       </p>
       <p>
-        Product descriptions, photographs and specifications are provided in
-        good faith. Refurbished goods may show cosmetic wear consistent with
-        prior use. It is your responsibility to read the listing, including
-        condition notes, before you buy. Title in the goods passes to you once
-        we have received payment in full and the goods have been dispatched.
+        Members may arrange direct payments using PayPal. Unless a checkout
+        expressly says otherwise, Looters Computas does not receive or hold
+        member-to-member funds, provide escrow, or guarantee payment, delivery
+        or the condition of an item. PayPal transactions are subject to
+        PayPal's own terms and buyer or seller protections. Check the item and
+        seller details before agreeing to a deal or sending payment.
       </p>
       <p>
-        Shipping is arranged at checkout. Delivery timeframes are estimates,
-        not guarantees. Risk in the goods passes on delivery to the address you
-        provide. You must supply accurate name, email, phone and delivery
-        details. We are not responsible for loss caused by an incorrect address
-        you entered.
-      </p>
-      <p>
-        Afterpay, where offered, is provided through Trade Me’s checkout and
-        is subject to Afterpay’s own eligibility criteria, late fees and
-        terms. PayPal payments are processed by PayPal; we never receive your
-        full card number.
+        For products sold by Looters Computas, a contract is formed when we
+        accept your order and payment is successfully received. Product
+        descriptions and photographs are provided in good faith. Refurbished
+        goods may show cosmetic wear consistent with prior use. Shipping and
+        delivery estimates are shown at checkout; you must supply accurate
+        delivery details.
       </p>
 
       <h2>3. Consumer guarantees (New Zealand)</h2>
       <p>
-        Nothing in these Terms limits your rights under the Consumer Guarantees
-        Act 1993 or the Fair Trading Act 1986, except to the extent the law
-        allows when you are acquiring goods for business purposes. If you are
-        acquiring goods for the purpose of a business, the Consumer Guarantees
-        Act 1993 is excluded to the fullest extent permitted by law.
+        Nothing in these Terms limits rights under the Consumer Guarantees Act
+        1993 or the Fair Trading Act 1986 where those laws apply. The rights
+        and obligations for a member-to-member sale depend on whether the
+        member seller is acting in trade and the circumstances of the sale.
+        Member sellers are responsible for meeting their own legal obligations.
       </p>
 
       <h2>4. Terms of signing up to Looters Computas</h2>
