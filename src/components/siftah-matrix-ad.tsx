@@ -15,6 +15,7 @@ type Drop = {
 /**
  * Homepage Siftah advert: red/white matrix rain that soft-bounces off the
  * logo and headline, then fades downward. Logo stays sharp on top.
+ * Mobile: stacked layout so copy stays readable.
  */
 export function SiftahMatrixAd() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -203,23 +204,23 @@ export function SiftahMatrixAd() {
 
       <Link
         to="/siftah"
-        className="relative z-[2] flex min-h-[230px] items-center justify-center gap-5 px-3 py-4 transition sm:min-h-[260px] sm:gap-8 sm:px-8"
+        className="relative z-[2] flex min-h-[200px] flex-col items-center gap-3 px-4 py-5 transition sm:min-h-[260px] sm:flex-row sm:items-center sm:justify-center sm:gap-8 sm:px-8 sm:py-4"
       >
         <img
           ref={logoRef}
           src="/siftah-mobile-logo.svg"
           alt="Siftah Mobile"
-          className="h-52 w-auto max-w-[43%] shrink-0 object-contain drop-shadow-[0_0_22px_rgba(255,40,55,0.35)] sm:h-60"
+          className="h-28 w-auto max-w-[55%] shrink-0 object-contain drop-shadow-[0_0_22px_rgba(255,40,55,0.35)] sm:h-60 sm:max-w-[43%]"
         />
-        <span ref={copyRef} className="min-w-0 flex-1">
+        <span ref={copyRef} className="min-w-0 flex-1 text-center sm:text-left">
           <span
-            className="block text-xs font-black uppercase tracking-[.22em] text-[#ff8a95] sm:text-sm"
+            className="block text-[10px] font-black uppercase tracking-[.22em] text-[#ff8a95] sm:text-sm"
             style={{ WebkitTextStroke: "1px #050505", paintOrder: "stroke fill" }}
           >
             AI-powered computing
           </span>
           <span
-            className="mt-1 block text-2xl font-black leading-[1.05] text-[#ff3b4e] sm:text-4xl"
+            className="mt-1 block text-xl font-black leading-[1.05] text-[#ff3b4e] sm:text-4xl"
             style={{
               WebkitTextStroke: "1.5px #050505",
               paintOrder: "stroke fill",
@@ -229,19 +230,19 @@ export function SiftahMatrixAd() {
             Meet Siftah Mobile
           </span>
           <span
-            className="mt-2 block text-base font-extrabold leading-snug text-white sm:text-xl"
+            className="mt-1.5 block text-sm font-extrabold leading-snug text-white sm:mt-2 sm:text-xl"
             style={{ WebkitTextStroke: "1px #050505", paintOrder: "stroke fill" }}
           >
             AI chat, coding help, app building and creative tools.
           </span>
           <span
-            className="mt-2 block text-sm font-bold text-[#ffb3ba] sm:text-base"
+            className="mt-1.5 block text-xs font-bold text-[#ffb3ba] sm:mt-2 sm:text-base"
             style={{ WebkitTextStroke: "1px #050505", paintOrder: "stroke fill" }}
           >
             Your ideas. Built at the speed of thought.
           </span>
         </span>
-        <span className="shrink-0 rounded-lg border border-red-300/45 bg-red-500/20 px-3 py-2 text-xs font-extrabold text-red-50 shadow-md shadow-red-950/40 transition hover:bg-red-500/35 sm:text-sm">
+        <span className="mt-1 shrink-0 rounded-lg border border-red-300/45 bg-red-500/20 px-4 py-2.5 text-xs font-extrabold text-red-50 shadow-md shadow-red-950/40 transition hover:bg-red-500/35 sm:mt-0 sm:text-sm">
           Explore <span aria-hidden="true">→</span>
         </span>
       </Link>
