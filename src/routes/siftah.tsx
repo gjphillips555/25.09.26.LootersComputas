@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { AdminToolbar } from "@/components/admin-toolbar";
 import { AnalyticsBeacon } from "@/components/analytics-beacon";
+import { DaVinciWorkspace } from "@/components/davinci-workspace";
 
 export const Route = createFileRoute("/siftah")({
   head: () => ({
@@ -81,6 +82,7 @@ function SiftahPage() {
   const [activeId, setActiveId] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [input, setInput] = useState("");
+  const [persona, setPersona] = useState<"siftah" | "dexter" | "da-vinci" | "super-saiyan">("siftah");
   const [usage, setUsage] = useState<Usage>(DEFAULT_USAGE);
   const [mode, setMode] = useState<Mode | null>(null);
   const [authState, setAuthState] = useState<"checking" | "signed_out" | "ready">("checking");
@@ -226,6 +228,27 @@ function SiftahPage() {
     }));
   }
 
+  function closeConversation(id: string) {
+    const remaining = conversations.filter((conversation) => conversation.id !== id);
+    if (!remaining.length) {
+      const fresh = newConversation();
+      setConversations([fresh]);
+      setActiveId(fresh.id);
+      return;
+    }
+    setConversations(remaining);
+    if (activeId === id) setActiveId(remaining[0].id);
+  }
+
+  async function copyMessage(content: string) {
+    try {
+      await navigator.clipboard.writeText(content);
+      setLastRoute("Reply copied");
+    } catch {
+      setError("Clipboard access is unavailable in this browser.");
+    }
+  }
+
   function createConversation() {
     const conversation = newConversation();
     setConversations((current) => [conversation, ...current].slice(0, 30));
@@ -238,6 +261,12 @@ function SiftahPage() {
   async function send(overrideText?: string, hiddenPrompt = false) {
     const text = (overrideText ?? input).trim();
     if (!text || busy || authState !== "ready" || locked) return;
+    if (persona === "super-saiyan" && (mode !== "account" || usage.creditsBalance < 2)) {
+      setError(mode === "guest"
+        ? "Super Saiyan Premium is a paid Looters account feature. Sign in and add Credits to use it."
+        : "Super Saiyan Premium uses 2 Credits per response. Add Credits from the menu to continue.");
+      return;
+    }
     setError(null);
     setInput("");
     setReplyTarget(null);
@@ -255,7 +284,7 @@ function SiftahPage() {
       const response = await fetch("/api/siftah/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "chat", messages: history }),
+        body: JSON.stringify({ action: "chat", messages: history, persona }),
       });
       const data = (await readApiResponse(response)) as ApiResponse;
       if (data.usage) setUsage(data.usage);
@@ -265,11 +294,15 @@ function SiftahPage() {
       }
       if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
       setMode(data.mode ?? mode);
-      setLastRoute(data.stage === "super_saiyan"
-        ? "Super Saiyan · Abliterated model"
-        : data.stage === "paid"
-          ? "Credits · Siftah model pool"
-          : "Siftah · Automatic model pool");
+      setLastRoute(persona === "super-saiyan"
+        ? "Super Saiyan Premium · Paid model access"
+        : persona === "dexter"
+          ? "Dexter · Coding workspace"
+          : data.stage === "super_saiyan"
+            ? "Super Saiyan · Abliterated model"
+            : data.stage === "paid"
+              ? "Credits · Siftah model pool"
+              : "Siftah · Automatic model pool");
       const replyText = data.reply || "(No response returned)";
       if (continuationTargetId) {
         // Keep every Continue segment in the original assistant message so
@@ -441,13 +474,41 @@ function SiftahPage() {
         <div className="mx-auto flex w-full max-w-[1600px] flex-1">
           <main className="flex min-w-0 flex-1 flex-col">
             <div className="border-b border-white/[0.06] px-3 py-2 sm:px-5">
+              <nav className="flex items-center gap-2 overflow-x-auto pb-1" aria-label="Siftah workspaces">
+                {([
+                  { id: "siftah", label: "Siftah", detail: "Chat" },
+                  { id: "dexter", label: "Dexter", detail: "Code" },
+                  { id: "da-vinci", label: "Da Vinci", detail: "Images" },
+                  { id: "super-saiyan", label: "Super Saiyan", detail: "Premium · 2 Credits" },
+                ] as const).map((item) => (
+                  <button key={item.id} type="button" onClick={() => { setPersona(item.id); setError(null); }}
+                    aria-pressed={persona === item.id}
+                    className={cn("flex shrink-0 flex-col rounded-lg border px-3 py-2 text-left transition",
+                      persona === item.id ? "border-red-400/40 bg-red-500/10 text-white" : "border-transparent text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-200")}>
+                    <span className="text-xs font-semibold">{item.label}</span>
+                    <span className="text-[10px] opacity-65">{item.detail}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {persona === "da-vinci" ? <DaVinciWorkspace /> : <div className="flex min-h-0 flex-1 flex-col">
+            <div className="border-b border-white/[0.06] px-3 py-2 sm:px-5">
               <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
                 {conversations.map((conversation) => (
-                  <button key={conversation.id} type="button" onClick={() => { setActiveId(conversation.id); setError(null); }}
-                    className={cn("max-w-52 shrink-0 rounded-lg px-3 py-2 text-xs transition",
-                      conversation.id === activeId ? "bg-white/[0.09] text-white" : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300")}>
-                    <span className="block truncate">{conversation.title}</span>
-                  </button>
+                  <div key={conversation.id} className={cn("flex shrink-0 items-center rounded-lg",
+                    conversation.id === activeId ? "bg-white/[0.09]" : "hover:bg-white/[0.04]")}>
+                    <button type="button" onClick={() => { setActiveId(conversation.id); setError(null); }}
+                      className={cn("max-w-48 px-3 py-2 text-xs transition",
+                        conversation.id === activeId ? "text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                      <span className="block truncate">{conversation.title}</span>
+                    </button>
+                    <button type="button" onClick={() => closeConversation(conversation.id)}
+                      className="mr-1 rounded-md p-1 text-zinc-600 hover:bg-white/10 hover:text-white"
+                      aria-label={`Close ${conversation.title}`} title="Close conversation">
+                      <X className="size-3" />
+                    </button>
+                  </div>
                 ))}
                 <button type="button" onClick={createConversation}
                   className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-xs font-medium text-zinc-300 hover:bg-white/[0.06]">
@@ -489,8 +550,9 @@ function SiftahPage() {
                       <div className="mb-2 flex items-center justify-between gap-4 border-b border-current/10 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-65">
                         <span>{message.role === "user" ? "You" : "Siftah"}</span><span>{new Date(message.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
-                      <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                      <MessageContent content={message.content} />
                       {message.role === "assistant" && <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/[0.08] pt-2">
+                        <button type="button" onClick={() => void copyMessage(message.content)} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"><Copy className="size-3.5" /> Copy</button>
                         <button type="button" onClick={() => startReply(message.id)} className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] font-medium text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-white"><Reply className="size-3.5" /> Reply</button>
                         {isLastAssistant && <button type="button" onClick={continueLastResponse} disabled={busy || locked} className="inline-flex items-center gap-1.5 rounded-lg border border-red-400/25 bg-red-500/[0.08] px-2.5 py-1.5 text-[11px] font-semibold text-red-200 transition hover:bg-red-500/[0.15] disabled:opacity-40"><Sparkles className="size-3.5" /> Continue</button>}
                       </div>}
@@ -536,9 +598,10 @@ function SiftahPage() {
                 <p className="mt-2 text-center text-[10px] text-zinc-600">AI can make mistakes. Check important information.</p>
               </div>
             </div>
+            </div>}
           </main>
 
-          <aside className={cn("hidden shrink-0 border-l border-white/[0.08] bg-[#101013] transition-[width] duration-200 md:flex md:flex-col",
+          <aside className={cn("hidden shrink-0 border-l border-white/[0.08] bg-[#101013] transition-[width] duration-200", persona === "da-vinci" ? "md:hidden" : "md:flex",
             panelOpen ? "w-[min(34vw,390px)]" : "w-12")}>
             {panelOpen ? <>
               <div className="flex h-[61px] items-center justify-between border-b border-white/[0.07] px-4">
@@ -562,6 +625,26 @@ function SiftahPage() {
       </div>
     </div>
   );
+}
+
+function MessageContent({ content }: { content: string }) {
+  const chunks = content.split(/(```[\s\S]*?```)/g);
+  return <div className="space-y-3 break-words">
+    {chunks.map((chunk, index) => {
+      if (!chunk.startsWith("```")) return chunk ? <p key={index} className="whitespace-pre-wrap">{chunk}</p> : null;
+      const match = chunk.match(/^```([^\n]*)\n([\s\S]*?)```$/);
+      if (!match) return <pre key={index} className="overflow-x-auto rounded-lg bg-black/40 p-3 text-xs"><code>{chunk}</code></pre>;
+      const language = match[1].trim() || "code";
+      const code = match[2].replace(/\n$/, "");
+      return <div key={index} className="overflow-hidden rounded-xl border border-white/10 bg-[#09090d]">
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-3 py-2 text-[10px] uppercase tracking-wider text-zinc-500">
+          <span>{language}</span>
+          <button type="button" onClick={() => void navigator.clipboard.writeText(code)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-zinc-400 hover:bg-white/10 hover:text-white"><Copy className="size-3" /> Copy code</button>
+        </div>
+        <pre className="max-h-[520px] overflow-auto p-3 text-xs leading-5 text-zinc-200"><code>{code}</code></pre>
+      </div>;
+    })}
+  </div>;
 }
 
 function SiftahWordmark({ compact = false }: { compact?: boolean }) {
