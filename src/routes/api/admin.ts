@@ -9,6 +9,15 @@ const ALLOWED_MODELS = [
   "Qwen/Qwen3.5-9B:deepinfra",
 ] as const;
 
+const DEFAULT_FLAGS: Record<string, boolean> = {
+  marketplace_enabled: true,
+  listings_enabled: true,
+  guest_siftah: true,
+  siftah_enabled: true,
+  new_signups: true,
+  sell_page: true,
+};
+
 export const Route = createFileRoute("/api/admin")({
   server: {
     handlers: {
@@ -17,6 +26,16 @@ export const Route = createFileRoute("/api/admin")({
           const admin = await getAdminAccess();
           if (!admin) return json({ error: "Admin access required." }, 403);
           const sql = await getSql();
+          // Ensure feature_flags column exists (idempotent for older deploys)
+          try {
+            await sql.query(
+              `alter table siftah_admin_settings
+                 add column if not exists feature_flags jsonb not null default $1::jsonb`,
+              [JSON.stringify(DEFAULT_FLAGS)],
+            );
+          } catch {
+            /* column may already exist */
+          }
           const [counts] = await sql.query(
             `select
               (select count(*)::int from "user") as members,
@@ -35,6 +54,10 @@ export const Route = createFileRoute("/api/admin")({
               (select count(*)::int from profiles where paypal_payer_id is not null or paypal_email is not null) as paypal_connected`,
           );
           const [settings] = await sql.query("select * from siftah_admin_settings where id = 1");
+          const flags =
+            settings?.feature_flags && typeof settings.feature_flags === "object"
+              ? { ...DEFAULT_FLAGS, ...settings.feature_flags }
+              : DEFAULT_FLAGS;
           const admins = await sql.query("select email, role, created_at from siftah_admins order by role, email");
           const members = await sql.query(
             `select u.id, u.name, u.email, u."emailVerified" as email_verified, u."createdAt" as joined_at,
@@ -78,7 +101,8 @@ export const Route = createFileRoute("/api/admin")({
           return json({
             admin,
             stats: counts,
-            settings,
+            settings: { ...settings, feature_flags: flags },
+            featureFlags: flags,
             admins,
             members,
             topPages: visits,
@@ -145,6 +169,31 @@ export const Route = createFileRoute("/api/admin")({
             return json({ success: true });
           }
 
+          if (body.action === "update_feature_flags") {
+            const incoming =
+              body.flags && typeof body.flags === "object" && !Array.isArray(body.flags)
+                ? (body.flags as Record<string, unknown>)
+                : {};
+            const next: Record<string, boolean> = { ...DEFAULT_FLAGS };
+            for (const key of Object.keys(DEFAULT_FLAGS)) {
+              if (key in incoming) next[key] = incoming[key] !== false;
+            }
+            try {
+              await sql.query(
+                `alter table siftah_admin_settings
+                   add column if not exists feature_flags jsonb not null default $1::jsonb`,
+                [JSON.stringify(DEFAULT_FLAGS)],
+              );
+            } catch {
+              /* ignore */
+            }
+            await sql.query(
+              `update siftah_admin_settings set feature_flags = $1::jsonb, updated_at = now() where id = 1`,
+              [JSON.stringify(next)],
+            );
+            return json({ success: true, flags: next });
+          }
+
           if (body.action === "update_member") {
             const userId = typeof body.userId === "string" ? body.userId : "";
             if (!userId) return json({ error: "Missing member id." }, 400);
@@ -171,6 +220,23 @@ export const Route = createFileRoute("/api/admin")({
             return json({ success: true });
           }
 
+          if (body.action === "bulk_members_siftah") {
+            const ids = Array.isArray(body.userIds)
+              ? body.userIds.filter((id): id is string => typeof id === "string" && id.length > 0)
+              : [];
+            if (!ids.length) return json({ error: "Select at least one member." }, 400);
+            const enabled = body.enabled !== false;
+            for (const userId of ids.slice(0, 100)) {
+              await sql.query(
+                `insert into siftah_user_settings (user_id, enabled, updated_at)
+                 values ($1,$2,now())
+                 on conflict (user_id) do update set enabled=excluded.enabled, updated_at=now()`,
+                [userId, enabled],
+              );
+            }
+            return json({ success: true, count: ids.length });
+          }
+
           if (body.action === "set_listing_status") {
             const listingId = typeof body.listingId === "string" ? body.listingId : "";
             const status = String(body.status || "");
@@ -183,6 +249,22 @@ export const Route = createFileRoute("/api/admin")({
               listingId,
             ]);
             return json({ success: true });
+          }
+
+          if (body.action === "bulk_listing_status") {
+            const ids = Array.isArray(body.listingIds)
+              ? body.listingIds.filter((id): id is string => typeof id === "string" && id.length > 0)
+              : [];
+            const status = String(body.status || "");
+            if (!ids.length) return json({ error: "Select at least one listing." }, 400);
+            if (!["active", "sold", "withdrawn"].includes(status)) {
+              return json({ error: "Status must be active, sold, or withdrawn." }, 400);
+            }
+            await sql.query(
+              `update listings set status = $1, updated_at = now() where id = any($2::text[])`,
+              [status, ids.slice(0, 100)],
+            );
+            return json({ success: true, count: ids.length });
           }
 
           return json({ error: "Unknown admin action." }, 400);
