@@ -4,6 +4,7 @@ import { authEnabled, authClient } from "@/lib/auth/client";
 import { BrandedGoogleSignIn } from "@/components/branded-google-sign-in";
 import { KeyLink } from "@/components/key-button";
 import { LegalLinks } from "@/components/legal-links";
+import { setAgreedTerms } from "@/lib/terms-agree";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
@@ -15,15 +16,20 @@ function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("callbackURL");
-    if (requested === "/siftah" || requested === "/admin" || requested === "/account" || requested === "/sell") {
+    if (requested && requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") && requested.length < 300) {
       setCallbackURL(requested);
     }
   }, []);
 
   async function submitEmail(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSignUp && !termsAccepted) {
+      setMessage("Please agree to the Terms and Conditions before creating your account.");
+      return;
+    }
     setBusy(true);
     setMessage("");
     try {
@@ -36,6 +42,7 @@ function Login() {
           })
         : await authClient.signIn.email({ email: email.trim(), password, callbackURL });
       if (result.error) throw new Error(result.error.message || "Email sign-in failed.");
+      if (isSignUp) setAgreedTerms();
       window.location.href = callbackURL;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to sign in.");
@@ -77,6 +84,23 @@ function Login() {
                   placeholder="Email address"
                   className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm"
                 />
+                {isSignUp && (
+                  <label className="flex items-start gap-2 text-xs leading-5 text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(event) => setTermsAccepted(event.target.checked)}
+                      className="mt-1 size-4 shrink-0 accent-orange-500"
+                    />
+                    <span>
+                      By creating this account, I agree to the{" "}
+                      <Link to="/termsandconditions" className="underline">Terms and Conditions</Link>
+                      {" "}and{" "}
+                      <Link to="/storepolicy" className="underline">Store Policy</Link>,
+                      including the Siftah AI use and third-party processing terms.
+                    </span>
+                  </label>
+                )}
                 <input
                   type="password"
                   required
@@ -94,7 +118,7 @@ function Login() {
                 )}
                 <button
                   type="submit"
-                  disabled={busy}
+                  disabled={busy || (isSignUp && !termsAccepted)}
                   className="w-full rounded-xl bg-[#ff9a00] px-4 py-2.5 text-sm font-bold text-[#1a1000] disabled:opacity-50"
                 >
                   {busy ? "Please wait…" : isSignUp ? "Create account" : "Sign in with email"}
@@ -104,6 +128,7 @@ function Login() {
                 type="button"
                 onClick={() => {
                   setIsSignUp((value) => !value);
+                  setTermsAccepted(false);
                   setMessage("");
                 }}
                 className="w-full text-sm font-medium text-primary hover:underline"
