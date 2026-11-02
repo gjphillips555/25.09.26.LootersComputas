@@ -24,6 +24,7 @@ import {
 } from "@/lib/orders";
 import { NZ_REGIONS, nzd } from "@/lib/products";
 import { packingLabel, packingQuote } from "@/lib/shipping";
+import { hasSignedInSession } from "@/lib/auth/route-access";
 
 export const Route = createFileRoute("/checkout")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -35,6 +36,11 @@ export const Route = createFileRoute("/checkout")({
   },
   loaderDeps: ({ search }) => ({ buy: search.buy, ship: search.ship, qty: search.qty }),
   loader: async ({ deps }) => {
+    try {
+      await hasSignedInSession();
+    } catch {
+      return { buyNow: null as Awaited<ReturnType<typeof getProduct>> };
+    }
     if (!deps.buy) return { buyNow: null as Awaited<ReturnType<typeof getProduct>> };
     const product = await getProduct({ data: { id: deps.buy } });
     return { buyNow: product };
