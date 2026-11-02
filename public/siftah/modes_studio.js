@@ -25,7 +25,7 @@
     var usage = data.usage || {};
     if (data.mode === "guest") {
       var used = Number(usage.superSaiyanUsed || 0) + Number(usage.siftahUsed || 0);
-      var limit = Number(data.trialLimit || 10);
+      var limit = Number.isFinite(Number(data.trialLimit)) ? Number(data.trialLimit) : 10;
       if ((usage.cooldownUntil && Date.parse(usage.cooldownUntil) > Date.now()) || used >= limit) {
         throw new Error("Your guest trial is used. It resets after a five-hour cooldown.");
       }
