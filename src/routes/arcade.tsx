@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AppShell } from "@/components/app-shell";
 
 export const Route = createFileRoute("/arcade")({
   head: () => ({
@@ -12,10 +13,12 @@ export const Route = createFileRoute("/arcade")({
 
 function ArcadePage() {
   return (
-    <iframe
-      src="/arcade.html"
-      title="Looters Computas Arcade"
-      style={{ display: "block", width: "100%", height: "100vh", border: 0 }}
-    />
+    <AppShell>
+      <iframe
+        src="/arcade.html"
+        title="Looters Computas Arcade"
+        style={{ display: "block", width: "100%", height: "100vh", border: 0 }}
+      />
+    </AppShell>
   );
 }
