@@ -6,7 +6,7 @@ import { ARTWORK } from "@/lib/artwork";
 import { THEME_BOOT_SCRIPT, ThemeProvider, useTheme } from "@/lib/theme";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Looters Computers";
+const APP_NAME = "Looters Computas";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -17,7 +17,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Shop Looters Computas. Add to cart, pick shipping, and check out in NZD.",
+          "Looters Computas: NZ marketplace to buy, sell and swap computers, laptops, gaming gear, phones, drones, e-bikes and more. Direct PayPal deals between looters.",
       },
       { name: "theme-color", content: "#f2f2f0" },
       { name: "color-scheme", content: "light dark" },
