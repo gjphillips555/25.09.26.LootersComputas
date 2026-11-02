@@ -29,8 +29,8 @@ export const Route = createFileRoute("/api/siftah/image")({
           let payload: { inputs: string; parameters?: Record<string, unknown> };
           let endpointModel = model;
           if (reference) {
-            if (!reference.startsWith("data:image/") || reference.length > 7_000_000) {
-              return json({ error: "Reference image is invalid or too large. Use an image under 5 MB." }, 400);
+            if (!reference.startsWith("data:image/") || reference.length > 4_200_000) {
+              return json({ error: "Reference image is invalid or too large. Use an image under 3 MB." }, 400);
             }
             const match = reference.match(/^data:image\/(png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/i);
             if (!match) return json({ error: "Use a PNG, JPEG or WebP reference image." }, 400);
