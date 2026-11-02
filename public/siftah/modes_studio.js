@@ -83,13 +83,13 @@
   }
   var hfClientPromise = null, hfClientToken = null;
   function loadHFClient(t) {
-    if (!t) return Promise.reject(new Error("Add a Hugging Face token with Inference Providers permission."));
+    if (!t) return Promise.reject(new Error("The image service is not available right now."));
     if (hfClientPromise && hfClientToken === t) return hfClientPromise;
     hfClientToken = t;
     hfClientPromise = import("https://cdn.jsdelivr.net/npm/@huggingface/inference@3/+esm")
       .then(function (mod) {
         var Client = mod.InferenceClient || mod.HfInference || mod.default;
-        if (!Client) throw new Error("Hugging Face InferenceClient could not be loaded.");
+        if (!Client) throw new Error("The image service is temporarily unavailable.");
         return new Client(t);
       })
       .catch(function (err) {
@@ -169,25 +169,25 @@
       })
     }).then(function (r) {
       return r.json().then(function (j) {
-        if (!r.ok || !j.id) throw new Error(j.message || ("AI Horde " + r.status));
+        if (!r.ok || !j.id) throw new Error(j.message || ("image queue " + r.status));
         return j.id;
       });
     }).then(function (id) {
       var started = Date.now();
       function poll() {
-        if (Date.now() - started > 180000) throw new Error("AI Horde timed out. Try again, or paste a personal key under Advanced.");
+        if (Date.now() - started > 180000) throw new Error("The image queue timed out. Please try again.");
         return fetch("https://stablehorde.net/api/v2/generate/check/" + id, { headers: headers }).then(function (r) {
           return r.json();
         }).then(function (c) {
-          if (c.faulted) throw new Error(c.message || "AI Horde worker failed");
+          if (c.faulted) throw new Error(c.message || "Image worker failed");
           if (onStatus) onStatus(c);
           if (!c.done) return new Promise(function (res) { setTimeout(res, 3000); }).then(poll);
           return fetch("https://stablehorde.net/api/v2/generate/status/" + id, { headers: headers }).then(function (r) {
             return r.json();
           }).then(function (st) {
             var g = st && st.generations && st.generations[0];
-            if (!g || !g.img) throw new Error((st && st.message) || "AI Horde returned no image");
-            if (g.censored) throw new Error("AI Horde censored this one. A personal key helps.");
+            if (!g || !g.img) throw new Error((st && st.message) || "No image was returned");
+            if (g.censored) throw new Error("This image request could not be completed.");
             if (g.img.indexOf("http") === 0) return fetch(g.img).then(function (r) { return r.blob(); });
             return b64ToBlob(g.img);
           });
@@ -211,18 +211,16 @@
       '<button type="button" data-pane="gallery">Gallery</button></div>' +
       '<div class="studio-pane on" id="paneCreate">' +
       "<label>Prompt</label><textarea id=\"studioCreatePrompt\" placeholder=\"Describe the image: subject, style, lighting, mood\u2026\"></textarea>" +
-      "<label>Model</label><select id=\"studioCreateModel\">" +
-      '<option value="Qwen/Qwen-Image">Qwen Image ★ recommended default</option>' +
-      '<option value="black-forest-labs/FLUX.1-Krea-dev">FLUX.1 Krea Dev (non-commercial licence)</option>' +
-      '<option value="black-forest-labs/FLUX.1-dev">FLUX.1 Dev (non-commercial licence)</option>' +
-      '<option value="black-forest-labs/FLUX.1-schnell">FLUX.1 Schnell (fast)</option>' +
-      '<option value="stabilityai/stable-diffusion-xl-base-1.0">SDXL 1.0</option>' +
-      '<option value="horde:stable_diffusion">AI Horde · Stable Diffusion (free)</option>' +
-      '<option value="horde:Deliberate">AI Horde · Deliberate (free)</option>' +
-      '<option value="horde:AlbedoBase XL (SDXL)">AI Horde · AlbedoBase XL (free)</option></select>' +
-      "<label>Hugging Face token</label>" +
-      '<input id="studioFluxToken" type="password" placeholder="hf_... leave blank to use the chat token" autocomplete="off" style="width:100%;box-sizing:border-box;background:#12151c;border:1px solid var(--border,#2a2e38);color:#eee;border-radius:8px;padding:10px;font-size:13px">' +
-      '<p class="studio-status">Uses Hugging Face Inference Providers with an HF token that has Make calls to Inference Providers permission. Qwen Image is the recommended default (Apache 2.0). FLUX.1 Krea Dev and FLUX.1 Dev are non-commercial models. AI Horde models are free: leave the key blank for the slow anonymous queue, or paste a personal key under Settings → Advanced.</p>' +
+      "<label>Style</label><select id=\"studioCreateModel\">" +
+      '<option value="Qwen/Qwen-Image">Default</option>' +
+      '<option value="black-forest-labs/FLUX.1-Krea-dev">Creative</option>' +
+      '<option value="black-forest-labs/FLUX.1-dev">High detail</option>' +
+      '<option value="black-forest-labs/FLUX.1-schnell">Fast</option>' +
+      '<option value="stabilityai/stable-diffusion-xl-base-1.0">Standard</option>' +
+      '<option value="horde:stable_diffusion">Queue option A</option>' +
+      '<option value="horde:Deliberate">Queue option B</option>' +
+      '<option value="horde:AlbedoBase XL (SDXL)">Queue option C</option></select>' +
+      '<p class="studio-status">Prompts and uploaded images may be processed by external AI services. Read the Terms and Conditions before uploading private or sensitive material.</p>' +
       '<div class="studio-actions"><button type="button" class="primary" id="studioCreateBtn">Generate</button></div>' +
       '<div class="studio-status" id="studioCreateStatus"></div>' +
       '<div class="studio-preview" id="studioCreatePreview"><div class="placeholder">Your image will appear here</div></div>' +
@@ -238,9 +236,9 @@
       '<button type="button" id="studioEditPick">Upload image</button>' +
       '<button type="button" id="studioEditClear">Clear</button>' +
       '<img class="upload-thumb" id="studioEditThumb" alt=""></div>' +
-      "<label>Model</label><select id=\"studioEditModel\">" +
-      '<option value="stabilityai/stable-diffusion-xl-base-1.0">SDXL 1.0 (I2I)</option>' +
-      '<option value="black-forest-labs/FLUX.1-dev">FLUX.1 Dev</option></select>' +
+      "<label>Style</label><select id=\"studioEditModel\">" +
+      '<option value="stabilityai/stable-diffusion-xl-base-1.0">Standard edit</option>' +
+      '<option value="black-forest-labs/FLUX.1-dev">Detailed</option></select>' +
       '<div class="studio-actions"><button type="button" class="primary" id="studioEditBtn">Apply edit</button></div>' +
       '<div class="studio-status" id="studioEditStatus"></div>' +
       '<div class="studio-preview" id="studioEditPreview"><div class="placeholder">Edited image will appear here</div></div>' +
@@ -251,11 +249,11 @@
       '<button type="button" id="studioEditReedit">Edit again</button></div></div>' +
       '<div class="studio-pane" id="paneVideo">' +
       "<label>Prompt</label><textarea id=\"studioVidPrompt\" placeholder=\"What should the video show? Subject, motion, camera, mood\u2026\"></textarea>" +
-      "<label>Model</label><select id=\"studioVidModel\">" +
-      '<option value="Wan-AI/Wan2.1-T2V-1.3B">Wan 2.1 1.3B (faster)</option>' +
-      '<option value="Wan-AI/Wan2.1-T2V-14B">Wan 2.1 14B</option>' +
-      '<option value="tencent/HunyuanVideo">HunyuanVideo</option></select>' +
-      '<p class="studio-status">Video uses the FLUX token if you set one, otherwise the chat token. It is saved in your on-device Gallery for 30 days.</p>' +
+      "<label>Style</label><select id=\"studioVidModel\">" +
+      '<option value="Wan-AI/Wan2.1-T2V-1.3B">Fast video</option>' +
+      '<option value="Wan-AI/Wan2.1-T2V-14B">Detailed video</option>' +
+      '<option value="tencent/Cinematic video">Cinematic video</option></select>' +
+      '<p class="studio-status">Video creation uses external services and may take a few minutes. Results are saved privately in this browser for 30 days.</p>' +
       '<div class="studio-actions"><button type="button" class="primary" id="studioVidBtn">Generate video</button></div>' +
       '<div class="studio-status" id="studioVidStatus"></div>' +
       '<div class="studio-preview" id="studioVidPreview"><div class="placeholder">Your video will appear here</div></div>' +
@@ -325,7 +323,7 @@
       var isHorde = model.indexOf("horde:") === 0;
       var t = token();
       if (!isHorde && !t) {
-        toast("Add a FLUX token in the box above, or a chat token under Advanced");
+        toast("Image creation is not available right now. Please try again later.");
         if (typeof openSettings === "function") {
           openSettings();
           var sheet = document.querySelector(".sheet-body");
@@ -339,7 +337,7 @@
       var status = document.getElementById("studioCreateStatus");
       var preview = document.getElementById("studioCreatePreview");
       btn.disabled = true;
-      status.textContent = isHorde ? "Queued on AI Horde\u2026 free, so it can take a minute" : "Generating\u2026 (10\u201360s)";
+      status.textContent = isHorde ? "Queued on image queue\u2026 free, so it can take a minute" : "Generating\u2026 (10\u201360s)";
       preview.innerHTML = '<div class="placeholder">Working\u2026</div>';
       document.getElementById("studioCreateActions").style.display = "none";
       try {
@@ -359,7 +357,7 @@
         var url = await blobToDataUrl(lastCreateBlob);
         if (window.siftahModes) window.siftahModes.addToGallery(url, prompt, "t2i");
       } catch (e) {
-        status.textContent = e.message || String(e);
+        status.textContent = "The service could not complete this request. Please try again.";
         preview.innerHTML = '<div class="placeholder">Failed</div>';
         toast(status.textContent);
       } finally { btn.disabled = false; }
@@ -405,7 +403,7 @@
 
     document.getElementById("studioEditBtn").onclick = async function () {
       var t = token();
-      if (!t) { toast("Add HF token in Settings"); if (typeof openSettings === "function") openSettings(); return; }
+      if (!t) { toast("Image editing is not available right now. Please try again later."); if (typeof openSettings === "function") openSettings(); return; }
       if (!editSourceBlob) { toast("Upload or load a source image"); return; }
       var prompt = (document.getElementById("studioEditPrompt").value || "").trim() || "enhance details, high quality";
       var model = document.getElementById("studioEditModel").value;
@@ -425,7 +423,7 @@
         var url = await blobToDataUrl(lastEditBlob);
         if (window.siftahModes) window.siftahModes.addToGallery(url, prompt, "i2i");
       } catch (e) {
-        status.textContent = e.message || String(e);
+        status.textContent = "The service could not complete this request. Please try again.";
         preview.innerHTML = '<div class="placeholder">Failed \u2014 try SDXL</div>';
         toast(status.textContent);
       } finally { btn.disabled = false; }
@@ -454,7 +452,7 @@
 
     document.getElementById("studioVidBtn").onclick = async function () {
       var t = token();
-      if (!t) { toast("Add a token under Create, or a chat token under Advanced"); return; }
+      if (!t) { toast("Video creation is not available right now. Please try again later."); return; }
       var prompt = (document.getElementById("studioVidPrompt").value || "").trim();
       if (!prompt) { toast("Enter a prompt"); return; }
       var model = document.getElementById("studioVidModel").value;
@@ -477,7 +475,7 @@
           window.siftahVault.add(lastVidBlob, { kind: "video", prompt: prompt, name: "siftah-" + Date.now() + ".mp4", mime: lastVidBlob.type || "video/mp4" });
         }
       } catch (e) {
-        status.textContent = e.message || String(e);
+        status.textContent = "The service could not complete this request. Please try again.";
         preview.innerHTML = '<div class="placeholder">Failed</div>';
         toast(status.textContent);
       } finally { btn.disabled = false; }
