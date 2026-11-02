@@ -74,9 +74,11 @@ function TermsPage() {
 
       <h2>4. Terms of signing up to Looters Computas</h2>
       <p>
-        An account with us is optional. You may browse and purchase as a guest.
-        You may register with Google or an email address, including Proton
-        Mail, using the sign-up methods we make available.
+        A Looters account is required to open full listing pages, place orders,
+        sell items and use member-only marketplace features. Visitors who are
+        not signed in may browse public listing thumbnails only. Siftah also
+        offers a limited guest trial without an account. You may register with
+        Google or an email address, including Proton Mail.
       </p>
       <p>
         By creating an account, or by signing in with Google or another
@@ -115,8 +117,9 @@ function TermsPage() {
         Siftah provides AI chat, coding, image and related creative tools. To
         deliver these features, your prompts, conversation context and any
         images or files you choose to upload may be sent to third-party AI
-        processing providers, including Hugging Face and providers made
-        available through that service. Those providers process the submitted
+        processing providers, including Hugging Face, Stable Horde for some
+        media-generation requests, and providers made available through those
+        services. Those providers process the submitted
         material to generate a response. We may change the providers or
         underlying systems used without changing the Siftah interface.
       </p>
