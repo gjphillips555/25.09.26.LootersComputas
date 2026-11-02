@@ -65,16 +65,7 @@ export const Route = createFileRoute("/api/admin")({
           const body = await request.json().catch(() => ({})) as Record<string, unknown>;
           const sql = await getSql();
           if (body.action === "add_admin" || body.action === "remove_admin") {
-            if (admin.role !== "owner" || admin.email !== OWNER_EMAIL) return json({ error: "Only the owner can manage admin access." }, 403);
-            const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "Enter a valid email address." }, 400);
-            if (email === OWNER_EMAIL && body.action === "remove_admin") return json({ error: "The owner account cannot be removed." }, 400);
-            if (body.action === "add_admin") {
-              await sql.query("insert into siftah_admins (email, role) values ($1, 'admin') on conflict (email) do nothing", [email]);
-            } else {
-              await sql.query("delete from siftah_admins where lower(email) = $1 and role <> 'owner'", [email]);
-            }
-            return json({ success: true });
+            return json({ error: "Only the verified owner account is authorised. Additional admin accounts are disabled." }, 403);
           }
           if (body.action === "update_defaults") {
             const model = String(body.defaultSuperModel || "");
