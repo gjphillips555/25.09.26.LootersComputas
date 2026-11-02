@@ -56,29 +56,82 @@ function onLootersProduction(): boolean {
 
 type PopupMessage = { source: "grok-auth-popup"; token: string | null; error?: string };
 
+/** Prefer native Google on production; never use the xAI broker there. */
+function resolveProviderId(providerId: string): string {
+  if (
+    (providerId === "grok-google" || providerId === "google") &&
+    onLootersProduction()
+  ) {
+    return "google";
+  }
+  return providerId;
+}
+
+/**
+ * Hit Better Auth social endpoint directly and return Google authorize URL.
+ * More reliable than only trusting the client helper when cookies/CSRF are involved.
+ */
+async function fetchGoogleAuthorizeUrl(
+  callbackURL: string,
+  errorCallbackURL: string,
+): Promise<string> {
+  const res = await fetch("/api/auth/sign-in/social", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      provider: "google",
+      callbackURL,
+      errorCallbackURL,
+    }),
+  });
+
+  const text = await res.text();
+  let body: { url?: string; redirect?: boolean; message?: string; error?: string } | null =
+    null;
+  try {
+    body = text ? (JSON.parse(text) as typeof body) : null;
+  } catch {
+    /* non-JSON */
+  }
+
+  if (!res.ok) {
+    const detail =
+      body?.message || body?.error || text.slice(0, 180) || `HTTP ${res.status}`;
+    throw new Error(`Google sign-in failed: ${detail}`);
+  }
+
+  if (body?.url) return body.url;
+
+  throw new Error(
+    "Google sign-in did not return a redirect URL. Check GOOGLE_CLIENT_ID/SECRET and redirect URI in Google Cloud.",
+  );
+}
+
 export async function signIn(
   providerId: string,
   opts: { callbackURL?: string; errorCallbackURL?: string } = {},
 ): Promise<void> {
   const callbackURL = opts.callbackURL ?? "/";
   const errorCallbackURL = opts.errorCallbackURL ?? "/";
-
-  // Production must never use the xAI/Grok broker — map legacy id to native Google.
-  if (
-    (providerId === "grok-google" || providerId === "google") &&
-    onLootersProduction()
-  ) {
-    providerId = "google";
-  }
+  providerId = resolveProviderId(providerId);
 
   const popup = inLivePreview() ? openSignInPopup(providerId) : null;
 
-  await runPreSignInSignOut({
-    livePreview: inLivePreview(),
-    hasBearer: Boolean(getBearerToken()),
-    requestSignOut: () => authClient.signOut(),
-    clearToken: () => setBearerToken(null),
-  });
+  // Best-effort clear of any prior session — never block first-time sign-in.
+  try {
+    await runPreSignInSignOut({
+      livePreview: inLivePreview(),
+      hasBearer: Boolean(getBearerToken()),
+      requestSignOut: () => authClient.signOut(),
+      clearToken: () => setBearerToken(null),
+    });
+  } catch {
+    setBearerToken(null);
+  }
 
   if (inLivePreview()) {
     if (!popup) throw new Error("Pop-up blocked — allow pop-ups for sign-in");
@@ -93,21 +146,35 @@ export async function signIn(
     if (typeof window !== "undefined") {
       const dest = new URL(callbackURL, window.location.origin);
       const here = window.location;
-      if (dest.origin !== here.origin || dest.pathname !== here.pathname || dest.search !== here.search) {
+      if (
+        dest.origin !== here.origin ||
+        dest.pathname !== here.pathname ||
+        dest.search !== here.search
+      ) {
         window.location.href = callbackURL;
       }
     }
     return;
   }
 
+  // Production / Vercel: always use native Google via direct endpoint.
   if (providerId === "google") {
-    const { data, error } = await authClient.signIn.social({
-      provider: "google",
-      callbackURL,
-      errorCallbackURL,
-    });
-    if (error) throw new Error(error.message ?? "Google sign-in failed");
-    if (data?.url) window.location.href = data.url;
+    try {
+      const { data, error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL,
+        errorCallbackURL,
+      });
+      if (!error && data?.url) {
+        window.location.assign(data.url);
+        return;
+      }
+    } catch {
+      /* fall through to direct fetch */
+    }
+
+    const url = await fetchGoogleAuthorizeUrl(callbackURL, errorCallbackURL);
+    window.location.assign(url);
     return;
   }
 
@@ -117,7 +184,7 @@ export async function signIn(
     errorCallbackURL,
   });
   if (error) throw new Error(error.message ?? "Sign-in failed");
-  if (data?.url) window.location.href = data.url;
+  if (data?.url) window.location.assign(data.url);
 }
 
 function openSignInPopup(providerId: string): Window | null {
