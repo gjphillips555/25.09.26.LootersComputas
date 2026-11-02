@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { authMiddleware } from "@/lib/auth/middleware";
 import { FLOOR_STOCK } from "@/lib/floor-stock";
 import { SOURCED_STOCK } from "@/lib/sourced-stock";
 import {
@@ -333,6 +334,7 @@ export const getCatalog = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const getProduct = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
   .validator((input: unknown) => {
     const id = String((input as { id?: unknown } | null)?.id ?? "");
     if (/^(sold|src)-\d+$/.test(id) || /^\d+$/.test(id)) return { id };
