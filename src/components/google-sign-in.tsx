@@ -37,7 +37,8 @@ export function GoogleSignIn({
     setAgreedTerms();
     setBusy(true);
     try {
-      await signIn("grok-google", { callbackURL });
+      // Native Better Auth Google (GOOGLE_CLIENT_ID/SECRET) — not the xAI broker.
+      await signIn("google", { callbackURL });
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Google sign-in failed";
