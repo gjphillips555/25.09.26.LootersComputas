@@ -37,16 +37,12 @@ export function GoogleSignIn({
     setAgreedTerms();
     setBusy(true);
     try {
-      // Native Better Auth Google (GOOGLE_CLIENT_ID/SECRET) — not the xAI broker.
       await signIn("google", { callbackURL });
+      // If we get here without redirect, surface a clear message.
+      toast.message("Redirecting to Google…");
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Google sign-in failed";
-      toast.error(msg, {
-        description:
-          "Google sign-in could not start. Please try again; if it continues, contact support.",
-      });
-    } finally {
+      const msg = err instanceof Error ? err.message : "Google sign-in failed";
+      toast.error(msg);
       setBusy(false);
     }
   }
