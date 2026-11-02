@@ -1,4 +1,4 @@
-const KEY = "looters-terms-agreed";
+const KEY = "looters-terms-agreed-2026-11-ai-v1";
 
 export function hasAgreedTerms(): boolean {
   if (typeof window === "undefined") return false;
