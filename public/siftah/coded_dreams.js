@@ -93,7 +93,7 @@
     }
     if (String(reply).indexOf(completionMarker) !== -1) {
       d.complete = true;
-      d.guide = String(reply).replace(completionMarker, "").trim();
+      d.guide = String(reply).replace(completionMarker, "").replace(/```[\\s\\S]*?```/g, "").trim();
       assemble(d);
     }
     save();
