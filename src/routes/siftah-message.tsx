@@ -49,6 +49,7 @@ function SiftahMessagePage() {
   const [pushBusy, setPushBusy] = useState(false);
   const seenMsgIdsRef = useRef<Set<string>>(new Set());
   const primedRef = useRef(false);
+  const autoSelectedPublicRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
@@ -98,8 +99,13 @@ function SiftahMessagePage() {
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || "Failed to load chats");
     setConvs(j.conversations || []);
-    if (!activeId && j.publicId) setActiveId(j.publicId);
-  }, [activeId]);
+    // Only auto-open the public room once on first load — never yank the user
+    // back out of the chat list when they intentionally go back (activeId = null).
+    if (!autoSelectedPublicRef.current && j.publicId) {
+      autoSelectedPublicRef.current = true;
+      setActiveId((current) => current ?? j.publicId);
+    }
+  }, []);
 
   const loadMessages = useCallback(async (id: string) => {
     const r = await fetch(`/api/siftah-message?action=messages&conversationId=${encodeURIComponent(id)}`, { cache: "no-store" });
@@ -161,6 +167,7 @@ function SiftahMessagePage() {
 
   async function startDirect(userId: string) {
     const j = await post({ action: "start_direct", userId });
+    autoSelectedPublicRef.current = true;
     setActiveId(j.conversationId); setPanel("chats");
     await loadInbox(); await loadMessages(j.conversationId);
   }
@@ -168,7 +175,9 @@ function SiftahMessagePage() {
   async function createGroup() {
     if (!groupPick.length) return;
     const j = await post({ action: "start_group", title: groupTitle || "Group", userIds: groupPick });
-    setGroupPick([]); setGroupTitle(""); setActiveId(j.conversationId); setPanel("chats");
+    setGroupPick([]); setGroupTitle("");
+    autoSelectedPublicRef.current = true;
+    setActiveId(j.conversationId); setPanel("chats");
     await loadInbox();
   }
 
@@ -246,7 +255,7 @@ function SiftahMessagePage() {
           {panel === "chats" && (
             <div className="flex-1 overflow-y-auto">
               {convs.map((c) => (
-                <button key={c.id} type="button" onClick={() => { setActiveId(c.id); setPanel("chats"); }}
+                <button key={c.id} type="button" onClick={() => { autoSelectedPublicRef.current = true; setActiveId(c.id); setPanel("chats"); }}
                   className={`flex w-full items-center gap-3 border-b border-border px-3 py-3 text-left hover:bg-secondary/50 ${activeId === c.id ? "bg-secondary/70" : ""}`}>
                   <Avatar url={c.peerAvatar} name={c.title} />
                   <span className="min-w-0 flex-1">
@@ -401,7 +410,7 @@ function SiftahMessagePage() {
 
         <section className={`${!activeId ? "hidden sm:flex" : "flex"} min-w-0 flex-1 flex-col`}>
           <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-            <button type="button" className="text-xs text-muted-foreground sm:hidden" onClick={() => setActiveId(null)}>Chats</button>
+            <button type="button" className="text-xs text-muted-foreground sm:hidden" onClick={() => { setActiveId(null); setPanel("chats"); }}>Chats</button>
             <h2 className="truncate text-sm font-bold">{active?.title || "Siftah Message"}</h2>
             <span className="ml-auto hidden items-center gap-1 text-[10px] text-muted-foreground sm:inline-flex"><Shield className="size-3" /> Shield on</span>
           </div>
