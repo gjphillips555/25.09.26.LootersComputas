@@ -243,21 +243,39 @@
     window.__codedDreamFetchPatch = true;
     var original = window.fetch;
     window.fetch = function (url, opts) {
-      var result = original.apply(this, arguments);
-      if (typeof url === "string" && url.indexOf("/api/siftah/chat") !== -1 && opts && opts.body) {
-        try {
+      opts = opts || {};
+      var isDexterRequest = false;
+      try {
+        if (typeof url === "string" && url.indexOf("/api/siftah/chat") !== -1 && opts.body) {
           var body = JSON.parse(opts.body);
           if (body.action === "chat" && body.persona === "dexter") {
+            isDexterRequest = true;
             var msgs = body.messages || [];
             lastUserPrompt = msgs.length ? String(msgs[msgs.length - 1].content || "") : "Coding project";
             if (msgs.length && msgs[msgs.length - 1].role === "user" && lastUserPrompt.indexOf("Continue the Coded Dream") === -1) {
               msgs[msgs.length - 1].content += "\\n\\nCoded Dream instructions: treat this as a named, ongoing software project. Put the exact filename in every code fence. If the complete program will not fit in this reply, provide a coherent useful part and wait for the user to press Continue. On each continuation, carry on from the existing files without losing earlier work. When every required file and feature is complete, provide the complete file set, a plain-English description, and simple numbered setup/assembly steps. End only the genuinely finished final reply with the exact marker " + completionMarker + ".";
             }
-            result.then(function (response) {
-              response.clone().json().then(function (data) { if (data && data.reply) { lastReply = data.reply; capture(data.reply); } }).catch(function () {});
-            }).catch(function () {});
+            opts = Object.assign({}, opts, { body: JSON.stringify(body) });
           }
-        } catch (e) {}
+        }
+      } catch (e) {}
+      var result = original.call(this, url, opts);
+      if (isDexterRequest) {
+        result.then(function (response) {
+          response.clone().json().then(function (data) {
+            if (data && data.reply) { lastReply = data.reply; capture(data.reply); }
+          }).catch(function () {});
+          if (typeof response.json === "function" && !response.__codedDreamJsonPatch) {
+            var originalJson = response.json.bind(response);
+            response.json = function () {
+              return originalJson().then(function (data) {
+                if (data && typeof data.reply === "string") data.reply = data.reply.replace(completionMarker, "").trim();
+                return data;
+              });
+            };
+            response.__codedDreamJsonPatch = true;
+          }
+        }).catch(function () {});
       }
       return result;
     };
