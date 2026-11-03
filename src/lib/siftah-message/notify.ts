@@ -1,5 +1,7 @@
 /** Privacy-safe Siftah Message alerts — no message body in notifications. */
 
+import { DEFAULT_VAPID_PUBLIC_KEY } from "@/lib/siftah-message/push-server";
+
 let audioCtx: AudioContext | null = null;
 
 function getCtx(): AudioContext | null {
@@ -90,5 +92,92 @@ export function showPrivateMessageNotification(newCount: number): void {
     window.setTimeout(() => n.close(), 6000);
   } catch {
     /* ignore */
+  }
+}
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+export function pushSupport(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window &&
+    notificationSupport()
+  );
+}
+
+export async function registerSiftahServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!pushSupport()) return null;
+  try {
+    return await navigator.serviceWorker.register("/sw-siftah-message.js", {
+      scope: "/",
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Subscribe to VAPID push and POST subscription to API. */
+export async function enablePushNotifications(): Promise<{ ok: boolean; error?: string }> {
+  if (!pushSupport()) return { ok: false, error: "Push not supported on this device/browser." };
+
+  const perm = await ensureNotifyPermission();
+  if (perm !== "granted") return { ok: false, error: "Notification permission not granted." };
+
+  const reg = await registerSiftahServiceWorker();
+  if (!reg) return { ok: false, error: "Could not register service worker." };
+
+  await navigator.serviceWorker.ready;
+
+  const publicKey =
+    (import.meta as { env?: { VITE_VAPID_PUBLIC_KEY?: string } }).env?.VITE_VAPID_PUBLIC_KEY ||
+    DEFAULT_VAPID_PUBLIC_KEY;
+
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+    });
+  }
+
+  const json = sub.toJSON();
+  const r = await fetch("/api/siftah-message", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "push_subscribe",
+      endpoint: json.endpoint,
+      keys: json.keys,
+    }),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) return { ok: false, error: (data as { error?: string }).error || "Subscribe failed" };
+  return { ok: true };
+}
+
+export async function disablePushNotifications(): Promise<void> {
+  if (!pushSupport()) return;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      await sub.unsubscribe();
+      await fetch("/api/siftah-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "push_unsubscribe", endpoint }),
+      });
+    }
+  } catch {
+    /* ok */
   }
 }
