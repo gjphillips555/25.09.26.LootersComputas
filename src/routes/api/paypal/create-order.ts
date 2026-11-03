@@ -14,6 +14,11 @@ export const Route = createFileRoute("/api/paypal/create-order")({
         const body = await request.json().catch(() => ({})) as { packageId?: string; discountCode?: string };
         const pack = body.packageId ? CREDIT_PACKAGES[body.packageId as keyof typeof CREDIT_PACKAGES] : undefined;
         if (!pack) return json({ error: "Choose a valid Credits package." }, 400);
+        const discountCode = String(body.discountCode || "").trim().toUpperCase();
+        const discountPercent = discountCode ? getSiftahDiscountPercent(discountCode) : 0;
+        if (discountCode && !discountPercent) return json({ error: "That discount code is not valid." }, 400);
+        const originalAmount = Number(pack.amount);
+        const amount = (Math.round(originalAmount * (1 - discountPercent / 100) * 100) / 100).toFixed(2);
 
         try {
           const token = await paypalAccessToken();
