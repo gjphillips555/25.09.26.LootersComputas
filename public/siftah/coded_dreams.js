@@ -179,6 +179,33 @@
     toast("Assembled " + paths.length + " file(s) into one code window.");
     render();
   }
+  function renderFinalOutput(d) {
+    var messages = document.getElementById("messages");
+    if (!messages || !d || !d.assembled) return;
+    var outputId = "cdFinalOutput-" + d.id;
+    var old = document.getElementById(outputId);
+    if (old) old.remove();
+    var wrap = document.createElement("div");
+    wrap.id = outputId;
+    wrap.className = "message assistant";
+    var av = document.createElement("div"); av.className = "avatar"; av.textContent = "♛";
+    var bw = document.createElement("div"); bw.className = "bubble-wrap";
+    var bubble = document.createElement("div"); bubble.className = "bubble";
+    var heading = document.createElement("strong"); heading.textContent = d.name + " — finished code";
+    var note = document.createElement("p"); note.textContent = "All captured files are combined below. Each section starts with its filename.";
+    var actions = document.createElement("div"); actions.className = "cd-message-actions";
+    var copy = document.createElement("button"); copy.type = "button"; copy.textContent = "Copy complete code";
+    copy.onclick = function () { navigator.clipboard.writeText(d.assembled).then(function () { toast("Complete code copied"); }).catch(function () { toast("Copy failed"); }); };
+    var download = document.createElement("button"); download.type = "button"; download.textContent = "Download combined code";
+    download.onclick = function () { var blob = new Blob([d.assembled], {type:"text/plain;charset=utf-8"}); var url = URL.createObjectURL(blob); var a = document.createElement("a"); a.href=url; a.download=d.name.toLowerCase().replace(/[^a-z0-9]+/g,"-") + "-complete-code.txt"; a.click(); setTimeout(function(){URL.revokeObjectURL(url);},1500); };
+    actions.append(copy, download);
+    var pre = document.createElement("pre"); pre.textContent = d.assembled;
+    pre.style.cssText = "max-height:65vh;overflow:auto;white-space:pre;padding:12px;background:#090b0f;border:1px solid var(--border);border-radius:9px;font:12px/1.55 ui-monospace,monospace";
+    var guide = document.createElement("div"); guide.className = "cd-guide"; guide.textContent = "How to assemble and run it\\n" + (d.guide || "1. Create a project folder.\\n2. Create each file using its filename heading.\\n3. Paste the matching code into each file and save.\\n4. Install dependencies and run the project using the instructions above.");
+    bubble.append(heading, note, actions, pre, guide);
+    bw.appendChild(bubble); wrap.append(av, bw); messages.appendChild(wrap);
+    var chat = document.getElementById("chat"); if (chat) chat.scrollTop = chat.scrollHeight;
+  }
   function sendPrompt(prompt) {
     var input = document.getElementById("input"), send = document.getElementById("send");
     if (!input || !send) return;
