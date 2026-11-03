@@ -146,10 +146,13 @@
       list.innerHTML = "";
       if (!store.dreams.length) list.innerHTML = '<div class="cd-empty">Your coding ideas will appear here. Choose Dexter and describe your first idea to start a Coded Dream.</div>';
       store.dreams.forEach(function (d) {
+        var row = document.createElement("div"); row.className = "cd-option-row";
         var b = document.createElement("button"); b.type = "button"; b.className = "cd-option";
         b.innerHTML = '<span>' + esc(d.name) + '</span><small>' + esc(d.description) + '</small>';
         b.onclick = function () { activeId = d.id; dropdownOpen = false; list.classList.remove("open"); save(); };
-        list.appendChild(b);
+        var x = document.createElement("button"); x.type = "button"; x.className = "cd-option-x"; x.textContent = "X"; x.title = "Delete " + d.name;
+        x.onclick = function (event) { event.stopPropagation(); store.dreams = store.dreams.filter(function (item) { return item.id !== d.id; }); if (activeId === d.id) activeId = store.dreams[0] ? store.dreams[0].id : ""; save(); };
+        row.append(b, x); list.appendChild(row);
       });
     }
     var host = document.getElementById("cdCurrent"); if (!host) return;
