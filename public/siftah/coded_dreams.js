@@ -176,6 +176,7 @@
     d.assembled = paths.map(function (path) { return "/* ==================== " + path + " ==================== */\n" + d.files[path]; }).join("\n\n");
     if (!d.guide) d.guide = "1. Create a new folder for this project.\n2. Create each file using the filename shown above its section.\n3. Paste that section into the matching file and save it.\n4. Install any dependencies listed in package.json.\n5. Follow the run instructions supplied by Dexter.\n6. Start the app and test each main feature.";
     d.updated = Date.now();
+    renderFinalOutput(d);
     toast("Assembled " + paths.length + " file(s) into one code window.");
     render();
   }
@@ -249,6 +250,9 @@
           if (body.action === "chat" && body.persona === "dexter") {
             var msgs = body.messages || [];
             lastUserPrompt = msgs.length ? String(msgs[msgs.length - 1].content || "") : "Coding project";
+            if (msgs.length && msgs[msgs.length - 1].role === "user" && lastUserPrompt.indexOf("Continue the Coded Dream") === -1) {
+              msgs[msgs.length - 1].content += "\\n\\nCoded Dream instructions: treat this as a named, ongoing software project. Put the exact filename in every code fence. If the complete program will not fit in this reply, provide a coherent useful part and wait for the user to press Continue. On each continuation, carry on from the existing files without losing earlier work. When every required file and feature is complete, provide the complete file set, a plain-English description, and simple numbered setup/assembly steps. End only the genuinely finished final reply with the exact marker " + completionMarker + ".";
+            }
             result.then(function (response) {
               response.clone().json().then(function (data) { if (data && data.reply) { lastReply = data.reply; capture(data.reply); } }).catch(function () {});
             }).catch(function () {});
