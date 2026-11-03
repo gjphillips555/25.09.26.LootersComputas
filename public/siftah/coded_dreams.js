@@ -179,7 +179,7 @@
     d.assembled = paths.map(function (path) { return "/* ==================== " + path + " ==================== */\n" + d.files[path]; }).join("\n\n");
     if (!d.guide) d.guide = "1. Create a new folder for this project.\n2. Create each file using the filename shown above its section.\n3. Paste that section into the matching file and save it.\n4. Install any dependencies listed in package.json.\n5. Follow the run instructions supplied by Dexter.\n6. Start the app and test each main feature.";
     d.updated = Date.now();
-    renderFinalOutput(d);
+    setTimeout(function () { renderFinalOutput(d); }, 500);
     toast("Assembled " + paths.length + " file(s) into one code window.");
     render();
   }
