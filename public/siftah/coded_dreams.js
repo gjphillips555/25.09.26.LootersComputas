@@ -168,7 +168,7 @@
       (d.assembled ? '<div class="cd-code-window"><div class="cd-head"><strong>Finished code</strong><button type="button" id="cdCopy">Copy all</button></div><pre>' + esc(d.assembled) + '</pre></div>' : '') +
       (d.guide ? '<div class="cd-guide"><strong>How to use it</strong>\n' + esc(d.guide) + '</div>' : '');
     document.getElementById("cdRename").onclick = function () { var n = prompt("Name this Coded Dream:", d.name); if (n && n.trim()) { d.name = n.trim().slice(0, 60); save(); } };
-    document.getElementById("cdDelete").onclick = function () { if (!confirm('Delete "' + d.name + '" and its saved code?')) return; store.dreams = store.dreams.filter(function (x) { return x.id !== d.id; }); activeId = store.dreams[0] ? store.dreams[0].id : ""; save(); };
+    document.getElementById("cdDelete").onclick = function () { store.dreams = store.dreams.filter(function (x) { return x.id !== d.id; }); activeId = store.dreams[0] ? store.dreams[0].id : ""; save(); };
     document.getElementById("cdContinue").onclick = continueDream;
     document.getElementById("cdAssemble").onclick = function () { assemble(d); save(); };
     var cp = document.getElementById("cdCopy"); if (cp) cp.onclick = function () { navigator.clipboard.writeText(d.assembled || "").then(function () { toast("Finished code copied"); }).catch(function () { toast("Copy failed"); }); };
