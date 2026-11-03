@@ -130,11 +130,11 @@
     var p = document.createElement("aside");
     p.id = "codedDreamPanel";
     p.innerHTML =
-      '<div class="cd-head"><strong>💭 Coded Dreams</strong><button type="button" id="cdClose" aria-label="Close">✕</button></div>' +
+      '<div class="cd-head"><strong>💭 Coded Dreams</strong><div><button type="button" id="cdNew">＋ New</button> <button type="button" id="cdClose" aria-label="Close">✕</button></div></div>' +
       '<div class="cd-select-wrap"><button type="button" class="cd-select-btn" id="cdSelect">☰ Choose a Coded Dream</button><div class="cd-select-list" id="cdSelectList"></div></div>' +
       '<div class="cd-current" id="cdCurrent"></div>';
     document.querySelector(".main-row").appendChild(p);
-    document.getElementById("cdClose").onclick = function () { panelOpen = false; p.classList.remove("open"); };
+    document.getElementById("cdClose").onclick = function () { panelOpen = false; p.classList.remove("open"); };\n    document.getElementById("cdNew").onclick = function () { activeId = ""; save(); toast("Send your next idea to start a new Coded Dream."); };
     document.getElementById("cdSelect").onclick = function () { dropdownOpen = !dropdownOpen; document.getElementById("cdSelectList").classList.toggle("open", dropdownOpen); };
     render();
   }
