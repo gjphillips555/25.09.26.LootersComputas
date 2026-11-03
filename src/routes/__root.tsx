@@ -13,16 +13,22 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: `${APP_NAME}` },
+      { title: "Looters Computas" },
+      { name: "application-name", content: "Looters Computas" },
+      { property: "og:site_name", content: "Looters Computas" },
+      { property: "og:title", content: "Looters Computas" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Looters Computas" },
       {
         name: "description",
         content:
-          "Looters Computas: NZ marketplace to buy, sell and swap computers, laptops, gaming gear, phones, drones, e-bikes and more. Direct PayPal deals between looters.",
+          "Looters Computas is a New Zealand marketplace to buy, sell and swap computers, laptops, gaming gear, phones, drones, e-bikes and more. Direct PayPal deals between looters.",
       },
       { name: "theme-color", content: "#f2f2f0" },
       { name: "color-scheme", content: "light dark" },
     ],
     links: [
+      { rel: "canonical", href: "https://www.looterscomputas.online/" },
       { rel: "icon", type: "image/svg+xml", href: ARTWORK.favicon },
       { rel: "icon", type: "image/png", sizes: "32x32", href: ARTWORK.faviconPng },
       { rel: "icon", type: "image/png", sizes: "16x16", href: ARTWORK.favicon16 },
@@ -48,6 +54,18 @@ function RootDocument() {
     <html lang="en" className="light" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Looters Computas",
+              alternateName: "Looters Computas",
+              url: "https://www.looterscomputas.online/",
+            }),
+          }}
+        />
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
       </head>
       <body>
