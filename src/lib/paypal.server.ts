@@ -6,6 +6,21 @@ export const CREDIT_PACKAGES = {
   premium: { id: "premium", label: "Premium", credits: 200, amount: "19.99" },
 } as const;
 
+export function getSiftahDiscountPercent(code: string) {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return 0;
+  if (normalized === "SIFTAH10") return 10;
+  const configured = (process.env.SIFTAH_DISCOUNT_CODES || "").split(",");
+  for (const entry of configured) {
+    const [rawCode, rawPercent] = entry.split(":");
+    const percent = Number(rawPercent);
+    if (rawCode?.trim().toUpperCase() === normalized && Number.isFinite(percent) && percent > 0 && percent <= 50) {
+      return Math.round(percent);
+    }
+  }
+  return 0;
+}
+
 export function paypalBaseUrl() {
   return (process.env.PAYPAL_ENV || "live").toLowerCase() === "sandbox"
     ? "https://api-m.sandbox.paypal.com"
