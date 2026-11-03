@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireUserId } from "@/lib/auth/verify.server";
 import { getSql } from "@/lib/db";
-import { CREDIT_PACKAGES, paypalAccessToken, paypalRequest } from "@/lib/paypal.server";
+import { CREDIT_PACKAGES, getSiftahDiscountPercent, paypalAccessToken, paypalRequest } from "@/lib/paypal.server";
 
 export const Route = createFileRoute("/api/paypal/create-order")({
   server: {
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/paypal/create-order")({
         try { userId = await requireUserId(); }
         catch { return json({ error: "Please sign in before buying Credits." }, 401); }
 
-        const body = await request.json().catch(() => ({})) as { packageId?: string };
+        const body = await request.json().catch(() => ({})) as { packageId?: string; discountCode?: string };
         const pack = body.packageId ? CREDIT_PACKAGES[body.packageId as keyof typeof CREDIT_PACKAGES] : undefined;
         if (!pack) return json({ error: "Choose a valid Credits package." }, 400);
 
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/paypal/create-order")({
               reference_id: "siftah-credits",
               custom_id: userId,
               description: `${pack.credits} Siftah Credits`,
-              amount: { currency_code: "NZD", value: pack.amount },
+              amount: { currency_code: "NZD", value: amount },
             }],
             application_context: {
               brand_name: "Looters Computas",
@@ -40,9 +40,9 @@ export const Route = createFileRoute("/api/paypal/create-order")({
           await sql.query(
             `insert into siftah_paypal_orders (order_id, user_id, package_id, credits, amount_nzd, currency)
              values ($1, $2, $3, $4, $5, 'NZD') on conflict (order_id) do nothing`,
-            [order.id, userId, pack.id, pack.credits, pack.amount],
+            [order.id, userId, pack.id, pack.credits, amount],
           );
-          return json({ approvalUrl: approval.href, orderId: order.id });
+          return json({ approvalUrl: approval.href, orderId: order.id, credits: pack.credits, originalAmount: pack.amount, amount, discountPercent, discountCode: discountPercent ? discountCode : null });
         } catch (error) {
           return json({ error: error instanceof Error ? error.message : "Could not start PayPal checkout." }, 502);
         }
