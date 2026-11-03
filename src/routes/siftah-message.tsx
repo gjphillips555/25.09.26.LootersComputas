@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ImagePlus, Loader2, MessageCircle, Search, Send, Settings, Shield, Users } from "lucide-react";
+import { ImagePlus, Loader2, Menu, MessageCircle, Search, Send, Settings, Shield, Users, X } from "lucide-react";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
   currentNotifyPermission,
@@ -47,6 +47,7 @@ function SiftahMessagePage() {
   const [notifyPerm, setNotifyPerm] = useState<string>("default");
   const [pushStatus, setPushStatus] = useState("");
   const [pushBusy, setPushBusy] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const seenMsgIdsRef = useRef<Set<string>>(new Set());
   const primedRef = useRef(false);
   const autoSelectedPublicRef = useRef(false);
@@ -99,8 +100,6 @@ function SiftahMessagePage() {
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || "Failed to load chats");
     setConvs(j.conversations || []);
-    // Only auto-open the public room once on first load — never yank the user
-    // back out of the chat list when they intentionally go back (activeId = null).
     if (!autoSelectedPublicRef.current && j.publicId) {
       autoSelectedPublicRef.current = true;
       setActiveId((current) => current ?? j.publicId);
@@ -147,6 +146,14 @@ function SiftahMessagePage() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length, activeId]);
 
+  // Keep the user in the chat thread when a conversation is open (prevents bounce to group/search).
+  useEffect(() => {
+    if (activeId) {
+      setPanel("chats");
+      setMenuOpen(false);
+    }
+  }, [activeId]);
+
   async function searchUsers(q: string) {
     setQuery(q);
     if (q.trim().length < 1) { setResults([]); return; }
@@ -168,7 +175,9 @@ function SiftahMessagePage() {
   async function startDirect(userId: string) {
     const j = await post({ action: "start_direct", userId });
     autoSelectedPublicRef.current = true;
-    setActiveId(j.conversationId); setPanel("chats");
+    setMenuOpen(false);
+    setPanel("chats");
+    setActiveId(j.conversationId);
     await loadInbox(); await loadMessages(j.conversationId);
   }
 
@@ -177,7 +186,9 @@ function SiftahMessagePage() {
     const j = await post({ action: "start_group", title: groupTitle || "Group", userIds: groupPick });
     setGroupPick([]); setGroupTitle("");
     autoSelectedPublicRef.current = true;
-    setActiveId(j.conversationId); setPanel("chats");
+    setMenuOpen(false);
+    setPanel("chats");
+    setActiveId(j.conversationId);
     await loadInbox();
   }
 
@@ -237,15 +248,35 @@ function SiftahMessagePage() {
 
   return (
     <main className="mx-auto flex h-[calc(100dvh-4rem)] max-w-6xl flex-col overflow-hidden border-x border-border bg-background sm:h-[calc(100dvh-5rem)]">
-      <header className="flex items-center gap-2 border-b border-border px-3 py-2.5">
+      <header className="relative flex items-center gap-2 border-b border-border px-3 py-2.5">
         <MessageCircle className="size-5 text-red-500" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-sm font-black tracking-wide">Siftah Message</h1>
           <p className="truncate text-[11px] text-muted-foreground">6h auto-delete · screen shield · {me?.username ? `@${me.username}` : "set a username"}</p>
         </div>
-        <button type="button" onClick={() => setPanel("search")} className="rounded-lg border border-border p-2" aria-label="Search"><Search className="size-4" /></button>
-        <button type="button" onClick={() => setPanel("group")} className="rounded-lg border border-border p-2" aria-label="Group"><Users className="size-4" /></button>
-        <button type="button" onClick={() => setPanel("settings")} className="rounded-lg border border-border p-2" aria-label="Settings"><Settings className="size-4" /></button>
+        <button type="button" onClick={() => setMenuOpen((v) => !v)} className="rounded-lg border border-border p-2" aria-label="Menu" aria-expanded={menuOpen}>
+          {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+        </button>
+        {menuOpen && (
+          <div className="absolute right-2 top-full z-30 mt-1 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+            <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
+              onClick={() => { setPanel("chats"); setActiveId(null); setMenuOpen(false); }}>
+              <MessageCircle className="size-4 text-red-500" /> All chats
+            </button>
+            <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
+              onClick={() => { setPanel("search"); setMenuOpen(false); }}>
+              <Search className="size-4" /> Find members
+            </button>
+            <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
+              onClick={() => { setPanel("group"); setMenuOpen(false); }}>
+              <Users className="size-4" /> New group
+            </button>
+            <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
+              onClick={() => { setPanel("settings"); setMenuOpen(false); }}>
+              <Settings className="size-4" /> Settings
+            </button>
+          </div>
+        )}
       </header>
 
       {error && <p className="border-b border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-500" role="alert">{error}</p>}
@@ -255,7 +286,8 @@ function SiftahMessagePage() {
           {panel === "chats" && (
             <div className="flex-1 overflow-y-auto">
               {convs.map((c) => (
-                <button key={c.id} type="button" onClick={() => { autoSelectedPublicRef.current = true; setActiveId(c.id); setPanel("chats"); }}
+                <button key={c.id} type="button"
+                  onClick={() => { autoSelectedPublicRef.current = true; setMenuOpen(false); setPanel("chats"); setActiveId(c.id); }}
                   className={`flex w-full items-center gap-3 border-b border-border px-3 py-3 text-left hover:bg-secondary/50 ${activeId === c.id ? "bg-secondary/70" : ""}`}>
                   <Avatar url={c.peerAvatar} name={c.title} />
                   <span className="min-w-0 flex-1">
@@ -336,72 +368,34 @@ function SiftahMessagePage() {
                   <option value={168}>7 days</option>
                 </select>
               </label>
-
               <div className="rounded-xl border border-border bg-card p-3">
                 <p className="text-xs font-semibold">Notifications</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  Alerts only say “New message received” (and a count). Message text is never shown.
-                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Alerts only say “New message received” (and a count). Message text is never shown.</p>
                 <label className="mt-2 flex items-center gap-2 text-xs font-medium">
-                  <input
-                    type="checkbox"
-                    checked={notifyEnabled}
-                    onChange={(e) => {
-                      const on = e.target.checked;
-                      setNotifyEnabled(on);
-                      try { localStorage.setItem("sm-notify", on ? "1" : "0"); } catch { /* ok */ }
-                      if (on) {
-                        void ensureNotifyPermission().then((p) => setNotifyPerm(p));
-                        playPffftSound();
-                      }
-                    }}
-                  />
+                  <input type="checkbox" checked={notifyEnabled} onChange={(e) => {
+                    const on = e.target.checked; setNotifyEnabled(on);
+                    try { localStorage.setItem("sm-notify", on ? "1" : "0"); } catch { /* ok */ }
+                    if (on) { void ensureNotifyPermission().then((p) => setNotifyPerm(p)); playPffftSound(); }
+                  }} />
                   Enable pffft alerts
                 </label>
                 {notifyEnabled && notifyPerm !== "granted" && notifyPerm !== "unsupported" && (
                   <button type="button" className="mt-2 rounded-lg border border-border px-3 py-1.5 text-[11px] font-semibold"
-                    onClick={() => void ensureNotifyPermission().then((p) => setNotifyPerm(p))}>
-                    Allow system notifications
-                  </button>
-                )}
-                {notifyPerm === "denied" && (
-                  <p className="mt-1 text-[10px] text-muted-foreground">System notifications blocked — sound still works while this tab is open.</p>
+                    onClick={() => void ensureNotifyPermission().then((p) => setNotifyPerm(p))}>Allow system notifications</button>
                 )}
                 {pushSupport() && (
-                  <button
-                    type="button"
-                    disabled={pushBusy}
-                    className="mt-3 w-full rounded-lg bg-red-600 px-3 py-2 text-[11px] font-bold text-white disabled:opacity-50"
+                  <button type="button" disabled={pushBusy} className="mt-3 w-full rounded-lg bg-red-600 px-3 py-2 text-[11px] font-bold text-white disabled:opacity-50"
                     onClick={() => {
-                      setPushBusy(true);
-                      setPushStatus("");
-                      void enablePushNotifications()
-                        .then((r) => {
-                          setPushStatus(r.ok ? "Background push enabled on this device." : (r.error || "Failed"));
-                          if (r.ok) playPffftSound();
-                          void ensureNotifyPermission().then((p) => setNotifyPerm(p));
-                        })
-                        .finally(() => setPushBusy(false));
-                    }}
-                  >
-                    {pushBusy ? "Enabling…" : "Enable background push (VAPID)"}
-                  </button>
+                      setPushBusy(true); setPushStatus("");
+                      void enablePushNotifications().then((r) => {
+                        setPushStatus(r.ok ? "Background push enabled on this device." : (r.error || "Failed"));
+                        if (r.ok) playPffftSound();
+                        void ensureNotifyPermission().then((p) => setNotifyPerm(p));
+                      }).finally(() => setPushBusy(false));
+                    }}>{pushBusy ? "Enabling…" : "Enable background push (VAPID)"}</button>
                 )}
                 {pushStatus && <p className="mt-1 text-[10px] text-muted-foreground">{pushStatus}</p>}
-                <p className="mt-2 text-[10px] text-muted-foreground">
-                  Background push can alert you when the tab is closed (where the OS allows it). Never includes message text.
-                </p>
               </div>
-
-              <div className="rounded-xl border border-border bg-secondary/40 p-3">
-                <div className="mb-2 flex items-center gap-2 text-sm font-bold"><Shield className="size-4 text-red-500" />For the most secure use</div>
-                <ol className="list-decimal space-y-1.5 pl-4 text-[11px] leading-relaxed text-muted-foreground">
-                  <li>Turn off notification previews on the lock screen if you want zero text exposure.</li>
-                  <li>Siftah alerts never include message content — only “New message received”.</li>
-                  <li>Delete messages when done, or wait for 6-hour auto-delete.</li>
-                </ol>
-              </div>
-
               <button type="button" disabled={busy} onClick={() => void saveSettings().catch((e) => setError(e.message))} className="rounded-xl bg-red-600 py-2.5 text-sm font-bold text-white disabled:opacity-50">Save settings</button>
               <Link to="/account" className="text-center text-xs text-muted-foreground underline">Marketplace account / PayPal</Link>
             </div>
