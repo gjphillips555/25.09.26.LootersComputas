@@ -2,18 +2,13 @@
  * Server-side VAPID push for Siftah Message.
  * Payload must never include message text — only title + count-style body.
  *
- * Set on Vercel:
+ * Set on Vercel (recommended):
  *   VAPID_PUBLIC_KEY
  *   VAPID_PRIVATE_KEY
  *   VAPID_SUBJECT=mailto:gjphillips555@gmail.com
  */
+import { DEFAULT_VAPID_PUBLIC_KEY } from "@/lib/siftah-message/vapid-public";
 
-// Default public key (pair generated for this project). Override with VAPID_PUBLIC_KEY.
-export const DEFAULT_VAPID_PUBLIC_KEY =
-  "BC-OaK00i2XZzXJzc9fBORQG70pm-0CnF3YK62BzxHlyTGQdIsMVtIBq5kWXpSrhTZUfZBWtrJZ_sHVmOgHzx74";
-
-// Matching private key — only used if VAPID_PRIVATE_KEY env is unset (dev fallback).
-// Production MUST set VAPID_PRIVATE_KEY on Vercel.
 const DEFAULT_VAPID_PRIVATE_KEY = "ykJthF7Qa1bh8TP4h3XeJF7QJtuFEkde2NnTjBOgMto";
 
 export function getVapidPublicKey(): string {
@@ -27,12 +22,6 @@ function getVapidConfig(): { publicKey: string; privateKey: string; subject: str
   if (!publicKey || !privateKey) return null;
   return { publicKey, privateKey, subject };
 }
-
-export type PushSubRow = {
-  endpoint: string;
-  p256dh: string;
-  auth: string;
-};
 
 export async function notifyUsersPrivate(
   sql: { query: (q: string, params?: unknown[]) => Promise<Record<string, unknown>[]> },
