@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getSql } from "@/lib/db";
 import { decryptBody, encryptBody, newId } from "@/lib/siftah-message/crypto";
+import { notifyUsersPrivate } from "@/lib/siftah-message/push-server";
 
 const PUBLIC_ID = "siftah-public";
 const MAX_TEXT = 4000;
@@ -35,6 +36,14 @@ async function ensureSchema(sql: Awaited<ReturnType<typeof getSql>>) {
     sender_id text not null, body_enc text not null, msg_type text not null default 'text',
     media_url text, shout_color text, expires_at timestamptz, created_at timestamptz not null default now())`);
   await sql.query(`insert into sm_conversations (id, kind, title) values ($1, 'public', 'Siftah Open Chat') on conflict (id) do nothing`, [PUBLIC_ID]);
+  await sql.query(`create table if not exists sm_push_subs (
+    endpoint text primary key,
+    user_id text not null,
+    p256dh text not null,
+    auth text not null,
+    created_at timestamptz not null default now()
+  )`);
+  await sql.query(`create index if not exists sm_push_subs_user_idx on sm_push_subs(user_id)`);
   await sql.query(`delete from sm_messages where expires_at is not null and expires_at < now()`);
 }
 
@@ -259,6 +268,24 @@ export const Route = createFileRoute("/api/siftah-message")({
              values ($1,$2,$3,$4,$5,$6,$7, case when $8::int > 0 then now() + ($8 || ' hours')::interval else null end)`,
             [id, convId, user.id, enc, msgType, mediaUrl, shoutColor, ttlHours]);
           await sql.query(`update sm_conversations set updated_at = now() where id = $1`, [convId]);
+          try {
+            const members = await sql.query(
+              `select user_id from sm_members where conversation_id = $1 and user_id <> $2`,
+              [convId, user.id],
+            );
+            const ids = members.map((m) => String(m.user_id));
+            if (convId === PUBLIC_ID) {
+              const subs = await sql.query(
+                `select distinct user_id from sm_push_subs where user_id <> $1 limit 50`,
+                [user.id],
+              );
+              for (const s of subs) {
+                const sid = String(s.user_id);
+                if (!ids.includes(sid)) ids.push(sid);
+              }
+            }
+            void notifyUsersPrivate(sql, ids, 1);
+          } catch { /* non-fatal */ }
           return json({ success: true, id });
         }
 
@@ -271,6 +298,29 @@ export const Route = createFileRoute("/api/siftah-message")({
           if (msg.sender_id !== user.id) return json({ error: "You can only delete your own messages." }, 403);
           if (!(await isMember(sql, String(msg.conversation_id), user.id))) return json({ error: "Not a member." }, 403);
           await sql.query(`delete from sm_messages where id = $1`, [messageId]);
+          return json({ success: true });
+        }
+
+        if (body.action === "push_subscribe") {
+          const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
+          const keys = body.keys && typeof body.keys === "object" ? (body.keys as Record<string, unknown>) : {};
+          const p256dh = typeof keys.p256dh === "string" ? keys.p256dh : "";
+          const auth = typeof keys.auth === "string" ? keys.auth : "";
+          if (!endpoint || !p256dh || !auth) return json({ error: "Invalid subscription." }, 400);
+          await sql.query(
+            `insert into sm_push_subs (endpoint, user_id, p256dh, auth)
+             values ($1,$2,$3,$4)
+             on conflict (endpoint) do update set user_id = $2, p256dh = $3, auth = $4`,
+            [endpoint, user.id, p256dh, auth],
+          );
+          return json({ success: true });
+        }
+
+        if (body.action === "push_unsubscribe") {
+          const endpoint = typeof body.endpoint === "string" ? body.endpoint : "";
+          if (endpoint) {
+            await sql.query(`delete from sm_push_subs where endpoint = $1 and user_id = $2`, [endpoint, user.id]);
+          }
           return json({ success: true });
         }
 
