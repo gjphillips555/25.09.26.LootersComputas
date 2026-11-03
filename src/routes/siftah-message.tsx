@@ -4,8 +4,10 @@ import { ImagePlus, Loader2, MessageCircle, Search, Send, Settings, Shield, User
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
   currentNotifyPermission,
+  enablePushNotifications,
   ensureNotifyPermission,
   playPffftSound,
+  pushSupport,
   showPrivateMessageNotification,
 } from "@/lib/siftah-message/notify";
 
@@ -43,6 +45,8 @@ function SiftahMessagePage() {
   const [screenShield, setScreenShield] = useState(false);
   const [notifyEnabled, setNotifyEnabled] = useState(true);
   const [notifyPerm, setNotifyPerm] = useState<string>("default");
+  const [pushStatus, setPushStatus] = useState("");
+  const [pushBusy, setPushBusy] = useState(false);
   const seenMsgIdsRef = useRef<Set<string>>(new Set());
   const primedRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -109,9 +113,7 @@ function SiftahMessagePage() {
       }
       if (fresh > 0) {
         playPffftSound();
-        if (document.hidden || !document.hasFocus()) {
-          showPrivateMessageNotification(fresh);
-        }
+        if (document.hidden || !document.hasFocus()) showPrivateMessageNotification(fresh);
       }
     }
     for (const m of list) seenMsgIdsRef.current.add(m.id);
@@ -329,7 +331,7 @@ function SiftahMessagePage() {
               <div className="rounded-xl border border-border bg-card p-3">
                 <p className="text-xs font-semibold">Notifications</p>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Alerts only say “New message received” (and a count). Message text is never shown in the notification.
+                  Alerts only say “New message received” (and a count). Message text is never shown.
                 </p>
                 <label className="mt-2 flex items-center gap-2 text-xs font-medium">
                   <input
@@ -356,15 +358,38 @@ function SiftahMessagePage() {
                 {notifyPerm === "denied" && (
                   <p className="mt-1 text-[10px] text-muted-foreground">System notifications blocked — sound still works while this tab is open.</p>
                 )}
+                {pushSupport() && (
+                  <button
+                    type="button"
+                    disabled={pushBusy}
+                    className="mt-3 w-full rounded-lg bg-red-600 px-3 py-2 text-[11px] font-bold text-white disabled:opacity-50"
+                    onClick={() => {
+                      setPushBusy(true);
+                      setPushStatus("");
+                      void enablePushNotifications()
+                        .then((r) => {
+                          setPushStatus(r.ok ? "Background push enabled on this device." : (r.error || "Failed"));
+                          if (r.ok) playPffftSound();
+                          void ensureNotifyPermission().then((p) => setNotifyPerm(p));
+                        })
+                        .finally(() => setPushBusy(false));
+                    }}
+                  >
+                    {pushBusy ? "Enabling…" : "Enable background push (VAPID)"}
+                  </button>
+                )}
+                {pushStatus && <p className="mt-1 text-[10px] text-muted-foreground">{pushStatus}</p>}
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  Background push can alert you when the tab is closed (where the OS allows it). Never includes message text.
+                </p>
               </div>
 
               <div className="rounded-xl border border-border bg-secondary/40 p-3">
-                <div className="mb-2 flex items-center gap-2 text-sm font-bold"><Shield className="size-4 text-red-500" />For the most secure use of Siftah Message</div>
+                <div className="mb-2 flex items-center gap-2 text-sm font-bold"><Shield className="size-4 text-red-500" />For the most secure use</div>
                 <ol className="list-decimal space-y-1.5 pl-4 text-[11px] leading-relaxed text-muted-foreground">
-                  <li><strong className="text-foreground">Turn off notification previews</strong> so message text never appears on the lock screen.</li>
-                  <li><strong className="text-foreground">Do not screenshot</strong> and ask the other person not to.</li>
-                  <li><strong className="text-foreground">Delete messages when done</strong>, or wait for auto-delete (default 6 hours).</li>
-                  <li>Siftah alerts never include message text — only “New message received” and a count.</li>
+                  <li>Turn off notification previews on the lock screen if you want zero text exposure.</li>
+                  <li>Siftah alerts never include message content — only “New message received”.</li>
+                  <li>Delete messages when done, or wait for 6-hour auto-delete.</li>
                 </ol>
               </div>
 
@@ -385,8 +410,7 @@ function SiftahMessagePage() {
             {screenShield && (
               <div className="absolute inset-0 z-20 flex items-center justify-center bg-background" aria-hidden="true">
                 <div className="max-w-[14rem] text-center text-xs text-muted-foreground">
-                  <Shield className="mx-auto mb-2 size-6 text-red-500" />
-                  Screen shield active — return to this tab to view messages
+                  <Shield className="mx-auto mb-2 size-6 text-red-500" />Screen shield active
                 </div>
               </div>
             )}
@@ -424,7 +448,7 @@ function SiftahMessagePage() {
                 <button type="button" onClick={() => setShowEmoji((v) => !v)} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border text-lg">☺</button>
                 <button type="button" onClick={() => fileRef.current?.click()} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border" aria-label="Attach"><ImagePlus className="size-4" /></button>
                 <input ref={fileRef} type="file" accept="image/*,.gif" className="hidden" onChange={(e) => { void onPickMedia(e.target.files?.[0] || null).catch((err) => setError(err.message)); e.target.value = ""; }} />
-                <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendText().catch((err) => setError(err.message)); } }} rows={1} placeholder="Message… (auto-deletes from our servers)" className="max-h-28 min-h-10 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm" />
+                <textarea value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void sendText().catch((err) => setError(err.message)); } }} rows={1} placeholder="Message…" className="max-h-28 min-h-10 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm" />
                 <button type="button" disabled={busy || !text.trim()} onClick={() => void sendText().catch((e) => setError(e.message))} className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white disabled:opacity-40" aria-label="Send">{busy ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}</button>
               </div>
             </div>
