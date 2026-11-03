@@ -134,7 +134,8 @@
       '<div class="cd-select-wrap"><button type="button" class="cd-select-btn" id="cdSelect">☰ Choose a Coded Dream</button><div class="cd-select-list" id="cdSelectList"></div></div>' +
       '<div class="cd-current" id="cdCurrent"></div>';
     document.querySelector(".main-row").appendChild(p);
-    document.getElementById("cdClose").onclick = function () { panelOpen = false; p.classList.remove("open"); };\n    document.getElementById("cdNew").onclick = function () { activeId = ""; save(); toast("Send your next idea to start a new Coded Dream."); };
+    document.getElementById("cdClose").onclick = function () { panelOpen = false; p.classList.remove("open"); };
+    document.getElementById("cdNew").onclick = function () { activeId = ""; save(); toast("Send your next idea to start a new Coded Dream."); };
     document.getElementById("cdSelect").onclick = function () { dropdownOpen = !dropdownOpen; document.getElementById("cdSelectList").classList.toggle("open", dropdownOpen); };
     render();
   }
@@ -236,7 +237,8 @@
   }
   function capture(reply) {
     if (!reply || !isDexter()) return;
-    var d = ensureDream(lastUserPrompt || "Coding project");
+    var d = active();
+    if (!d || d.complete) d = makeDream(lastUserPrompt || "Coding project");
     mergeReply(reply);
     setTimeout(attachActions, 350);
   }
