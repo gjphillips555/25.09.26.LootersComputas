@@ -28,7 +28,7 @@ export function SimpleHeader() {
   const hasUnread = false; // placeholder — wire to real unread count later
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-md transition-all">
       {!minimized && (
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-6">
           <Link to="/" className="flex min-w-0 shrink items-center" aria-label="Looters Computas home">
@@ -61,7 +61,7 @@ export function SimpleHeader() {
             <Link
               key={label}
               to={to}
-              className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${active ? "bg-red-600 text-white" : "hover:bg-secondary"}`}
+              className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition ${active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
             >
               <Icon className="size-3.5" />
               <span className="hidden sm:inline">{label}</span>
