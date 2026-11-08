@@ -5,21 +5,19 @@
   var NAME_KEY = "siftah_chatter_name";
   var SECOND_KEY = "siftah_second_ai";
   var myId = (function () {
+    var k = "siftah_client_id";
     try {
-      var id = localStorage.getItem("siftah_client_id");
-      if (!id) {
-        id = "c" + Math.random().toString(36).slice(2, 10);
-        localStorage.setItem("siftah_client_id", id);
-      }
-      return id;
-    } catch (e) {
-      return "c" + Date.now();
-    }
+      var v = localStorage.getItem(k);
+      if (v) return v;
+      v = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem(k, v);
+      return v;
+    } catch (e) { return "c" + Date.now(); }
   })();
-  var seen = {};
   var roomCode = "";
   var timer = null;
   var busy = false;
+  var seen = {};
 
   function toast(m) {
     if (typeof showToast === "function") showToast(m);
@@ -29,29 +27,23 @@
   }
   function bubbles() {
     return Array.prototype.slice.call(document.querySelectorAll("#messages .message")).map(function (el) {
-      var bubble = el.querySelector(".bubble");
+      var b = el.querySelector(".bubble");
       return {
-        role: el.classList.contains("user") ? "user" : "assistant",
-        content: bubble ? (bubble.innerText || "").trim() : "",
+        role: el.classList.contains("assistant") ? "assistant" : "user",
+        content: b ? (b.innerText || b.textContent || "").trim() : "",
       };
     }).filter(function (m) { return m.content && m.content.indexOf("Typing") === -1; });
   }
   function myName() {
-    try {
-      return (localStorage.getItem(NAME_KEY) || "Me").slice(0, 40);
-    } catch (e) {
-      return "Me";
-    }
+    try { return (localStorage.getItem(NAME_KEY) || "").trim() || "Guest"; }
+    catch (e) { return "Guest"; }
   }
   function secondId() {
-    try {
-      return localStorage.getItem(SECOND_KEY) || "";
-    } catch (e) {
-      return "";
-    }
+    try { return localStorage.getItem(SECOND_KEY) || ""; }
+    catch (e) { return ""; }
   }
   function presets() {
-    return (window.siftahEnh && window.siftahEnh.PRESETS) || [];
+    return (window.siftahPresets && window.siftahPresets()) || [];
   }
   function presetById(id) {
     return presets().filter(function (p) { return p.id === id; })[0] || null;
@@ -70,13 +62,16 @@
       "body.mode-knowledge .group-sheet.open{display:block}" +
       ".group-code{font-size:22px;letter-spacing:.2em;font-weight:700;color:#ff9a00}" +
       ".group-sheet input,.group-sheet select{width:100%;box-sizing:border-box;margin:4px 0 8px;background:#12151c;border:1px solid var(--border,#2a2e38);color:#eee;border-radius:8px;padding:8px;font-size:13px}" +
-      ".group-hint{font-size:11px;color:#8b909a;margin:0 0 8px}";
+      ".group-hint{font-size:11px;color:#8b909a;margin:0 0 8px}" +
+      ".group-msg-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}" +
+      ".group-msg-avatar{width:28px;height:28px;border-radius:8px;object-fit:cover;background:#2a2f3a;display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff;flex:0 0 28px}" +
+      ".group-msg-name{font-weight:600;color:#e6e9ef}" +
+      ".group-msg-time{color:#6b7280;font-size:11px;margin-left:auto}";
     document.head.appendChild(s);
   }
 
   function mount() {
     if (document.getElementById("groupBar")) return;
-    var bar = document.querySelector(".model-bar");
     var host = document.createElement("div");
     host.id = "groupBar";
     host.className = "group-bar";
@@ -103,31 +98,26 @@
       '<button type="button" id="groupJoinBtn">Join that chat</button> ' +
       '<button type="button" id="groupNewBtn">New code</button> ' +
       '<button type="button" id="groupLeaveBtn">Leave</button></div>';
-    var anchor = document.getElementById("modeTabs") || bar;
-    if (anchor && anchor.parentNode) {
-      anchor.parentNode.insertBefore(sheet, anchor.nextSibling);
-      anchor.parentNode.insertBefore(host, sheet);
-    } else {
-      document.body.prepend(sheet);
-      document.body.prepend(host);
+    var model = document.querySelector(".model-bar");
+    if (model && model.parentNode) {
+      model.parentNode.insertBefore(sheet, model.nextSibling);
+      model.parentNode.insertBefore(host, sheet);
     }
-    fillSecond();
     host.querySelector("#groupSecondBtn").onclick = function () { showPane("second"); };
     host.querySelector("#groupInviteBtn").onclick = function () { showPane("invite"); ensureRoom(); };
     sheet.querySelector("#groupSecondSave").onclick = function () {
       var id = sheet.querySelector("#groupSecondPick").value;
       try { localStorage.setItem(SECOND_KEY, id); } catch (e) {}
-      toast("Second AI on");
       paint();
+      toast(id ? "Second AI on" : "Choose one");
     };
     sheet.querySelector("#groupSecondOff").onclick = function () {
       try { localStorage.removeItem(SECOND_KEY); } catch (e) {}
-      toast("Second AI off");
       paint();
+      toast("Second AI off");
     };
-    sheet.querySelector("#groupName").value = myName();
     sheet.querySelector("#groupName").onchange = function (ev) {
-      try { localStorage.setItem(NAME_KEY, ev.target.value.trim().slice(0, 40) || "Me"); } catch (e) {}
+      try { localStorage.setItem(NAME_KEY, String(ev.target.value || "").slice(0, 40)); } catch (e) {}
     };
     sheet.querySelector("#groupNewBtn").onclick = function () { createRoom(); };
     sheet.querySelector("#groupJoinBtn").onclick = function () { joinRoom(sheet.querySelector("#groupJoin").value); };
@@ -140,42 +130,46 @@
   function fillSecond() {
     var sel = document.getElementById("groupSecondPick");
     if (!sel) return;
-    var current = window.siftahEnh && window.siftahEnh.activePresetId ? window.siftahEnh.activePresetId() : "";
     sel.innerHTML = "";
+    var cur = secondId();
     presets().forEach(function (p) {
-      if (p.id === current) return;
       var o = document.createElement("option");
       o.value = p.id;
       o.textContent = p.short;
-      if (p.id === secondId()) o.selected = true;
+      if (p.id === cur) o.selected = true;
       sel.appendChild(o);
     });
+    if (!cur && sel.options.length) sel.selectedIndex = 0;
   }
 
   function showPane(which) {
     var sheet = document.getElementById("groupSheet");
     if (!sheet) return;
-    var open = sheet.classList.contains("open") && sheet.getAttribute("data-pane") === which;
-    sheet.classList.toggle("open", !open);
-    sheet.setAttribute("data-pane", which);
-    document.getElementById("groupSecondPane").style.display = which === "second" ? "block" : "none";
-    document.getElementById("groupInvitePane").style.display = which === "invite" ? "block" : "none";
-    fillSecond();
+    sheet.classList.add("open");
+    sheet.querySelector("#groupSecondPane").style.display = which === "second" ? "" : "none";
+    sheet.querySelector("#groupInvitePane").style.display = which === "invite" ? "" : "none";
+    if (which === "second") fillSecond();
+    if (which === "invite") {
+      var name = document.getElementById("groupName");
+      if (name && !name.value) name.value = myName() === "Guest" ? "" : myName();
+    }
   }
 
   function paint() {
+    var code = document.getElementById("groupCode");
+    if (code) code.textContent = roomCode || "------";
     var live = document.getElementById("groupLive");
-    var codeEl = document.getElementById("groupCode");
-    var secondBtn = document.getElementById("groupSecondBtn");
-    if (codeEl) codeEl.textContent = roomCode || "------";
-    if (secondBtn) secondBtn.classList.toggle("on", !!secondId());
     if (live) {
       var bits = [];
+      if (roomCode) bits.push("Room " + roomCode);
       var second = presetById(secondId());
       if (second) bits.push("2nd: " + second.short);
-      if (roomCode) bits.push("Code " + roomCode);
       live.textContent = bits.join(" · ");
     }
+    var secondBtn = document.getElementById("groupSecondBtn");
+    if (secondBtn) secondBtn.classList.toggle("on", Boolean(secondId()));
+    var inviteBtn = document.getElementById("groupInviteBtn");
+    if (inviteBtn) inviteBtn.classList.toggle("on", Boolean(roomCode));
   }
 
   async function api(body) {
@@ -208,8 +202,8 @@
   }
 
   async function joinRoom(raw) {
-    var code = String(raw || "").toUpperCase().replace(/[^A-Z2-9]/g, "");
-    if (code.length !== 6) { toast("Code is 6 letters"); return; }
+    var code = String(raw || "").trim().toUpperCase();
+    if (code.length < 4) return toast("Enter the code");
     try {
       var res = await fetch("/api/siftah-room?code=" + code);
       var data = await res.json();
@@ -231,23 +225,82 @@
     if (timer) clearInterval(timer);
     timer = null;
     paint();
-    toast("Left the shared chat");
+    toast("Left the chat");
   }
 
   function startPoll() {
     if (timer) clearInterval(timer);
     timer = setInterval(pull, 2500);
-    pull();
   }
 
   async function pull() {
     if (!roomCode || busy) return;
     try {
       var res = await fetch("/api/siftah-room?code=" + roomCode);
-      if (!res.ok) return;
       var data = await res.json();
       applyRemote(data.messages || []);
     } catch (e) {}
+  }
+
+  function colorFor(name) {
+    var h = 0;
+    for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+    var hues = [0, 30, 50, 120, 180, 210, 260, 300];
+    return "hsl(" + hues[h % hues.length] + ",55%,45%)";
+  }
+
+  function initials(name) {
+    return (name || "?").trim().split(/\s+/).slice(0, 2).map(function (p) { return p[0] || ""; }).join("").toUpperCase() || "?";
+  }
+
+  function formatMsgTime(ts) {
+    var d = ts ? new Date(ts) : new Date();
+    if (isNaN(d.getTime())) d = new Date();
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+
+  function renderGroupMessage(m) {
+    var messagesEl = document.getElementById("messages");
+    if (!messagesEl) return;
+    var empty = document.getElementById("empty");
+    if (empty) empty.style.display = "none";
+    var wrap = document.createElement("div");
+    wrap.className = "message " + (m.role === "assistant" ? "assistant" : "user");
+    var name = m.name || "Someone";
+    var header = document.createElement("div");
+    header.className = "group-msg-header";
+    var av = document.createElement("div");
+    av.className = "group-msg-avatar";
+    if (m.image) {
+      var img = document.createElement("img");
+      img.src = m.image;
+      img.alt = "";
+      img.style.cssText = "width:100%;height:100%;border-radius:8px;object-fit:cover";
+      av.appendChild(img);
+    } else {
+      av.style.background = colorFor(name);
+      av.textContent = initials(name);
+    }
+    var nameEl = document.createElement("span");
+    nameEl.className = "group-msg-name";
+    nameEl.textContent = name;
+    var timeEl = document.createElement("span");
+    timeEl.className = "group-msg-time";
+    timeEl.textContent = formatMsgTime(m.ts);
+    header.appendChild(av);
+    header.appendChild(nameEl);
+    header.appendChild(timeEl);
+    var bubbleWrap = document.createElement("div");
+    bubbleWrap.className = "bubble-wrap";
+    bubbleWrap.appendChild(header);
+    var bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = m.content || "";
+    bubbleWrap.appendChild(bubble);
+    wrap.appendChild(bubbleWrap);
+    messagesEl.appendChild(wrap);
+    var chat = document.getElementById("chat");
+    if (chat) chat.scrollTop = chat.scrollHeight;
   }
 
   function applyRemote(messages) {
@@ -255,13 +308,7 @@
       if (!m || !m.id || seen[m.id]) return;
       seen[m.id] = 1;
       if (m.client === myId) return;
-      if (typeof addMessage !== "function") return;
-      window.__siftahRemote = true;
-      try {
-        addMessage(m.role === "assistant" ? "assistant" : "user", (m.name || "Someone") + ": " + (m.content || ""), true);
-      } finally {
-        window.__siftahRemote = false;
-      }
+      renderGroupMessage(m);
     });
   }
 
@@ -276,6 +323,11 @@
         role: m.role === "assistant" ? "assistant" : "user",
         name: m.role === "assistant" ? (m.name || "Siftah") : myName(),
         content: String(m.content || "").slice(0, 12000),
+        ts: Date.now(),
+        image: (function () {
+          var av = document.getElementById("userAvatar");
+          return av && av.src && av.style.display !== "none" ? av.src : null;
+        })(),
       };
     });
     try { await api({ op: "post", code: roomCode, client: myId, messages: messages }); }
