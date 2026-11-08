@@ -267,7 +267,7 @@ function SiftahMessagePage() {
 
   return (
     <div className="flex flex-col">
-      <header className="relative flex items-center gap-3 border-b-2 border-zinc-700 bg-card/80 px-3 py-2.5 backdrop-blur">
+      <header className="relative z-[90] flex items-center gap-3 border-b-2 border-zinc-700 bg-card/80 px-3 py-2.5 backdrop-blur">
         <a href="/siftah-message" target="_blank" rel="noopener" className="ml-auto hidden text-[11px] font-semibold text-red-500 hover:underline sm:inline">
           Open in new tab
         </a>
@@ -290,7 +290,7 @@ function SiftahMessagePage() {
           {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
         </button>
         {menuOpen && (
-          <div className="absolute right-2 top-full z-30 mt-1 w-52 overflow-hidden rounded-xl border-2 border-zinc-600 bg-card shadow-lg">
+          <div className="absolute right-2 top-full z-[100] mt-1 w-52 overflow-hidden rounded-xl border-2 border-zinc-600 bg-card shadow-2xl">
             <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
               onClick={() => { setPanel("chats"); setActiveId(null); setMenuOpen(false); }}>
               <MessageCircle className="size-4 text-red-500" /> All chats
