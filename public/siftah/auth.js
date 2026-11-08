@@ -142,8 +142,16 @@
       signOut.addEventListener("click", async function () {
         signOut.disabled = true;
         try {
-          await fetch("/api/auth/sign-out", { method: "POST", credentials: "same-origin" });
-          window.location.assign("/siftah/");
+          var response = await fetch("/api/auth/sign-out", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+          });
+          if (!response.ok) throw new Error("Sign-out rejected");
+          // Clear any local guest state and force a hard reload so the cookie is gone
+          try { localStorage.removeItem("siftah_guest"); } catch (e) {}
+          window.location.replace("/siftah/");
         } catch (error) {
           signOut.disabled = false;
           if (typeof showToast === "function") showToast("Sign out failed. Please try again.");
