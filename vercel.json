@@ -4,6 +4,36 @@
       "source": "/siftah",
       "destination": "/siftah/",
       "permanent": true
+    },
+    {
+      "source": "/Siftah",
+      "destination": "/siftah/",
+      "permanent": true
+    },
+    {
+      "source": "/Siftah/",
+      "destination": "/siftah/",
+      "permanent": true
+    },
+    {
+      "source": "/SIFTAH",
+      "destination": "/siftah/",
+      "permanent": true
+    },
+    {
+      "source": "/SIFTAH/",
+      "destination": "/siftah/",
+      "permanent": true
+    },
+    {
+      "source": "/SiFtAh",
+      "destination": "/siftah/",
+      "permanent": true
+    },
+    {
+      "source": "/SiFtAh/",
+      "destination": "/siftah/",
+      "permanent": true
     }
   ]
 }
