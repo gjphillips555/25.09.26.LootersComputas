@@ -10,7 +10,6 @@ export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-border bg-card text-foreground">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 py-10 sm:px-6">
-        {/* PayPal collab strip */}
         <div className="w-full overflow-hidden rounded-2xl border border-[#003087]/30 bg-gradient-to-r from-[#003087] via-[#009cde] to-[#003087] p-5 sm:p-6">
           <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
             <div>
@@ -57,7 +56,7 @@ export function SiteFooter() {
           <Link to="/account" className="hover:text-foreground">
             Inbox
           </Link>
-          <Link to="/hidden/forum" className="hover:text-foreground">
+          <Link to="/forum" className="hover:text-foreground">
             Forum
           </Link>
           <Link to="/account" className="hover:text-foreground">
