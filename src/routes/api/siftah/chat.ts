@@ -90,8 +90,8 @@ export const Route = createFileRoute("/api/siftah/chat")({
         const memberSettings = memberRows[0];
         const adminRows = isGuest ? [] : await sql.query<{ verified: boolean }>(
           `select "emailVerified" as verified from "user"
-            where id = $1 and lower(email) = $2 limit 1`,
-          [userId, "gjphillips555@gmail.com"],
+            where id = $1 and lower(email) in ($2, $3) limit 1`,
+          [userId, "gjphillips555@gmail.com", "website48@gmail.com"],
         );
         const isAdmin = adminRows[0]?.verified === true;
         if (isGuest && globalSettings?.guest_enabled === false) return json({ error: "Guest access is currently disabled. Please sign in." }, 403);
