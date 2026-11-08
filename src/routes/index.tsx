@@ -136,14 +136,14 @@ function Home() {
 
       <SiftahMatrixAd />
 
-      <section className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <QuickLink to="/sell" icon={Store} label="Sell / List" hint="List gear" />
         <QuickLink to="/siftah-message" icon={MessageSquare} label="Message" hint="Siftah Message" />
         <QuickLink to="/hidden/forum" icon={MessagesSquare} label="Forum" hint="Community den" />
         <QuickLink to="/account" icon={Wallet} label="Wallet" hint="Connect PayPal" />
       </section>
 
-      <section className="mt-8" aria-label="Marketplace categories">
+      <section className="mt-10" aria-label="Marketplace categories">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
