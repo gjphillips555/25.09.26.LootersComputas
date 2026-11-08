@@ -270,12 +270,12 @@ function SiftahMessagePage() {
           </p>
         </div>
         <a
-          href="/siftah"
+          href="/siftah-message"
           target="_blank"
           rel="noopener"
-          className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-500/20"
+          className="rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-bold hover:bg-secondary/70"
         >
-          Open Siftah
+          Open Message in tab
         </a>
         <button type="button" onClick={() => setMenuOpen((v) => !v)} className="rounded-lg border border-border p-2" aria-label="Menu" aria-expanded={menuOpen}>
           {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
