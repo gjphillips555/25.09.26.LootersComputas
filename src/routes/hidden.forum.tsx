@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { denApprove, denForum, denMe } from "@/lib/den";
-import { authEnabled } from "@/lib/auth/client";
+import { authEnabled, signOut } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 export const Route = createFileRoute("/hidden/forum")({
@@ -65,7 +65,16 @@ function DenForum() {
   return (
     <main className="den-shell den-forum">
       <div className="den-card den-wide">
-        <h1>Den</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1>Den</h1>
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
+          >
+            Log out
+          </button>
+        </div>
         {data.role === "admin" ? (
           <section>
             <h2>DMs · approve</h2>
