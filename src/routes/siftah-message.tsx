@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Menu, MessageCircle, Search, Send, Settings, Shield, Users, X } from "lucide-react";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { SiftahMatrixAd } from "@/components/siftah-matrix-ad";
 import { ARTWORK } from "@/lib/artwork";
 import {
   currentNotifyPermission,
@@ -254,7 +255,13 @@ function SiftahMessagePage() {
 
   return (
     <main className="mx-auto flex h-[calc(100dvh-4rem)] max-w-6xl flex-col overflow-hidden border-x border-border bg-background sm:h-[calc(100dvh-5rem)]">
+      <div className="pt-4 px-2">
+        <SiftahMatrixAd />
+      </div>
       <header className="relative flex items-center gap-3 border-b border-border bg-card/80 px-3 py-2.5 backdrop-blur">
+        <a href="/siftah-message" target="_blank" rel="noopener" className="ml-auto hidden text-[11px] font-semibold text-red-500 hover:underline sm:inline">
+          Open in new tab
+        </a>
         <Avatar url={me?.avatarUrl || user?.profileImageUrl} name={me?.displayName || "You"} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-sm font-black tracking-wide">Siftah Message</h1>
