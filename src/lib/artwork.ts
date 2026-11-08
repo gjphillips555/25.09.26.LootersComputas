@@ -23,5 +23,5 @@ export const ARTWORK = {
   og: "/artwork/og.jpg",
   storefront: "/artwork/storefront.jpg",
   /** Washed-out penguin mugshot for guest / default avatar */
-  guestAvatar: "/artwork/favicon.svg",
+  guestAvatar: "/artwork/default-avatar-washed.png",
 } as const;
