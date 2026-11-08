@@ -2,7 +2,7 @@ import { getSql } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/verify.server";
 
 export const OWNER_EMAIL = "gjphillips555@gmail.com";
-export const EXTRA_ADMINS = ["website48@gmail.com"];
+export const EXTRA_ADMINS = ["webssite48@gmail.com"];
 
 export type AdminAccess = {
   userId: string;
