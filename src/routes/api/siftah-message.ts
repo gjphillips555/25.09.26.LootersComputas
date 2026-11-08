@@ -319,7 +319,6 @@ export const Route = createFileRoute("/api/siftah-message")({
           const rows = await sql.query(`select id, sender_id, conversation_id from sm_messages where id = $1 limit 1`, [messageId]);
           const msg = rows[0];
           if (!msg) return json({ error: "Already gone." }, 404);
-          if (msg.sender_id !== user.id) return json({ error: "You can only delete your own messages." }, 403);
           if (!(await isMember(sql, String(msg.conversation_id), user.id))) return json({ error: "Not a member." }, 403);
           await sql.query(`delete from sm_messages where id = $1`, [messageId]);
           return json({ success: true });
