@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useLocation, Link } from "@tanstack/react-router";
 import { PageScrollKeys } from "@/components/page-scroll-keys";
 import { AnalyticsBeacon } from "@/components/analytics-beacon";
@@ -41,16 +41,48 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SiteFooter />
       <PageScrollKeys />
       <AnalyticsBeacon />
-      {path !== "/" && (
-        <Link
-          to="/"
-          title="Return to Looters Computas"
-          className="fixed bottom-4 left-4 z-50 flex size-11 items-center justify-center rounded-full border border-border bg-card shadow-lg hover:bg-secondary"
-          aria-label="Return to Looters Computas"
-        >
-          <span className="text-lg">←</span>
-        </Link>
+      {path !== "/" && <ReturnHomeButton />}
+    </div>
+  );
+}
+
+
+function ReturnHomeButton() {
+  const [armed, setArmed] = useState(false);
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+
+  if (!isMobile) {
+    return (
+      <Link
+        to="/"
+        title="Return to Looters Computas"
+        className="fixed bottom-4 left-4 z-50 flex size-11 items-center justify-center rounded-full border border-border bg-card shadow-lg hover:bg-secondary"
+        aria-label="Return to Looters Computas"
+      >
+        <span className="text-lg">←</span>
+      </Link>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-4 left-4 z-50">
+      {armed && (
+        <div className="mb-2 max-w-[180px] rounded-xl border border-border bg-card px-3 py-2 text-xs shadow-lg">
+          <p className="font-semibold">Return to Looters Computas</p>
+          <p className="text-muted-foreground">Tap again to confirm</p>
+        </div>
       )}
+      <button
+        type="button"
+        onClick={() => {
+          if (armed) window.location.href = "/";
+          else setArmed(true);
+        }}
+        className="flex size-11 items-center justify-center rounded-full border border-border bg-card shadow-lg"
+        aria-label="Return to Looters Computas"
+      >
+        <span className="text-lg">←</span>
+      </button>
     </div>
   );
 }
