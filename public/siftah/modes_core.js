@@ -162,7 +162,7 @@
       window.siftahSuperSaiyan.onModeChange(mode);
     }
     var modelMeta = document.querySelector(".model-meta");
-    if (modelMeta) modelMeta.textContent = mode === "super-saiyan" ? "Premium · 2 Credits per response" : mode === "coding" ? "Dexter · Coding focused" : mode === "images" ? "Da Vinci · Image studio" : "Siftah · General chat";
+    if (modelMeta) modelMeta.textContent = mode === "super-saiyan" ? "Premium" : mode === "coding" ? "Dexter · Coding focused" : mode === "images" ? "Da Vinci · Image studio" : "Siftah · General chat";
   }
   function patchSystemPrompt() {
     if (window.__siftahModeFetchPatch) return;
