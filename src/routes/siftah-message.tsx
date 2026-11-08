@@ -35,6 +35,7 @@ function SiftahMessagePage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [panel, setPanel] = useState<"chats" | "search" | "settings" | "group">("chats");
+  const [sideTab, setSideTab] = useState<"groups" | "contacts">("contacts");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchUser[]>([]);
   const [groupPick, setGroupPick] = useState<string[]>([]);
@@ -290,8 +291,25 @@ function SiftahMessagePage() {
       <div className="flex min-h-0 flex-1">
         <aside className={`${panel !== "chats" || !activeId ? "flex" : "hidden sm:flex"} w-full flex-col border-r border-border sm:w-80 sm:max-w-[40%]`}>
           {panel === "chats" && (
-            <div className="flex-1 overflow-y-auto">
-              {convs.map((c) => (
+            <div className="flex flex-1 flex-col">
+              <div className="flex border-b border-border">
+                <button
+                  type="button"
+                  onClick={() => setSideTab("contacts")}
+                  className={`flex-1 py-2.5 text-xs font-bold ${sideTab === "contacts" ? "bg-red-600 text-white" : "hover:bg-secondary"}`}
+                >
+                  Contacts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSideTab("groups")}
+                  className={`flex-1 py-2.5 text-xs font-bold ${sideTab === "groups" ? "bg-red-600 text-white" : "hover:bg-secondary"}`}
+                >
+                  Group Chats
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+              {convs.filter((c) => sideTab === "groups" ? c.kind === "group" || c.kind === "public" : c.kind === "direct").map((c) => (
                 <button key={c.id} type="button"
                   onClick={() => { autoSelectedPublicRef.current = true; setMenuOpen(false); setPanel("chats"); setActiveId(c.id); }}
                   className={`flex w-full items-center gap-3 border-b border-border px-3 py-3 text-left hover:bg-secondary/50 ${activeId === c.id ? "bg-secondary/70" : ""}`}>
@@ -306,7 +324,12 @@ function SiftahMessagePage() {
                   </span>
                 </button>
               ))}
-              {!convs.length && <p className="p-4 text-sm text-muted-foreground">No chats yet — search a member or join the open room.</p>}
+              {!convs.filter((c) => sideTab === "groups" ? c.kind === "group" || c.kind === "public" : c.kind === "direct").length && (
+                <p className="p-4 text-sm text-muted-foreground">
+                  {sideTab === "groups" ? "No group chats yet." : "No direct chats yet — search a member."}
+                </p>
+              )}
+              </div>
             </div>
           )}
 
