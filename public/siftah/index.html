@@ -156,6 +156,17 @@
       <input id="maxTokens" type="hidden" value="2048">
       <span id="maxVal" style="display:none">2048</span>
       <button class="clear-btn" id="toggleAdvanced" type="button" style="display:none">Advanced</button>
+      <div class="section" id="adminHfSection" style="display:none">
+        <div class="section-title">🔐 Admin · Hugging Face token</div>
+        <p class="hint" id="adminHfStatus">Checking token status…</p>
+        <label class="hint" style="display:block;margin:8px 0 4px;font-weight:600">New HF token</label>
+        <input id="adminHfToken" type="password" autocomplete="off" placeholder="hf_…" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1px solid var(--border,#2a2e38);background:#0f1218;color:var(--text,#eee);font-family:ui-monospace,monospace;font-size:13px">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+          <button class="clear-btn" id="adminHfSave" type="button" style="margin-top:0">Save HF token</button>
+          <button class="clear-btn" id="adminHfClear" type="button" style="margin-top:0">Clear DB token</button>
+        </div>
+        <p class="hint" style="margin-top:8px">Only visible to admin accounts. Saved to the server and used by all Siftah chat models. Env vars are the fallback when the DB token is empty.</p>
+      </div>
       <div class="section">
         <div class="section-title">💬 Chat Settings</div>
         <div class="toggle-row"><div class="toggle-label">💾 Save Chat History</div><label class="toggle"><input type="checkbox" id="saveHistory" checked><span class="slider"></span></label></div>
@@ -195,6 +206,7 @@
 <script src="./tabs.js"></script>
 <script src="./links.js"></script>
 <script src="./auth.js"></script>
+<script src="./admin_hf.js"></script>
 <script src="./upgrades.js"></script>
 <script src="./modes.js"></script>
 <script src="./coded_dreams.js"></script>
