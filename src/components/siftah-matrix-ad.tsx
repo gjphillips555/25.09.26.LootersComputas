@@ -204,13 +204,13 @@ export function SiftahMatrixAd() {
 
       <Link
         to="/siftah"
-        className="relative z-[2] flex min-h-[200px] flex-col items-center gap-3 px-4 py-5 transition sm:min-h-[260px] sm:flex-row sm:items-center sm:justify-center sm:gap-8 sm:px-8 sm:py-4"
+        className="relative z-[2] flex min-h-[180px] flex-col items-center justify-center gap-4 px-4 py-6 transition sm:min-h-[220px] sm:flex-row sm:gap-6 sm:px-8 sm:py-5"
       >
         <img
           ref={logoRef}
           src="/siftah-mobile-logo.svg"
           alt="Siftah Mobile"
-          className="h-28 w-auto max-w-[55%] shrink-0 object-contain drop-shadow-[0_0_22px_rgba(255,40,55,0.35)] sm:h-60 sm:max-w-[43%]"
+          className="h-24 w-auto max-w-[50%] shrink-0 object-contain drop-shadow-[0_0_22px_rgba(255,40,55,0.35)] sm:h-40 sm:max-w-[38%]"
         />
         <span ref={copyRef} className="min-w-0 flex-1 text-center sm:text-left">
           <span
@@ -220,7 +220,7 @@ export function SiftahMatrixAd() {
             AI-powered computing
           </span>
           <span
-            className="mt-1 block text-xl font-black leading-[1.05] text-[#ff3b4e] sm:text-4xl"
+            className="mt-1 block text-lg font-black leading-[1.05] text-[#ff3b4e] sm:text-3xl"
             style={{
               WebkitTextStroke: "1.5px #050505",
               paintOrder: "stroke fill",
