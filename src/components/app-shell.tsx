@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, Link } from "@tanstack/react-router";
 import { PageScrollKeys } from "@/components/page-scroll-keys";
 import { AnalyticsBeacon } from "@/components/analytics-beacon";
 import { SiteFooter } from "@/components/site-footer";
@@ -41,6 +41,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <SiteFooter />
       <PageScrollKeys />
       <AnalyticsBeacon />
+      {path !== "/" && (
+        <Link
+          to="/"
+          title="Return to Looters Computas"
+          className="fixed bottom-4 left-4 z-50 flex size-11 items-center justify-center rounded-full border border-border bg-card shadow-lg hover:bg-secondary"
+          aria-label="Return to Looters Computas"
+        >
+          <span className="text-lg">←</span>
+        </Link>
+      )}
     </div>
   );
 }
