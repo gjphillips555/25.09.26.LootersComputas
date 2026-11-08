@@ -254,10 +254,11 @@ function SiftahMessagePage() {
   const active = convs.find((c) => c.id === activeId);
 
   return (
-    <main className="mx-auto flex h-[calc(100dvh-4rem)] max-w-6xl flex-col overflow-hidden border-x border-border bg-background sm:h-[calc(100dvh-5rem)]">
-      <div className="pt-4 px-2">
+    <div className="flex flex-col">
+      <div className="pt-6 px-2">
         <SiftahMatrixAd />
       </div>
+    <main className="mx-auto flex h-[calc(100dvh-12rem)] max-w-6xl flex-col overflow-hidden border-x border-border bg-background">
       <header className="relative flex items-center gap-3 border-b border-border bg-card/80 px-3 py-2.5 backdrop-blur">
         <a href="/siftah-message" target="_blank" rel="noopener" className="ml-auto hidden text-[11px] font-semibold text-red-500 hover:underline sm:inline">
           Open in new tab
@@ -586,6 +587,7 @@ function SiftahMessagePage() {
         </button>
       )}
     </main>
+    </div>
   );
 }
 
