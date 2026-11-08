@@ -16,7 +16,7 @@ const TABS = [
 
 const NAV = [
   { to: "/sell" as const, label: "Sell", icon: Store },
-  { to: "/hidden/forum" as const, label: "Forum", icon: MessagesSquare },
+  { to: "/forum" as const, label: "Forum", icon: MessagesSquare },
   { to: "/account" as const, label: "Wallet", icon: Wallet },
 ] as const;
 
@@ -25,7 +25,7 @@ export function SimpleHeader() {
   const [minimized, setMinimized] = useState(false);
   const { user } = useCurrentUserState();
   const location = useLocation();
-  const hasUnread = false; // placeholder — wire to real unread count later
+  const hasUnread = false;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-md transition-all">
