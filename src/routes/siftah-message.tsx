@@ -436,16 +436,14 @@ function SiftahMessagePage() {
                       {m.expiresAt ? " · auto-delete" : ""}
                       {m.deleteAfterView ? " · 5m after view" : ""}
                     </span>
-                    {m.mine && (
-                      <button
-                        type="button"
-                        title="Delete message"
-                        onClick={() => void deleteMessage(m.id).catch((e) => setError(e.message))}
-                        className="flex size-5 items-center justify-center rounded-full bg-black/20 text-white opacity-70 hover:opacity-100 hover:bg-black/40"
-                      >
-                        ✕
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      title="Delete message"
+                      onClick={() => void deleteMessage(m.id).catch((e) => setError(e.message))}
+                      className={`flex size-5 items-center justify-center rounded-full opacity-70 hover:opacity-100 ${m.mine ? "bg-black/20 text-white hover:bg-black/40" : "bg-black/10 hover:bg-black/20"}`}
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
               </div>
