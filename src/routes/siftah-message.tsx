@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Menu, MessageCircle, Search, Send, Settings, Shield, Users, X } from "lucide-react";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { ARTWORK } from "@/lib/artwork";
 import {
   currentNotifyPermission,
   enablePushNotifications,
@@ -492,21 +493,15 @@ function SiftahMessagePage() {
 
 function Avatar({ url, name, large }: { url: string | null | undefined; name: string; large?: boolean }) {
   const size = large ? "size-14" : "size-10";
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt=""
-        className={`${size} shrink-0 rounded-full object-cover ring-1 ring-border`}
-        draggable={false}
-        referrerPolicy="no-referrer"
-      />
-    );
-  }
+  const src = url || ARTWORK.guestAvatar;
   return (
-    <span className={`flex ${size} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500/30 to-red-600/20 text-sm font-bold text-red-400 ring-1 ring-border`}>
-      {(name || "?")[0]?.toUpperCase()}
-    </span>
+    <img
+      src={src}
+      alt=""
+      className={`${size} shrink-0 rounded-full object-cover ring-1 ring-border ${!url ? "opacity-60 grayscale" : ""}`}
+      draggable={false}
+      referrerPolicy="no-referrer"
+    />
   );
 }
 
