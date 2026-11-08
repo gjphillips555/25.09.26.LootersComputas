@@ -37,6 +37,7 @@ function DenForum() {
   const [data, setData] = useState<Awaited<ReturnType<typeof denForum>> | null>(null);
   const [me, setMe] = useState<Awaited<ReturnType<typeof denMe>> | null>(null);
   const [activeCat, setActiveCat] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   async function reload() {
     const [who, board] = await Promise.all([denMe(), denForum()]);
@@ -75,7 +76,12 @@ function DenForum() {
     );
   }
 
-  const topics = activeCat ? TOPICS.filter((t) => t.cat === activeCat) : TOPICS;
+  const topics = TOPICS.filter((t) => {
+    if (activeCat && t.cat !== activeCat) return false;
+    if (!query.trim()) return true;
+    const q = query.toLowerCase();
+    return t.title.toLowerCase().includes(q) || t.preview.toLowerCase().includes(q) || t.author.toLowerCase().includes(q);
+  });
   const cat = CATEGORIES.find((c) => c.id === activeCat);
 
   return (
@@ -93,6 +99,14 @@ function DenForum() {
       </header>
 
       <div className="mx-auto max-w-5xl px-4 py-5">
+        <div className="mb-4">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search topics…"
+            className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm"
+          />
+        </div>
         <div className="mb-5 grid gap-2 sm:grid-cols-3">
           {CATEGORIES.map((c) => (
             <button
