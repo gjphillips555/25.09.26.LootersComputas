@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/siftah",
+      "destination": "/siftah/",
+      "permanent": true
+    }
+  ]
+}
