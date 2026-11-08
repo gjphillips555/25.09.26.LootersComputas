@@ -40,12 +40,31 @@
     if (out) out.style.display = signedIn ? "none" : "block";
     if (inside) inside.style.display = signedIn ? "block" : "none";
     if (signedIn) {
-      if ($("menuDisplayName")) $("menuDisplayName").textContent = "Looters account";
-      if ($("menuEmail")) $("menuEmail").textContent = "Shared marketplace and Siftah login";
+      var user = data.user || {};
+      var displayName = user.name || "Member";
+      var roleLabel = user.role === "admin" ? "Admin" : "Member";
+      if ($("menuDisplayName")) $("menuDisplayName").textContent = displayName;
+      if ($("menuEmail")) $("menuEmail").textContent = user.email || "Shared marketplace and Siftah login";
       if ($("userChip")) $("userChip").style.display = "flex";
-      if ($("userName")) $("userName").textContent = "Member";
-      if ($("userAvatar")) $("userAvatar").style.display = "none";
-      if ($("menuAvatar")) $("menuAvatar").style.display = "none";
+      if ($("userName")) $("userName").textContent = roleLabel;
+      var avatarEl = $("userAvatar");
+      if (avatarEl) {
+        if (user.image) {
+          avatarEl.src = user.image;
+          avatarEl.style.display = "block";
+        } else {
+          avatarEl.style.display = "none";
+        }
+      }
+      var menuAvatar = $("menuAvatar");
+      if (menuAvatar) {
+        if (user.image) {
+          menuAvatar.src = user.image;
+          menuAvatar.style.display = "block";
+        } else {
+          menuAvatar.style.display = "none";
+        }
+      }
     } else if ($("userChip")) {
       $("userChip").style.display = "none";
     }
