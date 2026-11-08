@@ -1,49 +1,87 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { Menu, X, MessageSquare, MessagesSquare, Store, Wallet, Sparkles, Gamepad2 } from "lucide-react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { Menu, X, MessageSquare, MessagesSquare, Store, Wallet, Sparkles, Gamepad2, ChevronDown, ChevronUp } from "lucide-react";
 import { AccountButton } from "@/components/account-button";
 import { BrandLogo } from "@/components/brand-logo";
 import { ShopSearch } from "@/components/shop-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
-const NAV = [
-  { to: "/siftah" as const, label: "Siftah", icon: Sparkles },
+const TABS = [
+  { to: "/" as const, label: "Looters Computas", icon: Store },
+  { to: "/siftah-message" as const, label: "Siftah Message", icon: MessageSquare },
+  { to: "/siftah" as const, label: "Siftah AI", icon: Sparkles },
   { to: "/arcade" as const, label: "Arcade", icon: Gamepad2 },
+] as const;
+
+const NAV = [
   { to: "/sell" as const, label: "Sell", icon: Store },
-  { to: "/siftah-message" as const, label: "Message", icon: MessageSquare },
   { to: "/hidden/forum" as const, label: "Forum", icon: MessagesSquare },
   { to: "/account" as const, label: "Wallet", icon: Wallet },
 ] as const;
 
 export function SimpleHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const { user } = useCurrentUserState();
-  const visibleNav = user ? NAV : NAV.filter((item) => item.to === "/siftah");
+  const location = useLocation();
+  const hasUnread = false; // placeholder — wire to real unread count later
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-6">
-        <Link to="/" className="flex min-w-0 shrink items-center" aria-label="Looters Computas home">
-          <BrandLogo className="h-10 w-auto max-w-[150px] object-contain sm:h-12 sm:max-w-[220px]" />
-        </Link>
-        <ShopSearch className="hidden min-w-0 flex-1 md:flex md:max-w-md" showButton={false} placeholder="Search computers, gaming, phones…" />
-        <nav className="ml-auto hidden shrink-0 items-center gap-1 lg:flex" aria-label="Marketplace">
-          {visibleNav.map(({ to, label, icon: Icon }) => (
-            <Link key={label} to={to} className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold text-muted-foreground transition hover:border-border hover:bg-secondary hover:text-foreground">
-              <Icon className="size-4" strokeWidth={1.85} /><span>{label}</span>
-            </Link>
-          ))}
-          <ThemeToggle />
-          <AccountButton />
-        </nav>
-        <div className="ml-auto hidden items-center gap-2 md:flex lg:hidden">
-          <ThemeToggle /><AccountButton />
+      {!minimized && (
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-6">
+          <Link to="/" className="flex min-w-0 shrink items-center" aria-label="Looters Computas home">
+            <BrandLogo className="h-10 w-auto max-w-[150px] object-contain sm:h-12 sm:max-w-[220px]" />
+          </Link>
+          <ShopSearch className="hidden min-w-0 flex-1 md:flex md:max-w-md" showButton={false} placeholder="Search computers, gaming, phones…" />
+          <nav className="ml-auto hidden shrink-0 items-center gap-1 lg:flex" aria-label="Marketplace">
+            {NAV.map(({ to, label, icon: Icon }) => (
+              <Link key={label} to={to} className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold text-muted-foreground transition hover:border-border hover:bg-secondary hover:text-foreground">
+                <Icon className="size-4" strokeWidth={1.85} /><span>{label}</span>
+              </Link>
+            ))}
+            <ThemeToggle />
+            <AccountButton />
+          </nav>
+          <div className="ml-auto hidden items-center gap-2 md:flex lg:hidden">
+            <ThemeToggle /><AccountButton />
+          </div>
+          <button type="button" className="ml-auto inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-secondary lg:hidden" aria-label={mobileOpen ? "Close menu" : "Open menu"} aria-expanded={mobileOpen} onClick={() => setMobileOpen((open) => !open)}>
+            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
         </div>
-        <button type="button" className="ml-auto inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-secondary lg:hidden" aria-label={mobileOpen ? "Close menu" : "Open menu"} aria-expanded={mobileOpen} onClick={() => setMobileOpen((open) => !open)}>
-          {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+      )}
+
+      <div className="flex items-center gap-1 border-t border-border/40 px-2 py-1.5 sm:px-4">
+        {TABS.map(({ to, label, icon: Icon }) => {
+          const active = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
+          const showBadge = to === "/siftah-message" && hasUnread;
+          return (
+            <Link
+              key={label}
+              to={to}
+              className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${active ? "bg-red-600 text-white" : "hover:bg-secondary"}`}
+            >
+              <Icon className="size-3.5" />
+              <span className="hidden sm:inline">{label}</span>
+              {showBadge && (
+                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">!</span>
+              )}
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setMinimized((v) => !v)}
+          className="ml-auto rounded-lg border border-border p-1.5 text-muted-foreground hover:bg-secondary"
+          aria-label={minimized ? "Show header" : "Hide header"}
+        >
+          {minimized ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
         </button>
       </div>
-      {mobileOpen && (
+
+      {mobileOpen && !minimized && (
         <div className="border-t border-border bg-background px-3 py-3 shadow-xl lg:hidden">
           <nav className="grid grid-cols-2 gap-2" aria-label="Mobile marketplace">
             {NAV.map(({ to, label, icon: Icon }) => (
