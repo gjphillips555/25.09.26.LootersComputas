@@ -20,7 +20,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as OverlayRouteImport } from './routes/overlay'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as ShopRouteImport } from './routes/shop'
-import { Route as SiftahRouteImport } from './routes/siftah'
+import { Route as ForumRouteImport } from './routes/forum'
 import { Route as StorepolicyRouteImport } from './routes/storepolicy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TermsandconditionsRouteImport } from './routes/termsandconditions'
@@ -94,9 +94,9 @@ const ShopRoute = ShopRouteImport.update({
   path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SiftahRoute = SiftahRouteImport.update({
-  id: '/siftah',
-  path: '/siftah',
+const ForumRoute = ForumRouteImport.update({
+  id: '/forum',
+  path: '/forum',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StorepolicyRoute = StorepolicyRouteImport.update({
@@ -113,11 +113,6 @@ const TermsandconditionsRoute = TermsandconditionsRouteImport.update({
   id: '/termsandconditions',
   path: '/termsandconditions',
   getParentRoute: () => rootRouteImport,
-} as any)
-const HiddenForumRoute = HiddenForumRouteImport.update({
-  id: '/forum',
-  path: '/forum',
-  getParentRoute: () => HiddenRoute,
 } as any)
 const ListingListingIdRoute = ListingListingIdRouteImport.update({
   id: '/listing/$listingId',
@@ -197,11 +192,10 @@ export interface FileRoutesByFullPath {
   '/overlay': typeof OverlayRoute
   '/sell': typeof SellRoute
   '/shop': typeof ShopRouteWithChildren
-  '/siftah': typeof SiftahRoute
+  '/forum': typeof ForumRoute
   '/storepolicy': typeof StorepolicyRoute
   '/terms': typeof TermsRoute
   '/termsandconditions': typeof TermsandconditionsRoute
-  '/hidden/forum': typeof HiddenForumRoute
   '/listing/$listingId': typeof ListingListingIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/shop/$category': typeof ShopCategoryRoute
@@ -227,11 +221,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/overlay': typeof OverlayRoute
   '/sell': typeof SellRoute
-  '/siftah': typeof SiftahRoute
+  '/forum': typeof ForumRoute
   '/storepolicy': typeof StorepolicyRoute
   '/terms': typeof TermsRoute
   '/termsandconditions': typeof TermsandconditionsRoute
-  '/hidden/forum': typeof HiddenForumRoute
   '/listing/$listingId': typeof ListingListingIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/shop/$category': typeof ShopCategoryRoute
@@ -259,11 +252,10 @@ export interface FileRoutesById {
   '/overlay': typeof OverlayRoute
   '/sell': typeof SellRoute
   '/shop': typeof ShopRouteWithChildren
-  '/siftah': typeof SiftahRoute
+  '/forum': typeof ForumRoute
   '/storepolicy': typeof StorepolicyRoute
   '/terms': typeof TermsRoute
   '/termsandconditions': typeof TermsandconditionsRoute
-  '/hidden/forum': typeof HiddenForumRoute
   '/listing/$listingId': typeof ListingListingIdRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/shop/$category': typeof ShopCategoryRoute
@@ -292,11 +284,10 @@ export interface FileRouteTypes {
     | '/overlay'
     | '/sell'
     | '/shop'
-    | '/siftah'
+    | '/forum'
     | '/storepolicy'
     | '/terms'
     | '/termsandconditions'
-    | '/hidden/forum'
     | '/listing/$listingId'
     | '/order/$orderId'
     | '/shop/$category'
@@ -322,11 +313,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/overlay'
     | '/sell'
-    | '/siftah'
+    | '/forum'
     | '/storepolicy'
     | '/terms'
     | '/termsandconditions'
-    | '/hidden/forum'
     | '/listing/$listingId'
     | '/order/$orderId'
     | '/shop/$category'
@@ -353,11 +343,10 @@ export interface FileRouteTypes {
     | '/overlay'
     | '/sell'
     | '/shop'
-    | '/siftah'
+    | '/forum'
     | '/storepolicy'
     | '/terms'
     | '/termsandconditions'
-    | '/hidden/forum'
     | '/listing/$listingId'
     | '/order/$orderId'
     | '/shop/$category'
@@ -385,7 +374,7 @@ export interface RootRouteChildren {
   OverlayRoute: typeof OverlayRoute
   SellRoute: typeof SellRoute
   ShopRoute: typeof ShopRouteWithChildren
-  SiftahRoute: typeof SiftahRoute
+  ForumRoute: typeof ForumRoute
   StorepolicyRoute: typeof StorepolicyRoute
   TermsRoute: typeof TermsRoute
   TermsandconditionsRoute: typeof TermsandconditionsRoute
@@ -401,239 +390,6 @@ export interface RootRouteChildren {
   ApiSiftahChatRoute: typeof ApiSiftahChatRoute
 }
 
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/arcade': {
-      id: '/arcade'
-      path: '/arcade'
-      fullPath: '/arcade'
-      preLoaderRoute: typeof ArcadeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/build': {
-      id: '/build'
-      path: '/build'
-      fullPath: '/build'
-      preLoaderRoute: typeof BuildRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout': {
-      id: '/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hidden': {
-      id: '/hidden'
-      path: '/hidden'
-      fullPath: '/hidden'
-      preLoaderRoute: typeof HiddenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/overlay': {
-      id: '/overlay'
-      path: '/overlay'
-      fullPath: '/overlay'
-      preLoaderRoute: typeof OverlayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sell': {
-      id: '/sell'
-      path: '/sell'
-      fullPath: '/sell'
-      preLoaderRoute: typeof SellRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shop': {
-      id: '/shop'
-      path: '/shop'
-      fullPath: '/shop'
-      preLoaderRoute: typeof ShopRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/siftah': {
-      id: '/siftah'
-      path: '/siftah'
-      fullPath: '/siftah'
-      preLoaderRoute: typeof SiftahRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/storepolicy': {
-      id: '/storepolicy'
-      path: '/storepolicy'
-      fullPath: '/storepolicy'
-      preLoaderRoute: typeof StorepolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/termsandconditions': {
-      id: '/termsandconditions'
-      path: '/termsandconditions'
-      fullPath: '/termsandconditions'
-      preLoaderRoute: typeof TermsandconditionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hidden/forum': {
-      id: '/hidden/forum'
-      path: '/forum'
-      fullPath: '/hidden/forum'
-      preLoaderRoute: typeof HiddenForumRouteImport
-      parentRoute: typeof HiddenRoute
-    }
-    '/listing/$listingId': {
-      id: '/listing/$listingId'
-      path: '/listing/$listingId'
-      fullPath: '/listing/$listingId'
-      preLoaderRoute: typeof ListingListingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/order/$orderId': {
-      id: '/order/$orderId'
-      path: '/order/$orderId'
-      fullPath: '/order/$orderId'
-      preLoaderRoute: typeof OrderOrderIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shop/': {
-      id: '/shop/'
-      path: '/'
-      fullPath: '/shop/'
-      preLoaderRoute: typeof ShopIndexRouteImport
-      parentRoute: typeof ShopRoute
-    }
-    '/shop/$category': {
-      id: '/shop/$category'
-      path: '/$category'
-      fullPath: '/shop/$category'
-      preLoaderRoute: typeof ShopCategoryRouteImport
-      parentRoute: typeof ShopRoute
-    }
-    '/api/admin': {
-      id: '/api/admin'
-      path: '/api/admin'
-      fullPath: '/api/admin'
-      preLoaderRoute: typeof ApiAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/analytics/visit': {
-      id: '/api/analytics/visit'
-      path: '/api/analytics/visit'
-      fullPath: '/api/analytics/visit'
-      preLoaderRoute: typeof ApiAnalyticsVisitRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/paypal/callback': {
-      id: '/api/paypal/callback'
-      path: '/api/paypal/callback'
-      fullPath: '/api/paypal/callback'
-      preLoaderRoute: typeof ApiPaypalCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/paypal/capture-order': {
-      id: '/api/paypal/capture-order'
-      path: '/api/paypal/capture-order'
-      fullPath: '/api/paypal/capture-order'
-      preLoaderRoute: typeof ApiPaypalCaptureOrderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/paypal/create-order': {
-      id: '/api/paypal/create-order'
-      path: '/api/paypal/create-order'
-      fullPath: '/api/paypal/create-order'
-      preLoaderRoute: typeof ApiPaypalCreateOrderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/paypal/webhook': {
-      id: '/api/paypal/webhook'
-      path: '/api/paypal/webhook'
-      fullPath: '/api/paypal/webhook'
-      preLoaderRoute: typeof ApiPaypalWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/siftah/chat': {
-      id: '/api/siftah/chat'
-      path: '/api/siftah/chat'
-      fullPath: '/api/siftah/chat'
-      preLoaderRoute: typeof ApiSiftahChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hidden/letter/$token': {
-      id: '/hidden/letter/$token'
-      path: '/letter/$token'
-      fullPath: '/hidden/letter/$token'
-      preLoaderRoute: typeof HiddenLetterTokenRouteImport
-      parentRoute: typeof HiddenRoute
-    }
-  }
-}
-
-interface HiddenRouteChildren {
-  HiddenForumRoute: typeof HiddenForumRoute
-  HiddenLetterTokenRoute: typeof HiddenLetterTokenRoute
-}
-
-const HiddenRouteChildren: HiddenRouteChildren = {
-  HiddenForumRoute: HiddenForumRoute,
-  HiddenLetterTokenRoute: HiddenLetterTokenRoute,
-}
-
-const HiddenRouteWithChildren =
-  HiddenRoute._addFileChildren(HiddenRouteChildren)
-
-interface ShopRouteChildren {
-  ShopCategoryRoute: typeof ShopCategoryRoute
-  ShopIndexRoute: typeof ShopIndexRoute
-}
-
-const ShopRouteChildren: ShopRouteChildren = {
-  ShopCategoryRoute: ShopCategoryRoute,
-  ShopIndexRoute: ShopIndexRoute,
-}
-
-const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
@@ -646,7 +402,7 @@ const rootRouteChildren: RootRouteChildren = {
   OverlayRoute: OverlayRoute,
   SellRoute: SellRoute,
   ShopRoute: ShopRouteWithChildren,
-  SiftahRoute: SiftahRoute,
+  ForumRoute: ForumRoute,
   StorepolicyRoute: StorepolicyRoute,
   TermsRoute: TermsRoute,
   TermsandconditionsRoute: TermsandconditionsRoute,
@@ -661,6 +417,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaypalWebhookRoute: ApiPaypalWebhookRoute,
   ApiSiftahChatRoute: ApiSiftahChatRoute,
 }
+
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
