@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Menu, MessageCircle, Search, Send, Settings, Shield, Users, X } from "lucide-react";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { SiftahMatrixAd } from "@/components/siftah-matrix-ad";
 import { ARTWORK } from "@/lib/artwork";
 import {
   currentNotifyPermission,
@@ -208,7 +207,7 @@ function SiftahMessagePage() {
 
   async function sendShout() {
     if (!activeId) return;
-    await post({ action: "send", conversationId: activeId, body: "🗣️", msgType: "shout", shoutColor, ttlHours, deleteAfterView });
+    await post({ action: "send", conversationId: activeId, body: "🤐", msgType: "shout", shoutColor, ttlHours, deleteAfterView });
     await loadMessages(activeId);
   }
 
@@ -224,6 +223,19 @@ function SiftahMessagePage() {
     const isGif = file.type === "image/gif" || file.name.toLowerCase().endsWith(".gif");
     await post({ action: "send", conversationId: activeId, body: isGif ? "gif" : "image", msgType: isGif ? "gif" : "image", mediaUrl: dataUrl, ttlHours, deleteAfterView });
     await loadMessages(activeId);
+  }
+
+
+  function inviteViaEmail() {
+    const subject = encodeURIComponent("You're invited to Siftah Message on Looters Computas");
+    const body = encodeURIComponent(
+      `Hey,\n\nI'd like to invite you to try Siftah Message — our private, temporary chat for the Looters Computas community.\n\n` +
+      `Chat, share deals, and connect with other looters. Messages auto-delete after a few hours for privacy.\n\n` +
+      `Join here: https://www.looterscomputas.online/siftah-message\n\n` +
+      `Also check out the marketplace, forum, and Siftah AI tools at https://www.looterscomputas.online\n\n` +
+      `See you there!\n\n— ${me?.displayName || "A Looters member"}`
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   }
 
   async function saveSettings() {
@@ -255,11 +267,7 @@ function SiftahMessagePage() {
 
   return (
     <div className="flex flex-col">
-      <div className="pt-6 px-2">
-        <SiftahMatrixAd />
-      </div>
-    <main className="mx-auto flex h-[calc(100dvh-12rem)] max-w-6xl flex-col overflow-hidden border-x border-border bg-background">
-      <header className="relative flex items-center gap-3 border-b border-border bg-card/80 px-3 py-2.5 backdrop-blur">
+      <header className="relative flex items-center gap-3 border-b-2 border-zinc-700 bg-card/80 px-3 py-2.5 backdrop-blur">
         <a href="/siftah-message" target="_blank" rel="noopener" className="ml-auto hidden text-[11px] font-semibold text-red-500 hover:underline sm:inline">
           Open in new tab
         </a>
@@ -274,15 +282,15 @@ function SiftahMessagePage() {
           href="/siftah-message"
           target="_blank"
           rel="noopener"
-          className="rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-bold hover:bg-secondary/70"
+          className="rounded-lg border-2 border-zinc-600 bg-secondary px-3 py-1.5 text-xs font-bold hover:bg-secondary/70"
         >
           Open Message in tab
         </a>
-        <button type="button" onClick={() => setMenuOpen((v) => !v)} className="rounded-lg border border-border p-2" aria-label="Menu" aria-expanded={menuOpen}>
+        <button type="button" onClick={() => setMenuOpen((v) => !v)} className="rounded-lg border-2 border-zinc-600 p-2" aria-label="Menu" aria-expanded={menuOpen}>
           {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
         </button>
         {menuOpen && (
-          <div className="absolute right-2 top-full z-30 mt-1 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+          <div className="absolute right-2 top-full z-30 mt-1 w-52 overflow-hidden rounded-xl border-2 border-zinc-600 bg-card shadow-lg">
             <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
               onClick={() => { setPanel("chats"); setActiveId(null); setMenuOpen(false); }}>
               <MessageCircle className="size-4 text-red-500" /> All chats
@@ -295,6 +303,10 @@ function SiftahMessagePage() {
               onClick={() => { setPanel("group"); setMenuOpen(false); }}>
               <Users className="size-4" /> New group
             </button>
+                        <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
+              onClick={() => { inviteViaEmail(); setMenuOpen(false); }}>
+              <MessageCircle className="size-4 text-green-500" /> Invite via email
+            </button>
             <button type="button" className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-secondary"
               onClick={() => { setPanel("settings"); setMenuOpen(false); }}>
               <Settings className="size-4" /> Settings
@@ -306,10 +318,10 @@ function SiftahMessagePage() {
       {error && <p className="border-b border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-500" role="alert">{error}</p>}
 
       <div className="flex min-h-0 flex-1">
-        <aside className={`${panel !== "chats" || !activeId ? "flex" : "hidden sm:flex"} w-full flex-col border-r border-border sm:w-80 sm:max-w-[40%]`}>
+        <aside className={`${panel !== "chats" || !activeId ? "flex" : "hidden sm:flex"} w-full flex-col border-r-2 border-zinc-700 sm:w-80 sm:max-w-[40%]`}>
           {panel === "chats" && (
             <div className="flex flex-1 flex-col">
-              <div className="flex items-center gap-2 border-b border-border px-2 py-1.5">
+              <div className="flex items-center gap-2 border-b-2 border-zinc-700 px-2 py-1.5">
                 <input
                   value={chatQuery}
                   onChange={(e) => setChatQuery(e.target.value)}
@@ -317,7 +329,7 @@ function SiftahMessagePage() {
                   className="flex-1 rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs"
                 />
               </div>
-              <div className="flex border-b border-border">
+              <div className="flex border-b-2 border-zinc-700">
                 <button
                   type="button"
                   onClick={() => setSideTab("contacts")}
@@ -343,7 +355,7 @@ function SiftahMessagePage() {
               }).map((c) => (
                 <button key={c.id} type="button"
                   onClick={() => { autoSelectedPublicRef.current = true; setMenuOpen(false); setPanel("chats"); setActiveId(c.id); }}
-                  className={`flex w-full items-center gap-3 border-b border-border px-3 py-3 text-left hover:bg-secondary/50 ${activeId === c.id ? "bg-secondary/70" : ""}`}>
+                  className={`flex w-full items-center gap-3 border-b-2 border-zinc-700 px-3 py-3 text-left hover:bg-secondary/50 ${activeId === c.id ? "bg-secondary/70" : ""}`}>
                   <Avatar url={c.peerAvatar} name={c.title} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5">
@@ -373,7 +385,12 @@ function SiftahMessagePage() {
           {panel === "search" && (
             <div className="flex flex-1 flex-col gap-2 p-3">
               <button type="button" className="text-left text-xs text-muted-foreground" onClick={() => setPanel("chats")}>← Back</button>
-              <input value={query} onChange={(e) => void searchUsers(e.target.value)} placeholder="Find members…" className="rounded-xl border border-input bg-background px-3 py-2.5 text-sm" autoFocus />
+              <input value={query} onChange={(e) => void searchUsers(e.target.value)} placeholder="Find members…" className="rounded-xl border-2 border-zinc-600 bg-background px-3 py-2.5 text-sm" autoFocus />
+              <div className="rounded-xl border-2 border-zinc-600 bg-card/50 p-3 text-xs">
+                <p className="font-semibold">Add to contacts</p>
+                <p className="mt-1 text-muted-foreground">Search a username and start a chat to add them. Or invite someone new via email from the menu.</p>
+                <button type="button" onClick={inviteViaEmail} className="mt-2 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white">Invite via email</button>
+              </div>
               <div className="flex-1 overflow-y-auto">
                 {results.map((u) => (
                   <button key={u.id} type="button" disabled={busy} onClick={() => void startDirect(u.id).catch((e) => setError(e.message))}
@@ -410,20 +427,14 @@ function SiftahMessagePage() {
               <h2 className="text-sm font-bold">Account settings</h2>
               <div className="flex items-center gap-3">
                 <Avatar url={me?.avatarUrl || null} name={me?.displayName || "?"} large />
-                <label className="cursor-pointer rounded-lg border border-border px-3 py-2 text-xs font-semibold">Upload avatar
+                <label className="cursor-pointer rounded-lg border-2 border-zinc-600 px-3 py-2 text-xs font-semibold">Upload avatar
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => void onAvatarFile(e.target.files?.[0] || null).catch((err) => setError(err.message))} />
                 </label>
               </div>
               <label className="block text-xs font-semibold">Username
                 <input value={usernameEdit} onChange={(e) => setUsernameEdit(e.target.value)} maxLength={24} className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
               </label>
-              <div>
-                <p className="mb-1 text-xs font-semibold">Shout colour</p>
-                <div className="flex flex-wrap gap-2">
-                  {SHOUT_COLORS.map((c) => (
-                    <button key={c} type="button" onClick={() => setShoutColor(c)} className={`size-8 rounded-full border-2 ${shoutColor === c ? "border-foreground scale-110" : "border-transparent"}`} style={{ background: c }} />
-                  ))}
-                </div>
+              
               </div>
               <label className="block text-xs font-semibold">Default disappear after
                 <select value={ttlHours} onChange={(e) => setTtlHours(Number(e.target.value))} className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
@@ -434,7 +445,7 @@ function SiftahMessagePage() {
                   <option value={168}>7 days</option>
                 </select>
               </label>
-              <div className="rounded-xl border border-border bg-card p-3">
+              <div className="rounded-xl border-2 border-zinc-600 bg-card p-3">
                 <p className="text-xs font-semibold">Notifications</p>
                 <p className="mt-1 text-[11px] text-muted-foreground">Alerts only say “New message received” (and a count). Message text is never shown.</p>
                 <label className="mt-2 flex items-center gap-2 text-xs font-medium">
@@ -446,7 +457,7 @@ function SiftahMessagePage() {
                   Enable pffft alerts
                 </label>
                 {notifyEnabled && notifyPerm !== "granted" && notifyPerm !== "unsupported" && (
-                  <button type="button" className="mt-2 rounded-lg border border-border px-3 py-1.5 text-[11px] font-semibold"
+                  <button type="button" className="mt-2 rounded-lg border-2 border-zinc-600 px-3 py-1.5 text-[11px] font-semibold"
                     onClick={() => void ensureNotifyPermission().then((p) => setNotifyPerm(p))}>Allow system notifications</button>
                 )}
                 {pushSupport() && (
@@ -469,7 +480,7 @@ function SiftahMessagePage() {
         </aside>
 
         <section className={`${!activeId ? "hidden sm:flex" : "flex"} min-w-0 flex-1 flex-col`}>
-          <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+          <div className="flex items-center gap-2 border-b-2 border-zinc-700 px-3 py-2">
             <button type="button" className="text-xs text-muted-foreground sm:hidden" onClick={() => { setActiveId(null); setPanel("chats"); }}>Chats</button>
             <h2 className="truncate text-sm font-bold">{active?.title || "Siftah Message"}</h2>
             <span className="ml-auto hidden items-center gap-1 text-[10px] text-muted-foreground sm:inline-flex"><Shield className="size-3" /> Shield on</span>
@@ -484,49 +495,62 @@ function SiftahMessagePage() {
               </div>
             )}
             {!activeId && <p className="py-12 text-center text-sm text-muted-foreground">Pick a chat or search for a member.</p>}
-            {messages.map((m) => (
-              <div key={m.id} className={`group flex ${m.mine ? "justify-end" : "justify-start"}`}>
-                <div className={`relative max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm ${m.mine ? "bg-red-600 text-white" : "bg-secondary text-foreground"}`}>
-                  {!m.mine && <p className="mb-0.5 text-[10px] font-semibold opacity-70">{m.senderName}</p>}
-                  {m.msgType === "shout" ? (
-                    <span className="inline-block text-4xl leading-none"><span style={{ color: m.shoutColor || "#ff9a00" }}>🗣️</span></span>
-                  ) : m.mediaUrl ? (
-                    <img src={m.mediaUrl} alt="" className="max-h-56 rounded-lg pointer-events-none" draggable={false} />
-                  ) : (
-                    <p className="whitespace-pre-wrap break-words">{m.body}</p>
+            {messages.map((m) => {
+              const isGroup = active?.kind === "group" || active?.kind === "public";
+              return (
+                <div key={m.id} className={`group flex items-end gap-2 ${m.mine ? "justify-end" : "justify-start"}`}>
+                  {!m.mine && isGroup && (
+                    <Avatar url={m.senderAvatar} name={m.senderName} />
                   )}
-                  <div className={`mt-1 flex items-center justify-between gap-3 text-[10px] ${m.mine ? "text-white/70" : "text-muted-foreground"}`}>
-                    <span>
-                      {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      {m.expiresAt ? " · auto-delete" : ""}
-                      {m.deleteAfterView ? " · 5m after view" : ""}
-                    </span>
-                    <button
-                      type="button"
-                      title="Delete message"
-                      onClick={() => void deleteMessage(m.id).catch((e) => setError(e.message))}
-                      className={`flex size-5 items-center justify-center rounded-full opacity-70 hover:opacity-100 ${m.mine ? "bg-black/20 text-white hover:bg-black/40" : "bg-black/10 hover:bg-black/20"}`}
-                    >
-                      ✕
-                    </button>
+                  <div className={`relative max-w-[78%] rounded-2xl border-2 px-3.5 py-2.5 text-sm shadow-md ${
+                    m.mine
+                      ? "border-red-700 bg-red-600 text-white rounded-br-md"
+                      : "border-zinc-600 bg-zinc-800 text-zinc-100 rounded-bl-md"
+                  }`}>
+                    {!m.mine && <p className="mb-1 text-[11px] font-bold text-red-300">{m.senderName}</p>}
+                    {m.msgType === "shout" ? (
+                      <span className="inline-block text-4xl leading-none">🤐</span>
+                    ) : m.mediaUrl ? (
+                      <img src={m.mediaUrl} alt="" className="max-h-56 rounded-lg pointer-events-none" draggable={false} />
+                    ) : (
+                      <p className="whitespace-pre-wrap break-words leading-relaxed">{m.body}</p>
+                    )}
+                    <div className={`mt-1.5 flex items-center justify-between gap-3 text-[10px] ${m.mine ? "text-red-100/80" : "text-zinc-400"}`}>
+                      <span>
+                        {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {m.expiresAt ? " · auto-delete" : ""}
+                        {m.deleteAfterView ? " · 5m after view" : ""}
+                      </span>
+                      <button
+                        type="button"
+                        title="Delete message"
+                        onClick={() => void deleteMessage(m.id).catch((e) => setError(e.message))}
+                        className={`flex size-5 items-center justify-center rounded-full opacity-70 hover:opacity-100 ${m.mine ? "bg-black/30 text-white" : "bg-black/20"}`}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
+                  {m.mine && isGroup && (
+                    <Avatar url={me?.avatarUrl || user?.profileImageUrl} name={me?.displayName || "You"} />
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={bottomRef} />
           </div>
 
           {activeId && (
             <div className="border-t border-border p-2 sm:p-3">
               {showEmoji && (
-                <div className="mb-2 flex flex-wrap gap-1 rounded-xl border border-border bg-card p-2">
+                <div className="mb-2 flex flex-wrap gap-1 rounded-xl border-2 border-zinc-600 bg-card p-2">
                   {EMOJIS.map((e) => <button key={e} type="button" className="text-xl" onClick={() => setText((t) => t + e)}>{e}</button>)}
                 </div>
               )}
               <div className="flex items-end gap-1.5">
-                <button type="button" title="Shout" onClick={() => void sendShout().catch((e) => setError(e.message))} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border text-xl" style={{ color: shoutColor }}>🗣️</button>
-                <button type="button" onClick={() => setShowEmoji((v) => !v)} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border text-lg">☺</button>
-                <button type="button" onClick={() => fileRef.current?.click()} className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border" aria-label="Attach"><ImagePlus className="size-4" /></button>
+                <button type="button" title="Shout" onClick={() => void sendShout().catch((e) => setError(e.message))} className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-zinc-600 text-xl" style={{ color: shoutColor }}>🤐</button>
+                <button type="button" onClick={() => setShowEmoji((v) => !v)} className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-zinc-600 text-lg">☺</button>
+                <button type="button" onClick={() => fileRef.current?.click()} className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-zinc-600" aria-label="Attach"><ImagePlus className="size-4" /></button>
                 <input ref={fileRef} type="file" accept="image/*,.gif" className="hidden" onChange={(e) => { void onPickMedia(e.target.files?.[0] || null).catch((err) => setError(err.message)); e.target.value = ""; }} />
                 <div className="flex flex-col gap-1.5 w-full">
                   <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-1">
@@ -550,7 +574,7 @@ function SiftahMessagePage() {
         </section>
       </div>
       {onlineEnabled && (
-        <div className="fixed bottom-4 right-4 z-40 w-64 overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+        <div className="fixed bottom-4 right-4 z-40 w-64 overflow-hidden rounded-2xl border-2 border-zinc-600 bg-card shadow-xl">
           <button
             type="button"
             onClick={() => setOnlineOpen((v) => !v)}
@@ -581,7 +605,7 @@ function SiftahMessagePage() {
         <button
           type="button"
           onClick={() => setOnlineEnabled(true)}
-          className="fixed bottom-4 right-4 z-40 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold shadow"
+          className="fixed bottom-4 right-4 z-40 rounded-full border-2 border-zinc-600 bg-card px-3 py-1.5 text-xs font-semibold shadow"
         >
           Show online
         </button>
