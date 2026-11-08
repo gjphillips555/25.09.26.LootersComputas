@@ -2,6 +2,7 @@ import { getSql } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/verify.server";
 
 export const OWNER_EMAIL = "gjphillips555@gmail.com";
+export const EXTRA_ADMINS = ["website48@gmail.com"];
 
 export type AdminAccess = {
   userId: string;
@@ -30,7 +31,7 @@ export async function getAdminAccess(): Promise<AdminAccess | null> {
   if (rows[0]?.verified !== true) return null;
 
   // Owner shortcut (always allowed when verified)
-  if (email === OWNER_EMAIL) {
+  if (email === OWNER_EMAIL || EXTRA_ADMINS.includes(email)) {
     // Keep row in sync
     await sql.query(
       `insert into siftah_admins (email, role) values ($1, 'owner')
