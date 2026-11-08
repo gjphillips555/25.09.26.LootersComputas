@@ -249,11 +249,13 @@ function SiftahMessagePage() {
 
   return (
     <main className="mx-auto flex h-[calc(100dvh-4rem)] max-w-6xl flex-col overflow-hidden border-x border-border bg-background sm:h-[calc(100dvh-5rem)]">
-      <header className="relative flex items-center gap-2 border-b border-border px-3 py-2.5">
-        <MessageCircle className="size-5 text-red-500" />
+      <header className="relative flex items-center gap-3 border-b border-border bg-card/80 px-3 py-2.5 backdrop-blur">
+        <Avatar url={me?.avatarUrl || user?.profileImageUrl} name={me?.displayName || "You"} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-sm font-black tracking-wide">Siftah Message</h1>
-          <p className="truncate text-[11px] text-muted-foreground">6h auto-delete · screen shield · {me?.username ? `@${me.username}` : "set a username"}</p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {me?.username ? `@${me.username}` : me?.displayName || "Signed in"} · 1–6h auto-delete
+          </p>
         </div>
         <button type="button" onClick={() => setMenuOpen((v) => !v)} className="rounded-lg border border-border p-2" aria-label="Menu" aria-expanded={menuOpen}>
           {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
@@ -490,8 +492,22 @@ function SiftahMessagePage() {
 
 function Avatar({ url, name, large }: { url: string | null | undefined; name: string; large?: boolean }) {
   const size = large ? "size-14" : "size-10";
-  if (url) return <img src={url} alt="" className={`${size} shrink-0 rounded-full object-cover`} draggable={false} />;
-  return <span className={`flex ${size} shrink-0 items-center justify-center rounded-full bg-red-500/20 text-sm font-bold text-red-400`}>{(name || "?")[0]?.toUpperCase()}</span>;
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt=""
+        className={`${size} shrink-0 rounded-full object-cover ring-1 ring-border`}
+        draggable={false}
+        referrerPolicy="no-referrer"
+      />
+    );
+  }
+  return (
+    <span className={`flex ${size} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-red-500/30 to-red-600/20 text-sm font-bold text-red-400 ring-1 ring-border`}>
+      {(name || "?")[0]?.toUpperCase()}
+    </span>
+  );
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {
