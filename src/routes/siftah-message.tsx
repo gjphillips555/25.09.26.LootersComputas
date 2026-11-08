@@ -50,6 +50,8 @@ function SiftahMessagePage() {
   const [pushStatus, setPushStatus] = useState("");
   const [pushBusy, setPushBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [onlineOpen, setOnlineOpen] = useState(true);
+  const [onlineEnabled, setOnlineEnabled] = useState(true);
   const seenMsgIdsRef = useRef<Set<string>>(new Set());
   const primedRef = useRef(false);
   const autoSelectedPublicRef = useRef(false);
@@ -487,6 +489,43 @@ function SiftahMessagePage() {
           )}
         </section>
       </div>
+      {onlineEnabled && (
+        <div className="fixed bottom-4 right-4 z-40 w-64 overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+          <button
+            type="button"
+            onClick={() => setOnlineOpen((v) => !v)}
+            className="flex w-full items-center justify-between px-3 py-2 text-left text-xs font-bold"
+          >
+            <span>Online now</span>
+            <span>{onlineOpen ? "−" : "+"}</span>
+          </button>
+          {onlineOpen && (
+            <div className="max-h-48 overflow-y-auto border-t border-border px-3 py-2 text-xs">
+              <div className="flex items-center gap-2 py-1.5">
+                <span className="size-2 rounded-full bg-green-500" />
+                <span>You</span>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">Presence updates when chats are open.</p>
+              <button
+                type="button"
+                onClick={() => setOnlineEnabled(false)}
+                className="mt-2 text-[11px] underline text-muted-foreground"
+              >
+                Turn off
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {!onlineEnabled && (
+        <button
+          type="button"
+          onClick={() => setOnlineEnabled(true)}
+          className="fixed bottom-4 right-4 z-40 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold shadow"
+        >
+          Show online
+        </button>
+      )}
     </main>
   );
 }
