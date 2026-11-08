@@ -420,8 +420,8 @@ function SiftahMessagePage() {
             )}
             {!activeId && <p className="py-12 text-center text-sm text-muted-foreground">Pick a chat or search for a member.</p>}
             {messages.map((m) => (
-              <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.mine ? "bg-red-600 text-white" : "bg-secondary text-foreground"}`}>
+              <div key={m.id} className={`group flex ${m.mine ? "justify-end" : "justify-start"}`}>
+                <div className={`relative max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm ${m.mine ? "bg-red-600 text-white" : "bg-secondary text-foreground"}`}>
                   {!m.mine && <p className="mb-0.5 text-[10px] font-semibold opacity-70">{m.senderName}</p>}
                   {m.msgType === "shout" ? (
                     <span className="inline-block text-4xl leading-none"><span style={{ color: m.shoutColor || "#ff9a00" }}>🗣️</span></span>
@@ -430,10 +430,23 @@ function SiftahMessagePage() {
                   ) : (
                     <p className="whitespace-pre-wrap break-words">{m.body}</p>
                   )}
-                  <p className={`mt-1 flex items-center gap-2 text-[10px] ${m.mine ? "text-white/60" : "text-muted-foreground"}`}>
-                    <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{m.expiresAt ? " · disappears" : ""}</span>
-                    {m.mine && <button type="button" className="underline opacity-80 hover:opacity-100" onClick={() => void deleteMessage(m.id).catch((e) => setError(e.message))}>Delete</button>}
-                  </p>
+                  <div className={`mt-1 flex items-center justify-between gap-3 text-[10px] ${m.mine ? "text-white/70" : "text-muted-foreground"}`}>
+                    <span>
+                      {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {m.expiresAt ? " · auto-delete" : ""}
+                      {m.deleteAfterView ? " · 5m after view" : ""}
+                    </span>
+                    {m.mine && (
+                      <button
+                        type="button"
+                        title="Delete message"
+                        onClick={() => void deleteMessage(m.id).catch((e) => setError(e.message))}
+                        className="flex size-5 items-center justify-center rounded-full bg-black/20 text-white opacity-70 hover:opacity-100 hover:bg-black/40"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -491,4 +504,5 @@ function readFileAsDataUrl(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
 
