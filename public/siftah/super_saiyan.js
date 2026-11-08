@@ -79,7 +79,7 @@
       balance = Number(data.usage && data.usage.creditsBalance || 0);
       if (data.isAdmin) showStatus("Administrator access · unlimited", false, true);
       else if (!signedIn) showStatus("Premium requires a Looters account and Credits.", true, false);
-      else showStatus(balance + " Credits available · 2 per response", false, false);
+      else showStatus(balance + " Credits available", false, false);
     } catch (error) {
       showStatus(error && error.message ? error.message : "Credits status unavailable.", true);
     }
@@ -196,7 +196,7 @@
       if (!response.ok) {
         if (data.usage && typeof data.usage.creditsBalance === "number") {
           balance = data.usage.creditsBalance;
-          showStatus(balance + " Credits available · 2 per response", false, false);
+          showStatus(balance + " Credits available", false, false);
         }
         throw new Error(data.error || "Super Saiyan could not complete that request.");
       }
@@ -206,7 +206,7 @@
       if (typeof window.autoAddFromReply === "function") window.autoAddFromReply(data.reply);
       if (data.usage && typeof data.usage.creditsBalance === "number") {
         balance = data.usage.creditsBalance;
-        showStatus(balance + " Credits available · 2 per response", false);
+        showStatus(balance + " Credits available", false);
       } else {
         await refreshStatus();
       }
