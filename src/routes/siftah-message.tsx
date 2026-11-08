@@ -269,6 +269,14 @@ function SiftahMessagePage() {
             {me?.username ? `@${me.username}` : me?.displayName || "Signed in"} · 1–6h auto-delete
           </p>
         </div>
+        <a
+          href="/siftah"
+          target="_blank"
+          rel="noopener"
+          className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-500/20"
+        >
+          Open Siftah
+        </a>
         <button type="button" onClick={() => setMenuOpen((v) => !v)} className="rounded-lg border border-border p-2" aria-label="Menu" aria-expanded={menuOpen}>
           {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
         </button>
