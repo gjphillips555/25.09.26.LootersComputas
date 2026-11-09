@@ -3,6 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { Menu, X, MessageSquare, MessagesSquare, Store, Wallet, Sparkles, Gamepad2, ChevronDown, ChevronUp } from "lucide-react";
 import { AccountButton } from "@/components/account-button";
 import { BrandLogo } from "@/components/brand-logo";
+import { ComicQuirk } from "@/components/ComicQuirk";
 import { ShopSearch } from "@/components/shop-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -32,14 +33,18 @@ export function SimpleHeader() {
       {!minimized && (
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-6">
           <Link to="/" className="flex min-w-0 shrink items-center" aria-label="Looters Computas home">
-            <BrandLogo className="h-10 w-auto max-w-[150px] object-contain sm:h-12 sm:max-w-[220px]" />
+            <ComicQuirk offset={{ x: 8, y: -42 }} phrases={["Gosh!", "Looters Computas", "What the heck?!"]}>
+              <BrandLogo className="h-10 w-auto max-w-[150px] object-contain sm:h-12 sm:max-w-[220px]" />
+            </ComicQuirk>
           </Link>
           <ShopSearch className="hidden min-w-0 flex-1 md:flex md:max-w-md" showButton={false} placeholder="Search computers, gaming, phones…" />
           <nav className="ml-auto hidden shrink-0 items-center gap-1 lg:flex" aria-label="Marketplace">
             {NAV.map(({ to, label, icon: Icon }) => (
-              <Link key={label} to={to} className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold text-muted-foreground transition hover:border-border hover:bg-secondary hover:text-foreground">
-                <Icon className="size-4" strokeWidth={1.85} /><span>{label}</span>
-              </Link>
+              <ComicQuirk key={label} phrases={[`Gosh! ${label}!`, "What the heck are you doing?!"]} offset={{ x: 4, y: -36 }}>
+                <Link to={to} className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold text-muted-foreground transition hover:border-border hover:bg-secondary hover:text-foreground">
+                  <Icon className="size-4" strokeWidth={1.85} /><span>{label}</span>
+                </Link>
+              </ComicQuirk>
             ))}
             <ThemeToggle />
             <AccountButton />
@@ -58,17 +63,18 @@ export function SimpleHeader() {
           const active = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
           const showBadge = to === "/siftah-message" && hasUnread;
           return (
-            <Link
-              key={label}
-              to={to}
-              className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition ${active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-            >
-              <Icon className="size-3.5" />
-              <span className="hidden sm:inline">{label}</span>
-              {showBadge && (
-                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">!</span>
-              )}
-            </Link>
+            <ComicQuirk key={label} phrases={[`Gosh! ${label}`, "Don’t be jealous…", "Yes. I know."]} offset={{ x: 6, y: -40 }}>
+              <Link
+                to={to}
+                className={`relative inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold tracking-wide transition ${active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+              >
+                <Icon className="size-3.5" />
+                <span className="hidden sm:inline">{label}</span>
+                {showBadge && (
+                  <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white">!</span>
+                )}
+              </Link>
+            </ComicQuirk>
           );
         })}
         <button
