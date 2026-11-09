@@ -41,9 +41,10 @@
           if (ct.indexOf("application/json") !== -1) {
             clone.json().then(function (data) {
               if (data && typeof data.error === "string" && /2\s*Credits/i.test(data.error)) {
+                var newMsg = "ERROR: Insufficient credits top up to continue, it is really quite cheap, check it out!\nAdd Credits through PayPal to continue.";
                 data.error = data.error
-                  .replace(/This account needs 2 Credits for each image or video request\.\s*/i, "Add Credits through PayPal to continue. ")
-                  .replace(/This account needs 2 Credits for each response\.\s*/i, "Add Credits through PayPal to continue. ");
+                  .replace(/This account needs 2 Credits for each image or video request\.\s*/i, newMsg)
+                  .replace(/This account needs 2 Credits for each response\.\s*/i, newMsg);
               }
             }).catch(function () {});
           }
