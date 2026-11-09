@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type ReactNode, type MouseEvent } from "react";
+import "./comic-quirk.css";
 
 const DEFAULT_PHRASES = [
   "Gosh!",
@@ -14,14 +15,10 @@ const DEFAULT_PHRASES = [
 interface ComicQuirkProps {
   children: ReactNode;
   phrases?: string[];
-  /** Optional: force a specific phrase instead of random */
   phrase?: string;
-  /** How long the bubble stays visible (ms). 0 = until click outside / next click */
   duration?: number;
-  /** Offset of the bubble relative to the trigger */
   offset?: { x?: number; y?: number };
   className?: string;
-  /** Disable the hover glow */
   noGlow?: boolean;
 }
 
@@ -36,7 +33,6 @@ export function ComicQuirk({
 }: ComicQuirkProps) {
   const [visible, setVisible] = useState(false);
   const [currentPhrase, setCurrentPhrase] = useState("");
-  const triggerRef = useRef<HTMLSpanElement>(null);
   const timerRef = useRef<number | null>(null);
 
   const show = (e: MouseEvent) => {
@@ -51,7 +47,6 @@ export function ComicQuirk({
     }
   };
 
-  // Close on outside click
   useEffect(() => {
     if (!visible || duration === 0) return;
     const close = () => setVisible(false);
@@ -67,7 +62,6 @@ export function ComicQuirk({
 
   return (
     <span
-      ref={triggerRef}
       onClick={show}
       className={`relative inline-block cursor-pointer select-none ${className}`}
     >
@@ -91,10 +85,7 @@ export function ComicQuirk({
       {visible && (
         <span
           className="speech-bubble pointer-events-none absolute z-50"
-          style={{
-            left: offset.x,
-            top: offset.y,
-          }}
+          style={{ left: offset.x, top: offset.y }}
           role="status"
           aria-live="polite"
         >
