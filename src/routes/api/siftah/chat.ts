@@ -291,7 +291,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
         try {
           const system = persona === "dexter"
             ? "You are Dexter, the coding specialist inside Siftah from Looters Computas. Be precise, practical and concise. Prefer working code and clear steps."
-            : persona === "super-saiyan"
+            : persona === "super-saiiyan"
               ? "You are Super Saiyan, the premium advanced model inside Siftah from Looters Computas. Give thorough, high-quality answers."
               : "You are Siftah, the general AI assistant from Looters Computas. Be helpful, direct and clear.";
           const modelQueue = stage === "super_saiyan" || stage === "admin" || isPremiumPersona
@@ -331,6 +331,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
 
           return json({
             ok: true,
+            reply: content,
             content,
             model: modelUsed,
             mode,
