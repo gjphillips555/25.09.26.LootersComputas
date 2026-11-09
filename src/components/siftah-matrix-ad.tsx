@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
+import { ComicQuirk } from "@/components/ComicQuirk";
 
 const CHARS = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン<>[]{}#%*+=-_";
 
@@ -46,7 +47,6 @@ export function SiftahMatrixAd() {
       for (const el of [logoRef.current, copyRef.current]) {
         if (!el) continue;
         const r = el.getBoundingClientRect();
-        // Slightly expand so rain clears the readable area
         rects.push(
           new DOMRect(
             r.left - base.left - 6,
@@ -97,7 +97,6 @@ export function SiftahMatrixAd() {
       const { width, height } = shell.getBoundingClientRect();
       ctx.clearRect(0, 0, width, height);
 
-      // Soft red/white static noise wash
       for (let i = 0; i < 28; i++) {
         const nx = Math.random() * width;
         const ny = Math.random() * height;
@@ -120,14 +119,12 @@ export function SiftahMatrixAd() {
       for (const drop of drops) {
         drop.y += drop.speed;
 
-        // Bounce / deflect off logo & copy, then fade downward
         const tipY = drop.y + drop.len * fontSize;
         const obstacle = hitObstacle(drop.x + fontSize * 0.4, tipY, obstacles);
         if (obstacle && drop.bounce < 3) {
           drop.speed = Math.max(0.6, drop.speed * 0.55);
           drop.x += (Math.random() > 0.5 ? 1 : -1) * (fontSize * (0.6 + Math.random()));
           drop.bounce += 1;
-          // Nudge past the bottom of the obstacle so it "slides off"
           drop.y = obstacle.bottom - drop.len * fontSize * 0.35 + Math.random() * 6;
         }
 
@@ -135,12 +132,10 @@ export function SiftahMatrixAd() {
           const gy = drop.y + i * fontSize;
           if (gy < -fontSize || gy > height + fontSize) continue;
 
-          // Fade more as characters fall past mid / after bounce
           const life = 1 - Math.min(1, Math.max(0, gy / (height + 40)));
           const bounceFade = Math.max(0.25, 1 - drop.bounce * 0.22);
           const alpha = life * bounceFade * (i === drop.len - 1 ? 1 : 0.35 + (i / drop.len) * 0.55);
 
-          // Skip drawing over obstacles so logo/text stay clean
           if (hitObstacle(drop.x + 4, gy + 6, obstacles)) continue;
 
           const isHead = i === drop.len - 1;
@@ -154,7 +149,6 @@ export function SiftahMatrixAd() {
           ctx.fillText(drop.glyphs[i], drop.x, gy);
         }
 
-        // Occasionally scramble a glyph
         if (Math.random() < 0.08) {
           const idx = (Math.random() * drop.glyphs.length) | 0;
           drop.glyphs[idx] = CHARS[(Math.random() * CHARS.length) | 0];
@@ -185,7 +179,7 @@ export function SiftahMatrixAd() {
   return (
     <section
       ref={shellRef}
-      className="siftah-mini-ad relative mx-auto mt-1 w-full max-w-6xl overflow-hidden rounded-xl bg-[#0a0508] text-white"
+      className="siftah-mini-ad relative mx-auto mt-1 w-full max-w-6xl overflow-hidden rounded-xl bg-[#0a0508] text-white transition-all duration-200 hover:drop-shadow-[0_0_18px_rgba(239,68,68,0.35)]"
       aria-label="Siftah Mobile advertisement"
     >
       <canvas
@@ -193,7 +187,6 @@ export function SiftahMatrixAd() {
         className="pointer-events-none absolute inset-0 z-0 h-full w-full"
         aria-hidden
       />
-      {/* Soft vignette so rain sits in the edges */}
       <div
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
@@ -210,7 +203,7 @@ export function SiftahMatrixAd() {
           ref={logoRef}
           src="/siftah-mobile-logo.svg"
           alt="Siftah Mobile"
-          className="h-24 w-auto max-w-[50%] shrink-0 object-contain drop-shadow-[0_0_22px_rgba(255,40,55,0.35)] sm:h-40 sm:max-w-[38%]"
+          className="h-24 w-auto max-w-[50%] shrink-0 object-contain drop-shadow-[0_0_22px_rgba(255,40,55,0.35)] transition-all duration-200 hover:drop-shadow-[0_0_28px_rgba(255,40,55,0.7)] sm:h-40 sm:max-w-[38%]"
         />
         <span ref={copyRef} className="min-w-0 flex-1 text-center sm:text-left">
           <span
@@ -242,9 +235,15 @@ export function SiftahMatrixAd() {
             Your ideas. Built at the speed of thought.
           </span>
         </span>
-        <span className="mt-1 shrink-0 rounded-lg border border-red-300/45 bg-red-500/20 px-4 py-2.5 text-xs font-extrabold text-red-50 shadow-md shadow-red-950/40 transition hover:bg-red-500/35 sm:mt-0 sm:text-sm">
-          Explore <span aria-hidden="true">→</span>
-        </span>
+        <ComicQuirk
+          phrases={["Gosh! Siftah time!", "What the heck are you doing?!", "Meet Siftah Mobile", "Yes. I know."]}
+          offset={{ x: -40, y: -50 }}
+          className="mt-1 shrink-0 sm:mt-0"
+        >
+          <span className="inline-block rounded-lg border border-red-300/45 bg-red-500/20 px-4 py-2.5 text-xs font-extrabold text-red-50 shadow-md shadow-red-950/40 transition-all duration-200 hover:bg-red-500/35 hover:drop-shadow-[0_0_12px_rgba(239,68,68,0.7)] hover:scale-[1.04] sm:text-sm">
+            Explore <span aria-hidden="true">→</span>
+          </span>
+        </ComicQuirk>
       </Link>
     </section>
   );
