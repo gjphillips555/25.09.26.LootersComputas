@@ -30,6 +30,25 @@
     var menu = document.getElementById("menuSuperSaiyan");
     if (menu) scrubNode(menu);
   }
+  function linkifyCreditErrors() {
+    var bubbles = document.querySelectorAll(".message.assistant .bubble");
+    for (var i = 0; i < bubbles.length; i++) {
+      var b = bubbles[i];
+      if (b.dataset.creditLinked) continue;
+      var text = b.textContent || "";
+      if (/Insufficient credits/i.test(text) && /Add Credits through PayPal/i.test(text)) {
+        var lines = text.split(/\n/);
+        var html = lines.map(function (line) {
+          if (/Add Credits through PayPal/i.test(line)) {
+            return '<a href="/siftah/credits.html" style="color:#ff737d;font-weight:700;text-decoration:underline">' + line + '</a>';
+          }
+          return line.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">");
+        }).join("<br>");
+        b.innerHTML = html;
+        b.dataset.creditLinked = "1";
+      }
+    }
+  }
   var _fetch = window.fetch;
   if (_fetch && !window.__siftahHideCreditCostFetch) {
     window.__siftahHideCreditCostFetch = true;
@@ -53,7 +72,11 @@
       });
     };
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(scrub, 400); setTimeout(scrub, 1200); });
-  else { setTimeout(scrub, 400); setTimeout(scrub, 1200); }
-  setInterval(scrub, 2500);
+  function tick() {
+    scrub();
+    linkifyCreditErrors();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(tick, 400); setTimeout(tick, 1200); });
+  else { setTimeout(tick, 400); setTimeout(tick, 1200); }
+  setInterval(tick, 1500);
 })();
