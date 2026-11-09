@@ -87,6 +87,11 @@ export function ProductCard({
     <article
       className={cn(
         "group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card",
+        "transition-all duration-200 ease-out",
+        "hover:scale-[1.02]",
+        "hover:drop-shadow-[0_0_12px_rgba(168,85,247,0.55)]",
+        "hover:border-primary/40",
+        "hover:brightness-105",
         className,
       )}
     >
@@ -168,7 +173,7 @@ export function ProductCard({
               type="button"
               onClick={handleAdd}
               disabled={!soldOut && (alreadyMaxed || adding || !canBuy)}
-              className="shop-add"
+              className="shop-add transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(168,85,247,0.6)] hover:brightness-110"
             >
               {alreadyMaxed || added ? (
                 <>
