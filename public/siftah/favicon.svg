@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#0a0a0c"/>
-  <path fill="#e11d2e" d="M5.5 22.2 8.4 8.6l4.2 7.2L16 5.4l3.4 10.4 4.2-7.2 2.9 13.6z"/>
-  <rect x="5.2" y="20.6" width="21.6" height="5" rx="1.4" fill="#e11d2e"/>
-  <circle cx="10.2" cy="23.1" r="1.15" fill="#ffd0d4"/>
-  <circle cx="16" cy="23.1" r="1.15" fill="#ffd0d4"/>
-  <circle cx="21.8" cy="23.1" r="1.15" fill="#ffd0d4"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Siftah">
+  <rect width="32" height="32" rx="6" fill="#0a0a0c"/>
+  <path fill="#e11d2e" d="M6 22h20v3.5c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V22z"/>
+  <path fill="#e11d2e" d="M6 21.5L4 11l6 5.5L16 6l6 10.5L28 11l-2 10.5H6z"/>
+  <circle cx="16" cy="12.5" r="1.6" fill="#ffd54a"/>
+  <circle cx="10.2" cy="15.2" r="1.2" fill="#ffd54a"/>
+  <circle cx="21.8" cy="15.2" r="1.2" fill="#ffd54a"/>
+  <path fill="#ff4d5e" opacity=".45" d="M8 21.5L6.5 14l4 3.5L16 9.5l1.2 2.2L11.5 20.5H8z"/>
 </svg>
