@@ -6,7 +6,6 @@
   <title>NZ Number Plate Sticker Maker – LootersComputas</title>
   <meta name="description" content="Generate and print realistic New Zealand number plate stickers at correct 360x124 mm dimensions." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/fonts/licenz.css" />
   <style>
     @page { size: A4 landscape; margin: 0; }
     * { box-sizing: border-box; }
@@ -80,6 +79,21 @@
       h1 { font-size: 1.45rem; }
     }
   </style>
+  <script src="/fonts/licenz-a.js"></script>
+  <script src="/fonts/licenz-b.js"></script>
+  <script>
+    (function () {
+      try {
+        if (window.LICENZ_A && window.LICENZ_B) {
+          var style = document.createElement('style');
+          style.textContent =
+            "@font-face{font-family:'Licenz';font-style:normal;font-weight:400;font-display:block;" +
+            "src:url(data:font/otf;base64," + window.LICENZ_A + window.LICENZ_B + ") format('opentype');}";
+          document.head.appendChild(style);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <header>
