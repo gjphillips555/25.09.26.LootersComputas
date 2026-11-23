@@ -1,0 +1,1 @@
+window.LICENZ_B='PLACEHOLDER';
