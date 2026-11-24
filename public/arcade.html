@@ -3,8 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arcade | Looters Computas</title>
-<meta name="description" content="Thousands of free browser games from Looters Computas. No sign-up, just play.">
+<title>Siftah Arcade | Siftah Solutions</title>
+<link rel="icon" type="image/svg+xml" href="/brand/siftah-mark.svg">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@1,800;1,900&family=Inter:wght@400;600;800&display=swap">
+<meta name="description" content="Thousands of free browser games from Siftah Solutions (looterscomputas.online). No sign-up, just play.">
 <style>html.auth-check body{visibility:hidden}</style>
 <script>
 document.documentElement.classList.add("auth-check");
@@ -23,39 +28,39 @@ document.documentElement.classList.add("auth-check");
 })();
 </script>
 <style>
-:root{--bg:#f2f2f0;--ink:#1d1a24;--mute:#6b6676;--card:#fff;--line:#dcdad6;--orange:#f26a1b;--purple:#5b3fa8}
-@media (prefers-color-scheme:dark){:root{--bg:#17141d;--ink:#f2f0f6;--mute:#a49fb0;--card:#221e2b;--line:#34303f;--orange:#ff8a45;--purple:#a58cf0}}
+:root{--bg:#0b0b0c;--ink:#f6f6f7;--mute:#a3a3ab;--card:#151517;--line:rgba(255,255,255,.1);--orange:#e3121b;--purple:#e3121b;--blue:#5cc8f2;--red:#e3121b}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Trebuchet MS",Verdana,sans-serif}
+body{margin:0;background:radial-gradient(ellipse 70% 35% at 90% 0%,rgba(227,18,27,.25),transparent 60%),radial-gradient(ellipse 50% 30% at 0% 30%,rgba(92,200,242,.1),transparent 60%),var(--bg);background-attachment:fixed;color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;min-height:100vh}
 header,main{max-width:1100px;margin:0 auto;padding:16px 20px}
 header{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-header a{color:var(--purple);font-weight:700;text-decoration:none}
+header a{color:var(--blue);font-weight:700;text-decoration:none;font-size:.85rem}
 header a:hover{text-decoration:underline}
-h1{font:800 clamp(2rem,6vw,3.4rem)/1.05 "Arial Black",Impact,sans-serif;margin:8px 0 6px;color:var(--orange);letter-spacing:-.02em}
+h1{font:italic 900 clamp(2.2rem,7vw,3.8rem)/1 Archivo,"Arial Black",Impact,sans-serif;margin:10px 0 6px;color:#fff;letter-spacing:-.02em}h1 span{color:var(--red)}.eyebrow{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:3px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--blue);font-size:.68rem;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
 .sub{color:var(--mute);margin:0 0 16px;max-width:52ch}
-#q{width:100%;max-width:420px;padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:inherit;margin-bottom:14px}
+#q{width:100%;max-width:460px;padding:12px 18px;border:2px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:inherit;margin-bottom:14px;outline:none}#q:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(92,200,242,.25)}
 #chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-#chips button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 14px;border-radius:999px;font:inherit;cursor:pointer;text-transform:capitalize}
-#chips button[aria-pressed=true]{background:var(--purple);border-color:var(--purple);color:#fff}
+#chips button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 14px;border-radius:999px;font:700 .85rem Inter,sans-serif;cursor:pointer;text-transform:capitalize}#chips button:hover{border-color:var(--red)}
+#chips button[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
 #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-.g{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;text-align:left;padding:0;color:inherit;font:inherit}
+.g{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;padding:0;color:inherit;font:inherit;transition:transform .15s,box-shadow .15s,border-color .15s}.g:hover{transform:translateY(-3px);border-color:var(--red);box-shadow:0 12px 30px -14px rgba(227,18,27,.7)}
 .g img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--line)}
 .g span{display:block;padding:8px 10px;font-weight:700;font-size:.85rem;line-height:1.3}
-.g:hover,.g:focus-visible{outline:3px solid var(--orange)}
-#more{display:none;margin:24px auto 0;background:var(--orange);color:#111;border:0;border-radius:8px;padding:10px 24px;font:700 1rem "Trebuchet MS",sans-serif;cursor:pointer}
+.g:focus-visible{outline:3px solid var(--blue)}
+#more{display:none;margin:24px auto 0;background:var(--red);color:#fff;border:0;border-radius:12px;padding:12px 28px;font:italic 900 1rem Archivo,sans-serif;cursor:pointer;box-shadow:0 8px 22px -10px rgba(227,18,27,.8)}
 #msg{color:var(--mute)}
 #player{position:fixed;inset:0;background:rgba(10,8,14,.9);display:none;flex-direction:column;z-index:10}
 #player.open{display:flex}
-#bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#111;color:#eee}
-#bar button{background:var(--orange);color:#111;border:0;padding:6px 14px;border-radius:6px;font-weight:700;cursor:pointer}
-#frame{flex:1;width:100%;border:0;background:#000}.game-placeholder{width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;background:radial-gradient(circle at 50% 35%,#35213d,#15121d 68%);color:#fff;border-bottom:1px solid var(--line);font-weight:800}.game-placeholder b{font-size:2.2rem;color:var(--orange)}.game-placeholder small{font-size:.7rem;color:#c6bed0;font-weight:500}.arcade-home{display:inline-block;margin-top:8px;padding:7px 12px;border-radius:8px;background:var(--card);border:1px solid var(--line)}
+#bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#0b0b0c;color:#eee;border-bottom:4px solid var(--red)}
+#bar button{background:var(--red);color:#fff;border:0;padding:6px 14px;border-radius:6px;font-weight:700;cursor:pointer}
+#frame{flex:1;width:100%;border:0;background:#000}.game-placeholder{width:100%;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;background:radial-gradient(circle at 50% 35%,#3a0d10,#0b0b0c 68%);color:#fff;border-bottom:1px solid var(--line);font-weight:800}.game-placeholder b{font-size:2.2rem;color:var(--orange)}.game-placeholder small{font-size:.7rem;color:#c6bed0;font-weight:500}.arcade-home{display:inline-block;margin-top:8px;padding:7px 12px;border-radius:8px;background:var(--card);border:1px solid var(--line)}
 </style>
 </head>
 <body>
 <header>
   <div>
-    <a href="/">← Back to Looters Computas</a>
-    <h1>Arcade</h1>
+    <a href="/">← Back to Siftah Solutions</a><br>
+    <span class="eyebrow">Siftah Solutions</span>
+    <h1>Siftah <span>Arcade</span></h1>
     <p class="sub">Thousands of free browser games. Search or pick a category, then play instantly.</p>
   </div>
 </header>
@@ -78,7 +83,7 @@ h1{font:800 clamp(2rem,6vw,3.4rem)/1.05 "Arial Black",Impact,sans-serif;margin:8
   function card(g){
     var b=document.createElement("button");b.type="button";b.className="g";
     var i=document.createElement("img");
-    i.src="https://static.playgama.com/p-img/pg/"+g[0]+"/icon/"+g[2]+"?width=448";i.alt=g[1]+" thumbnail";i.loading="lazy";i.onerror=function(){var fallback=document.createElement("div");fallback.className="game-placeholder";fallback.innerHTML="<b>🎮</b><span>Looters Computas Arcade</span><small>Game thumbnail unavailable</small>";i.replaceWith(fallback)};
+    i.src="https://static.playgama.com/p-img/pg/"+g[0]+"/icon/"+g[2]+"?width=448";i.alt=g[1]+" thumbnail";i.loading="lazy";i.onerror=function(){var fallback=document.createElement("div");fallback.className="game-placeholder";fallback.innerHTML="<b>🎮</b><span>Siftah Arcade</span><small>Game thumbnail unavailable</small>";i.replaceWith(fallback)};
     var s=document.createElement("span");s.textContent=g[1];
     b.appendChild(i);b.appendChild(s);
     b.addEventListener("click",function(){play(g)});

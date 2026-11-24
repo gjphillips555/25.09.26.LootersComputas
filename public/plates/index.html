@@ -3,79 +3,105 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NZ Number Plate Sticker Maker – LootersComputas</title>
-  <meta name="description" content="Generate and print realistic New Zealand number plate stickers at correct 360x124 mm dimensions. Customise colours, bolt holes and frame." />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <title>Siftah Plates · NZ Plate Sticker Maker – Siftah Solutions</title>
+  <meta name="description" content="Generate and print realistic New Zealand number plate stickers at true 360×124 mm size, with 78 mm cap-height characters." />
+  <link rel="icon" type="image/svg+xml" href="/brand/siftah-mark.svg" />
+  <meta name="theme-color" content="#0b0b0c" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@1,900&family=Inter:wght@400;600;800&display=swap" />
   <style>
-    @page { size: A4 landscape; margin: 0; }
+    /* True-size sticker: the printed page IS the plate. */
+    @page { size: 360mm 124mm; margin: 0; }
+
     * { box-sizing: border-box; }
     body {
       margin: 0; padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #0f172a; color: #e2e8f0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(ellipse 70% 40% at 90% 0%, rgba(227,18,27,0.28), transparent 60%),
+        radial-gradient(ellipse 50% 30% at 0% 100%, rgba(92,200,242,0.12), transparent 60%),
+        #0b0b0c;
+      color: #f4f4f5;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center;
     }
     header {
-      width: 100%; padding: 1.1rem 1.5rem;
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b;
-      position: sticky; top: 0; z-index: 20; backdrop-filter: blur(8px);
+      width: 100%; position: sticky; top: 0; z-index: 20;
+      background: #0b0b0c; box-shadow: 0 6px 24px -12px rgba(0,0,0,0.6);
     }
-    header a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
-    header a:hover { color: #e2e8f0; }
-    .logo { font-weight: 700; font-size: 1.1rem; color: #f8fafc; letter-spacing: -0.02em; }
+    .bar {
+      max-width: 1152px; margin: 0 auto; height: 4rem; padding: 0 0.75rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .stripe { height: 4px; background: linear-gradient(90deg, #e3121b 0 72%, #5cc8f2 72% 78%, #fff 78% 100%); }
+    header a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.875rem; font-weight: 700; }
+    header a:hover { color: #fff; }
+    .header-logo { display: block; height: 3rem; width: auto; max-width: 170px; }
+    .nav { margin-left: auto; display: flex; align-items: center; gap: 0.25rem; }
+    .nav a { padding: 0.5rem 0.8rem; border-radius: 999px; }
+    .nav a:hover { background: rgba(255,255,255,0.1); }
+    .nav a.on { background: #e3121b; color: #fff; }
+    @media (max-width: 640px) { .nav a.opt { display: none; } }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.45rem; margin: 0.4rem 0 -0.5rem;
+      padding: 0.25rem 0.75rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05); color: #5cc8f2;
+      font-size: 0.68rem; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase;
+    }
     main {
-      flex: 1; width: 100%; max-width: 980px; padding: 1.6rem 1.25rem 3.5rem;
-      display: flex; flex-direction: column; align-items: center; gap: 1.25rem;
+      flex: 1; width: 100%; max-width: 980px; padding: 1.25rem 1.25rem 3.5rem;
+      display: flex; flex-direction: column; align-items: center; gap: 1.15rem;
     }
-    h1 { margin: 0; font-size: 1.65rem; font-weight: 700; letter-spacing: -0.03em; text-align: center; color: #f8fafc; }
-    .subtitle { margin: -0.4rem 0 0; color: #94a3b8; font-size: 0.92rem; text-align: center; }
+    h1 { margin: 0; font-family: Archivo, "Archivo Black", Impact, sans-serif; font-style: italic; font-weight: 900; font-size: clamp(1.9rem, 6vw, 2.6rem); line-height: 1; letter-spacing: -0.02em; text-align: center; color: #fff; }
+    h1 span { color: #e3121b; }
+    .subtitle { margin: -0.4rem 0 0; color: rgba(255,255,255,0.65); font-size: 0.92rem; text-align: center; }
 
     .panel {
-      width: 100%; max-width: 680px;
-      background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      width: 100%; max-width: 720px;
+      background: #151517; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
       padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.9rem;
     }
     .row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; justify-content: center; }
     label.option {
       display: flex; align-items: center; gap: 0.4rem;
-      font-size: 0.9rem; color: #cbd5e1; cursor: pointer; user-select: none;
-      background: #0f172a; padding: 0.42rem 0.7rem; border-radius: 8px; border: 1px solid #334155;
+      font-size: 0.9rem; color: #e4e4e7; cursor: pointer; user-select: none;
+      background: #0b0b0c; padding: 0.42rem 0.7rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
     }
-    label.option input { width: 1rem; height: 1rem; accent-color: #3b82f6; cursor: pointer; }
+    label.option input { width: 1rem; height: 1rem; accent-color: #e3121b; cursor: pointer; }
     .section-label {
       width: 100%; font-size: 0.75rem; text-transform: uppercase;
-      letter-spacing: 0.06em; color: #64748b; margin-bottom: -0.2rem;
+      letter-spacing: 0.16em; font-weight: 900; color: rgba(255,255,255,0.45); margin-bottom: -0.2rem;
     }
 
     input[type="text"] {
       font-size: 1.25rem; padding: 0.7rem 1rem; width: min(260px, 100%);
       text-align: center; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700;
-      border: 2px solid #334155; border-radius: 10px; background: #0f172a; color: #f8fafc; outline: none;
+      border: 2px solid rgba(255,255,255,0.18); border-radius: 12px; background: #0b0b0c; color: #fff; outline: none;
     }
-    input[type="text"]:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
-    input[type="text"]::placeholder { text-transform: none; letter-spacing: normal; color: #64748b; font-weight: 500; }
+    input[type="text"]:focus { border-color: #5cc8f2; box-shadow: 0 0 0 3px rgba(92, 200, 242, 0.25); }
+    input[type="text"]::placeholder { text-transform: none; letter-spacing: normal; color: rgba(255,255,255,0.4); font-weight: 500; }
 
     select, input[type="color"] {
       font-size: 0.9rem; padding: 0.4rem 0.55rem; border-radius: 8px;
-      background: #0f172a; color: #e2e8f0; border: 1px solid #334155; cursor: pointer;
+      background: #0b0b0c; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;
       height: 2.2rem;
     }
     input[type="color"] { padding: 0.15rem; width: 3rem; }
-
     .colour-group {
       display: flex; align-items: center; gap: 0.4rem;
-      background: #0f172a; padding: 0.35rem 0.6rem; border-radius: 8px; border: 1px solid #334155;
-      font-size: 0.85rem; color: #cbd5e1;
+      background: #0b0b0c; padding: 0.35rem 0.6rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+      font-size: 0.85rem; color: #e4e4e7;
     }
 
     button {
-      padding: 0.7rem 1.25rem; font-size: 0.98rem; font-weight: 600;
-      background: #2563eb; color: white; border: none; border-radius: 10px; cursor: pointer;
+      padding: 0.7rem 1.15rem; font-size: 0.95rem; font-weight: 800;
+      background: #e3121b; color: white; border: none; border-radius: 12px; cursor: pointer;
+      box-shadow: 0 8px 22px -10px rgba(227,18,27,0.8);
     }
-    button:hover { background: #1d4ed8; }
-    button.secondary { background: #334155; }
-    button.secondary:hover { background: #475569; }
+    button:hover { background: #ff2a33; }
+    button.secondary { background: #26262b; box-shadow: none; }
+    button.secondary:hover { background: #34343a; }
+    button:disabled { opacity: 0.6; cursor: wait; }
 
     #plate-container {
       margin: 0.3rem 0 0.6rem; width: 100%;
@@ -96,25 +122,33 @@
       border: 4.5mm solid #111111;
       box-shadow: 0 6px 18px rgba(0,0,0,0.35);
       transition: border-color 0.15s, background-color 0.15s;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .plate.no-frame {
       border-width: 1.2mm;
       border-color: #cccccc;
     }
 
+    /* Licenz sCapHeight is 700/1000 em, so font-size 78mm/0.7 makes cap height 78 mm. */
     .plate-content {
       font-family: 'Licenz', 'Arial Black', Impact, sans-serif;
-      font-size: 78mm;
-      line-height: 0.78;
+      font-size: calc(78mm / 0.7);
+      line-height: 78mm;
+      height: 78mm;
       text-align: center;
       width: 100%;
-      padding: 0 18mm;
+      padding: 0 8mm;
       font-weight: 400;
       text-transform: uppercase;
-      letter-spacing: 1.1mm;
+      letter-spacing: 0;
       user-select: none;
       color: #0a0a0a;
       transition: color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
     }
 
     .nz-badge {
@@ -146,31 +180,71 @@
     .bolt.br { bottom: 19mm; right: 15mm; }
 
     .hint {
-      max-width: 560px; text-align: center; color: #94a3b8;
-      font-size: 0.88rem; line-height: 1.5;
+      max-width: 640px; text-align: center; color: rgba(255,255,255,0.62);
+      font-size: 0.88rem; line-height: 1.55;
     }
-    .hint strong { color: #cbd5e1; }
+    .hint strong { color: #fff; }
     footer {
       width: 100%; padding: 1rem; text-align: center;
-      color: #64748b; font-size: 0.8rem; border-top: 1px solid #1e293b;
+      color: rgba(255,255,255,0.45); font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.08);
     }
 
-    @media print {
-      body * { visibility: hidden; }
-      #plate-container, #plate-container * { visibility: visible; }
-      #plate-container {
-        position: absolute; left: 0; top: 12mm; margin: 0; padding: 0;
-        width: 100%; display: flex; justify-content: center;
-      }
-      .plate { box-shadow: none !important; }
-      html, body { background: white; }
-    }
+    /* Screen-only shrink so the 360 mm plate fits narrow viewports.
+       Must not apply when printing — print rules below override. */
     @media (max-width: 900px) {
       .plate { transform: scale(0.52); transform-origin: top center; margin-bottom: -58mm; }
     }
     @media (max-width: 520px) {
       .plate { transform: scale(0.36); margin-bottom: -78mm; }
       h1 { font-size: 1.3rem; }
+    }
+
+    @media print {
+      @page { size: 360mm 124mm; margin: 0; }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        width: 360mm !important;
+        height: 124mm !important;
+        min-height: 0 !important;
+        max-height: 124mm !important;
+        overflow: hidden !important;
+        display: block !important;
+      }
+      header, footer, h1, .subtitle, .panel, .hint, .no-print {
+        display: none !important;
+      }
+      main, #plate-container {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 360mm !important;
+        height: 124mm !important;
+        min-height: 0 !important;
+        max-width: none !important;
+        overflow: visible !important;
+        position: static !important;
+        transform: none !important;
+        flex: none !important;
+        background: transparent !important;
+      }
+      .plate {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 360mm !important;
+        height: 124mm !important;
+        margin: 0 !important;
+        transform: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      #plate-container, #plate-container * {
+        visibility: visible !important;
+      }
     }
   </style>
   <script src="/fonts/licenz-a.js"></script>
@@ -188,67 +262,84 @@
       } catch (e) {}
     })();
   </script>
+  <script src="/fonts/licenz-glyphs.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="/plates/plate-pdf.js"></script>
 </head>
 <body>
   <header>
-    <a href="/" class="logo">LootersComputas</a>
-    <a href="/">← Back to site</a>
+    <div class="bar">
+      <a href="/" aria-label="Siftah Solutions home">
+        <img class="header-logo" id="headerLogo" src="/brand/siftah-solutions-logo.svg" alt="Siftah Solutions – trading as looterscomputas.online" />
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="/" class="opt">Marketplace</a>
+        <a href="/plates/index.html" class="on" aria-current="page">Plates</a>
+        <a href="/arcade" class="opt">Arcade</a>
+        <a href="/siftah/" class="opt">Siftah AI</a>
+        <a href="/">← Home</a>
+      </nav>
+    </div>
+    <div class="stripe"></div>
   </header>
 
   <main>
-    <h1>NZ Number Plate Sticker Maker</h1>
-    <p class="subtitle">Exact 360 × 124 mm · customise colours, frame & bolts</p>
+    <p class="eyebrow">Siftah Plates</p>
+    <h1>NZ Plate <span>Sticker Maker</span></h1>
+    <p class="subtitle">True size 360 × 124 mm · characters 78 mm cap height</p>
 
-    <div class="panel">
+    <div class="panel no-print">
       <div class="row">
         <input type="text" id="plateInput" placeholder="e.g. ABC123" maxlength="7" autofocus autocomplete="off" spellcheck="false" />
-        <button onclick="window.print()">Print Sticker</button>
-        <button class="secondary" onclick="clearPlate()">Clear</button>
+        <button type="button" id="btnPrint">Print sticker</button>
+        <button type="button" class="secondary" id="btnClear">Clear</button>
+      </div>
+      <div class="row">
+        <button type="button" id="btnPdfPlate">Download 360×124 mm PDF</button>
+        <button type="button" class="secondary" id="btnPdfA3">Download A3 PDF (crop marks)</button>
       </div>
 
       <div class="section-label">Show / hide</div>
       <div class="row">
-        <label class="option"><input type="checkbox" id="toggleFrame" checked onchange="updateOptions()"> Border / frame</label>
-        <label class="option"><input type="checkbox" id="toggleBolts" checked onchange="updateOptions()"> Bolt holes</label>
-        <label class="option"><input type="checkbox" id="toggleNz" checked onchange="updateOptions()"> NZ badge</label>
+        <label class="option"><input type="checkbox" id="toggleFrame" checked> Border / frame</label>
+        <label class="option"><input type="checkbox" id="toggleBolts" checked> Bolt holes</label>
+        <label class="option"><input type="checkbox" id="toggleNz" checked> NZ badge</label>
       </div>
 
       <div class="section-label">Colours</div>
       <div class="row">
         <div class="colour-group">
           Characters
-          <select id="fontColour" onchange="updateOptions()">
+          <select id="fontColour">
             <option value="#0a0a0a" selected>Black</option>
             <option value="#ffffff">White</option>
             <option value="#6b7280">Grey</option>
             <option value="#1d4ed8">Blue</option>
             <option value="#15803d">Green</option>
           </select>
-          <input type="color" id="fontColourCustom" value="#0a0a0a" title="Custom character colour" oninput="setCustomColour('font')" />
+          <input type="color" id="fontColourCustom" value="#0a0a0a" title="Custom character colour" />
         </div>
-
         <div class="colour-group">
           Border
-          <select id="borderColour" onchange="updateOptions()">
+          <select id="borderColour">
             <option value="#111111" selected>Black</option>
             <option value="#ffffff">White</option>
             <option value="#6b7280">Grey</option>
             <option value="#1d4ed8">Blue</option>
             <option value="#15803d">Green</option>
           </select>
-          <input type="color" id="borderColourCustom" value="#111111" title="Custom border colour" oninput="setCustomColour('border')" />
+          <input type="color" id="borderColourCustom" value="#111111" title="Custom border colour" />
         </div>
-
         <div class="colour-group">
           Background
-          <select id="bgColour" onchange="updateOptions()">
+          <select id="bgColour">
             <option value="#ffffff" selected>White</option>
             <option value="#0a0a0a">Black</option>
             <option value="#6b7280">Grey</option>
             <option value="#1d4ed8">Blue</option>
             <option value="#15803d">Green</option>
           </select>
-          <input type="color" id="bgColourCustom" value="#ffffff" title="Custom background colour" oninput="setCustomColour('bg')" />
+          <input type="color" id="bgColourCustom" value="#ffffff" title="Custom background colour" />
         </div>
       </div>
     </div>
@@ -265,19 +356,67 @@
     </div>
 
     <p class="hint">
-      <strong>Print tip:</strong> Ctrl/Cmd + P → set scale to <strong>100%</strong> (not “Fit to page”) → landscape → white sticker paper.<br>
-      Plate is locked at <strong>360 mm × 124 mm</strong> so it matches a real NZ standard plate when printed correctly.<br><br>
+      <strong>To print at true size:</strong> use <strong>Download 360×124 mm PDF</strong> and print that file at <strong>Actual size / 100%</strong> — never “Fit to page”. The PDF page is exactly the plate (360 × 124 mm) with 78 mm cap-height letters.<br><br>
+      If you use the browser Print dialog instead, set paper to a <strong>custom 360 × 124 mm</strong> size (or <strong>A3</strong> with the A3 PDF, which includes crop marks and a 100 mm calibration line). Turn on <strong>background graphics</strong> so bolt holes print. After printing, check with a ruler: the plate should be 360 × 124 mm and the letters 78 mm tall.<br><br>
+      A4 paper is only 297 mm wide, so a 360 mm plate <strong>cannot</strong> print at 100% on A4.<br><br>
       Uses the authentic <strong>Licenz</strong> font (David Buck / SparkyType).<br>
       Novelty / mock-ups only — not for road-legal plates.
     </p>
   </main>
 
-  <footer>LootersComputas · Not affiliated with NZTA or any official plate issuer</footer>
+  <footer>Siftah Solutions · trading as looterscomputas.online · Not affiliated with NZTA or any official plate issuer</footer>
 
   <script>
-    function updatePlate() {
+    var colours = { font: "#0a0a0a", border: "#111111", bg: "#ffffff" };
+
+    function currentText() {
       var clean = document.getElementById("plateInput").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-      document.getElementById("plateText").textContent = clean || "ABC123";
+      return clean || "ABC123";
+    }
+
+    function updatePlate() {
+      document.getElementById("plateText").textContent = currentText();
+    }
+
+    function applyColours() {
+      var plate = document.getElementById("plate");
+      var showFrame = document.getElementById("toggleFrame").checked;
+      plate.classList.toggle("no-frame", !showFrame);
+      plate.style.backgroundColor = colours.bg;
+      plate.style.borderColor = showFrame ? colours.border : "#cccccc";
+      // Use !important so the rule beats the stylesheet colour.
+      ["plateText","nzBadge"].forEach(function(id) {
+        var el = document.getElementById(id);
+        el.style.setProperty("color", colours.font, "important");
+        el.style.setProperty("-webkit-text-fill-color", colours.font, "important");
+      });
+    }
+
+    function updateOptions() {
+      applyColours();
+      var showBolts = document.getElementById("toggleBolts").checked;
+      var showNz = document.getElementById("toggleNz").checked;
+      ["boltTl","boltTr","boltBl","boltBr"].forEach(function(id) {
+        document.getElementById(id).classList.toggle("hidden", !showBolts);
+      });
+      document.getElementById("nzBadge").classList.toggle("hidden", !showNz);
+    }
+
+    function onSelectColour(which, selectId, pickerId) {
+      var val = document.getElementById(selectId).value;
+      if (val) {
+        colours[which] = val;
+        document.getElementById(pickerId).value = val.length === 7 ? val : colours[which];
+        applyColours();
+      }
+    }
+
+    function onPickerColour(which, pickerId) {
+      var hex = document.getElementById(pickerId).value;
+      if (hex && hex.length === 7) {
+        colours[which] = hex;
+        applyColours();
+      }
     }
 
     function clearPlate() {
@@ -286,51 +425,90 @@
       document.getElementById("plateInput").focus();
     }
 
-    function setCustomColour(which) {
-      if (which === "font") {
-        document.getElementById("fontColour").value = document.getElementById("fontColourCustom").value;
-      } else if (which === "border") {
-        document.getElementById("borderColour").value = document.getElementById("borderColourCustom").value;
-      } else if (which === "bg") {
-        document.getElementById("bgColour").value = document.getElementById("bgColourCustom").value;
-      }
-      updateOptions();
+    function plateOpts(paper) {
+      return {
+        paper: paper,
+        text: currentText(),
+        fontCol: colours.font,
+        borderCol: colours.border,
+        bgCol: colours.bg,
+        showFrame: document.getElementById("toggleFrame").checked,
+        showBolts: document.getElementById("toggleBolts").checked,
+        showNz: document.getElementById("toggleNz").checked
+      };
     }
 
-    function updateOptions() {
-      var plate = document.getElementById("plate");
-      var showFrame = document.getElementById("toggleFrame").checked;
-      var showBolts = document.getElementById("toggleBolts").checked;
-      var showNz = document.getElementById("toggleNz").checked;
-
-      var fontCol = document.getElementById("fontColour").value;
-      var borderCol = document.getElementById("borderColour").value;
-      var bgCol = document.getElementById("bgColour").value;
-
-      plate.classList.toggle("no-frame", !showFrame);
-
-      plate.style.backgroundColor = bgCol;
-      plate.style.borderColor = showFrame ? borderCol : "#cccccc";
-      document.getElementById("plateText").style.color = fontCol;
-
-      document.getElementById("fontColourCustom").value = fontCol.length === 7 ? fontCol : "#0a0a0a";
-      document.getElementById("borderColourCustom").value = borderCol.length === 7 ? borderCol : "#111111";
-      document.getElementById("bgColourCustom").value = bgCol.length === 7 ? bgCol : "#ffffff";
-
-      ["boltTl","boltTr","boltBl","boltBr"].forEach(function(id) {
-        document.getElementById(id).classList.toggle("hidden", !showBolts);
-      });
-
-      document.getElementById("nzBadge").classList.toggle("hidden", !showNz);
+    async function handlePdf(paper, filename, button) {
+      if (typeof downloadPlatePdf !== "function") {
+        alert("PDF tools did not load. Check your network and try again, or use Print sticker.");
+        return;
+      }
+      button.disabled = true;
+      try {
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+        await downloadPlatePdf(plateOpts(paper), filename);
+      } catch (err) {
+        console.error(err);
+        alert("Could not build the PDF: " + (err && err.message ? err.message : err));
+      } finally {
+        button.disabled = false;
+      }
     }
 
     document.getElementById("plateInput").addEventListener("input", updatePlate);
     document.getElementById("plateInput").addEventListener("keypress", function(e) {
       if (e.key === "Enter") window.print();
     });
+    document.getElementById("btnPrint").addEventListener("click", function() { window.print(); });
+    document.getElementById("btnClear").addEventListener("click", clearPlate);
+    document.getElementById("btnPdfPlate").addEventListener("click", function() {
+      handlePdf("plate", "siftah-plate-360x124mm.pdf", this);
+    });
+    document.getElementById("btnPdfA3").addEventListener("click", function() {
+      handlePdf("a3", "siftah-plate-A3-crop-marks.pdf", this);
+    });
+    document.getElementById("toggleFrame").addEventListener("change", updateOptions);
+    document.getElementById("toggleBolts").addEventListener("change", updateOptions);
+    document.getElementById("toggleNz").addEventListener("change", updateOptions);
+    document.getElementById("fontColour").addEventListener("change", function() {
+      onSelectColour("font", "fontColour", "fontColourCustom");
+    });
+    document.getElementById("borderColour").addEventListener("change", function() {
+      onSelectColour("border", "borderColour", "borderColourCustom");
+    });
+    document.getElementById("bgColour").addEventListener("change", function() {
+      onSelectColour("bg", "bgColour", "bgColourCustom");
+    });
+    document.getElementById("fontColourCustom").addEventListener("input", function() {
+      onPickerColour("font", "fontColourCustom");
+    });
+    document.getElementById("borderColourCustom").addEventListener("input", function() {
+      onPickerColour("border", "borderColourCustom");
+    });
+    document.getElementById("bgColourCustom").addEventListener("input", function() {
+      onPickerColour("bg", "bgColourCustom");
+    });
+
+    function scalePreview() {
+      var plate = document.getElementById("plate");
+      var box = document.getElementById("plate-container");
+      if (!plate || !box) return;
+      plate.style.transform = "none";
+      plate.style.marginBottom = "0";
+      var avail = box.clientWidth - 8;
+      var pw = plate.offsetWidth || 1;
+      var s = Math.min(1, avail / pw);
+      if (s < 0.999) {
+        plate.style.transformOrigin = "top center";
+        plate.style.transform = "scale(" + s + ")";
+        plate.style.marginBottom = ((s - 1) * plate.offsetHeight) + "px";
+      }
+    }
+    window.addEventListener("resize", scalePreview);
 
     updatePlate();
     updateOptions();
+    scalePreview();
   </script>
 </body>
 </html>
