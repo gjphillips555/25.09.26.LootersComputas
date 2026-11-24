@@ -5,7 +5,7 @@ import { SiftahChatHead } from "./chat-head";
 import { SiftahTabBar } from "./tab-bar";
 
 /** Paths that render full-screen without the app chrome. */
-const BARE = [/^\/overlay/, /^\/hidden/, /^\/plates/];
+const BARE = [/^\/overlay/, /^\/hidden/, /^\/plates/, /^\/pindrop/];
 
 /** Global Siftah app chrome: top bar + drawer, mobile tab bar, chat head. */
 export function SiftahFrame({ children }: { children: ReactNode }) {

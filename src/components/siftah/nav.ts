@@ -6,6 +6,7 @@ import {
   Gamepad2,
   Home,
   Layers,
+  MapPin,
   MessageSquare,
   MessagesSquare,
   Printer,
@@ -41,8 +42,19 @@ export const PLATES: NavItem = {
 /** Siftah Auto: NZ vehicle marketplace. */
 export const AUTO: NavItem = { href: "/auto", label: "Siftah Auto", hint: "Cars for sale · list yours", icon: Car, tone: "blue" };
 
+/** PinDrop: offline-first map pin app (static PWA at /pindrop/). */
+export const PINDROP: NavItem = {
+  href: "/pindrop/",
+  label: "PinDrop",
+  hint: "Offline map pins for tools, radars & crew",
+  icon: MapPin,
+  external: true,
+  tone: "red",
+};
+
 export const APPS: NavItem[] = [
   PLATES,
+  PINDROP,
   { href: "/", label: "Marketplace", hint: "Buy, sell & swap tech", icon: Home, tone: "ink" },
   AUTO,
   { href: "/shop", label: "Shop", hint: "Browse categories", icon: ShoppingBag, tone: "ink" },
@@ -64,13 +76,14 @@ export const LEGAL: NavItem[] = [
 
 /** Desktop top-bar links. */
 export const TOP_LINKS: NavItem[] = [
-  APPS[1], // Marketplace
+  APPS[2], // Marketplace
   AUTO,
-  APPS[3], // Shop
+  APPS[4], // Shop
   PLATES,
-  APPS[5], // Arcade
-  APPS[6], // Siftah AI
-  APPS[4], // Sell
+  PINDROP,
+  APPS[6], // Arcade
+  APPS[7], // Siftah AI
+  APPS[5], // Sell
 ];
 
 export function isActive(pathname: string, href: string): boolean {

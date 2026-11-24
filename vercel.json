@@ -1,39 +1,18 @@
 {
   "redirects": [
-    {
-      "source": "/siftah",
-      "destination": "/siftah/",
-      "permanent": true
-    },
-    {
-      "source": "/Siftah",
-      "destination": "/siftah/",
-      "permanent": true
-    },
-    {
-      "source": "/Siftah/",
-      "destination": "/siftah/",
-      "permanent": true
-    },
-    {
-      "source": "/SIFTAH",
-      "destination": "/siftah/",
-      "permanent": true
-    },
-    {
-      "source": "/SIFTAH/",
-      "destination": "/siftah/",
-      "permanent": true
-    },
-    {
-      "source": "/SiFtAh",
-      "destination": "/siftah/",
-      "permanent": true
-    },
-    {
-      "source": "/SiFtAh/",
-      "destination": "/siftah/",
-      "permanent": true
-    }
+    { "source": "/siftah", "destination": "/siftah/", "permanent": true },
+    { "source": "/Siftah", "destination": "/siftah/", "permanent": true },
+    { "source": "/Siftah/", "destination": "/siftah/", "permanent": true },
+    { "source": "/SIFTAH", "destination": "/siftah/", "permanent": true },
+    { "source": "/SIFTAH/", "destination": "/siftah/", "permanent": true },
+    { "source": "/SiFtAh", "destination": "/siftah/", "permanent": true },
+    { "source": "/SiFtAh/", "destination": "/siftah/", "permanent": true },
+    { "source": "/pindrop", "destination": "/pindrop/", "permanent": false },
+    { "source": "/PinDrop", "destination": "/pindrop/", "permanent": false },
+    { "source": "/PinDrop/", "destination": "/pindrop/", "permanent": false },
+    { "source": "/PINDROP", "destination": "/pindrop/", "permanent": false },
+    { "source": "/PINDROP/", "destination": "/pindrop/", "permanent": false },
+    { "source": "/Pindrop", "destination": "/pindrop/", "permanent": false },
+    { "source": "/Pindrop/", "destination": "/pindrop/", "permanent": false }
   ]
 }

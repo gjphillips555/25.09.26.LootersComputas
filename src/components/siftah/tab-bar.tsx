@@ -1,5 +1,5 @@
 import { useLocation } from "@tanstack/react-router";
-import { Car, Grid3x3, Home, ShoppingBag } from "lucide-react";
+import { Car, Grid3x3, Home, MapPin, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PLATES, isActive, type NavItem } from "./nav";
 import { NavLink } from "./nav-link";
@@ -8,7 +8,10 @@ const LEFT: NavItem[] = [
   { href: "/", label: "Home", hint: "", icon: Home },
   { href: "/shop", label: "Shop", hint: "", icon: ShoppingBag },
 ];
-const RIGHT: NavItem[] = [{ href: "/auto", label: "Auto", hint: "", icon: Car }];
+const RIGHT: NavItem[] = [
+  { href: "/auto", label: "Auto", hint: "", icon: Car },
+  { href: "/pindrop/", label: "PinDrop", hint: "", icon: MapPin, external: true },
+];
 
 /** Mobile bottom tab bar with a raised centre Plate maker button. */
 export function SiftahTabBar() {
