@@ -36,10 +36,14 @@ function requestHost(event: GrokPwaEvent): string {
   );
 }
 
-function injectHeadStreaming(response: Response, host: string): Response {
+/** Routes that render their own per-page Open Graph / Twitter tags (keep them; skip site-wide OG). */
+const PAGE_OWNED_SHARE_META = /^\/auto\/listing\/[^/]+\/?$/;
+
+function injectHeadStreaming(response: Response, host: string, path = ""): Response {
   const injector = createHeadInjector({
     host,
     site: grokOgIdentity.site,
+    pageOwnsShareMeta: PAGE_OWNED_SHARE_META.test(path),
   });
   const transformed = response.body!.pipeThrough(
     new TransformStream<Uint8Array, Uint8Array>({
@@ -105,7 +109,7 @@ export default async function grokPwaMiddleware(
     String(result.headers.get("content-type") ?? "").includes("text/html") &&
     !result.headers.get("content-encoding")
   ) {
-    return injectHeadStreaming(result, requestHost(event));
+    return injectHeadStreaming(result, requestHost(event), path);
   }
   return result;
 }
