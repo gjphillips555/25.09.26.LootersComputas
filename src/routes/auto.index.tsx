@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CarFront, Loader2, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { CarFront, Link2, Loader2, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { ListingCard, SearchEverywhere, autoApi } from "@/components/auto/auto-ui";
+import { SharedLinkCard, type Viewer } from "@/components/auto/shared-link-card";
 import {
-  BODY_TYPES, FUELS, NZ_REGIONS, POPULAR_MAKES, SORTS, TRANSMISSIONS, type AutoListing,
+  BODY_TYPES, FUELS, NZ_REGIONS, POPULAR_MAKES, SORTS, TRANSMISSIONS, type AutoListing, type SharedLink,
 } from "@/lib/auto/shared";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +19,8 @@ export const Route = createFileRoute("/auto/")({
   component: AutoBrowse,
 });
 
-const FIELDS = ["q", "make", "model", "yearMin", "yearMax", "priceMin", "priceMax", "odoMax", "region", "body", "fuel", "trans", "sort", "page"] as const;
+const FIELDS = ["q", "make", "model", "yearMin", "yearMax", "priceMin", "priceMax", "odoMax", "region", "body", "fuel", "trans", "sort", "page", "kind"] as const;
+const STRUCTURED = ["make", "model", "yearMin", "yearMax", "odoMax", "region", "body", "fuel", "trans"] as const;
 type Field = (typeof FIELDS)[number];
 type Filters = Partial<Record<Field, string>>;
 
@@ -44,6 +46,9 @@ function AutoBrowse() {
   const [pageSize, setPageSize] = useState(24);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [shared, setShared] = useState<SharedLink[]>([]);
+  const [sharedTotal, setSharedTotal] = useState(0);
+  const [viewer, setViewer] = useState<Viewer | null>(null);
 
   useEffect(() => {
     const f = readUrl();
@@ -64,18 +69,48 @@ function AutoBrowse() {
     return sp.toString();
   }, [filters]);
 
+  const kind = filters.kind === "siftah" || filters.kind === "shared" ? filters.kind : "all";
+  const structuredActive = STRUCTURED.some((k) => filters[k]);
+  // Shared links have no structured specs, so they only show in "All" when no spec filter is set.
+  const wantShared = kind === "shared" || (kind === "all" && !structuredActive && Number(filters.page || 1) === 1);
+
   const load = useCallback(async () => {
     setLoading(true);
-    const { ok, data } = await autoApi<{ items: AutoListing[]; total: number; pageSize: number; external: External[] }>(
-      `/api/auto/listings?op=search&${query}`,
-    );
-    if (ok) {
-      setItems(data.items || []);
-      setTotal(data.total || 0);
-      setPageSize(data.pageSize || 24);
-      setExternal((data.external || []).filter((e) => e.ok && e.items.length));
+    const listingsReq = kind !== "shared"
+      ? autoApi<{ items: AutoListing[]; total: number; pageSize: number; external: External[] }>(`/api/auto/listings?op=search&${query}`)
+      : null;
+    const sp = new URLSearchParams();
+    if (filters.q) sp.set("q", filters.q);
+    if (filters.priceMin) sp.set("priceMin", filters.priceMin);
+    if (filters.priceMax) sp.set("priceMax", filters.priceMax);
+    if (kind === "shared" && filters.page) sp.set("page", filters.page);
+    const sharedReq = wantShared
+      ? autoApi<{ items: SharedLink[]; total: number; pageSize: number; viewer: Viewer }>(`/api/auto/shared?op=list&${sp}`)
+      : null;
+    const [lr, sr] = await Promise.all([listingsReq, sharedReq]);
+    if (lr?.ok) {
+      setItems(lr.data.items || []);
+      setTotal(lr.data.total || 0);
+      setPageSize(lr.data.pageSize || 24);
+      setExternal((lr.data.external || []).filter((e) => e.ok && e.items.length));
+    } else if (!lr) {
+      setItems([]);
+      setExternal([]);
+    }
+    if (sr?.ok) {
+      setShared(sr.data.items || []);
+      setSharedTotal(sr.data.total || 0);
+      setViewer(sr.data.viewer || null);
+      if (kind === "shared") {
+        setTotal(sr.data.total || 0);
+        setPageSize(sr.data.pageSize || 24);
+      }
+    } else {
+      setShared([]);
+      setSharedTotal(0);
     }
     setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
   useEffect(() => {
     void load();
@@ -100,6 +135,15 @@ function AutoBrowse() {
   const activeCount = FIELDS.filter((k) => !["q", "sort", "page"].includes(k) && filters[k]).length;
   const page = Number(filters.page || 1);
   const pages = Math.max(1, Math.ceil(total / pageSize));
+  type Cell = { type: "listing"; item: AutoListing; at: string } | { type: "shared"; item: SharedLink; at: string };
+  const cells: Cell[] = useMemo(() => {
+    const a: Cell[] = items.map((item) => ({ type: "listing", item, at: item.createdAt }));
+    const b: Cell[] = shared.map((item) => ({ type: "shared", item, at: item.createdAt }));
+    if (kind === "shared") return b;
+    if (kind === "siftah") return a;
+    const sort = filters.sort || "newest";
+    return sort === "newest" ? [...a, ...b].sort((x, y) => (x.at < y.at ? 1 : -1)) : [...a, ...b];
+  }, [items, shared, kind, filters.sort]);
   const thisYear = new Date().getFullYear();
 
   const select = (k: Field, label: string, options: readonly string[]) => (
@@ -167,6 +211,9 @@ function AutoBrowse() {
           <Link to={"/auto/sell" as "/"} className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#0b0b0c] hover:bg-[#5cc8f2]">
             <Plus className="size-4" /> List a vehicle
           </Link>
+          <Link to={"/auto/share" as "/"} className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 text-sm font-bold hover:bg-white/10" data-testid="share-cta">
+            <Link2 className="size-4" /> Share a car from another site
+          </Link>
           <Link to={"/auto/sell" as "/"} hash="mine" className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 text-sm font-bold hover:bg-white/10">
             My listings
           </Link>
@@ -184,9 +231,28 @@ function AutoBrowse() {
         </aside>
 
         <div>
+          <div className="mb-3 flex flex-wrap gap-1 rounded-full border-2 border-[#0b0b0c] bg-white p-1 text-xs font-bold sm:inline-flex" role="tablist" aria-label="Show" data-testid="kind-toggle">
+            {([["all", "All"], ["siftah", "Siftah listings"], ["shared", "Shared links"]] as const).map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                aria-selected={kind === k}
+                onClick={() => apply({ ...filters, kind: k === "all" ? undefined : k, page: undefined })}
+                className={cn("flex-1 rounded-full px-3 py-1.5 sm:flex-none", kind === k ? "bg-[#0b0b0c] text-white" : "text-[#0b0b0c] hover:bg-[#f4f4f5]")}
+                data-testid={`kind-${k}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <p className="mr-auto text-sm text-muted-foreground" data-testid="auto-count">
-              {loading ? "Loading…" : `${total.toLocaleString("en-NZ")} Siftah listing${total === 1 ? "" : "s"}`}
+              {loading
+                ? "Loading…"
+                : kind === "shared"
+                  ? `${total.toLocaleString("en-NZ")} shared link${total === 1 ? "" : "s"}`
+                  : `${total.toLocaleString("en-NZ")} Siftah listing${total === 1 ? "" : "s"}${kind === "all" && sharedTotal ? ` · ${sharedTotal.toLocaleString("en-NZ")} shared link${sharedTotal === 1 ? "" : "s"}` : ""}`}
             </p>
             <button type="button" onClick={() => setShowFilters(true)} className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#0b0b0c] px-3 py-1.5 text-xs font-bold lg:hidden">
               <SlidersHorizontal className="size-3.5" /> Filters{activeCount ? ` (${activeCount})` : ""}
@@ -203,11 +269,11 @@ function AutoBrowse() {
 
           {loading ? (
             <div className="flex justify-center py-20"><Loader2 className="size-8 animate-spin text-[#e3121b]" /></div>
-          ) : items.length === 0 ? (
+          ) : cells.length === 0 ? (
             <div className="rounded-3xl border-2 border-dashed border-[#0b0b0c]/30 px-6 py-14 text-center" data-testid="auto-empty">
               <CarFront className="mx-auto size-12 text-[#e3121b]" />
               <p className="mt-3 font-display text-2xl">
-                {query && query !== "sort=newest" ? "No Siftah listings match yet" : "Be the first to list on Siftah Auto"}
+                {kind === "shared" ? "No shared links yet" : query && query !== "sort=newest" ? "No Siftah listings match yet" : "Be the first to list on Siftah Auto"}
               </p>
               <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
                 Siftah Auto shows real vehicles listed by members — no copied or demo ads. List yours free in a couple of minutes, or use “Search everywhere” above to check other NZ sites.
@@ -218,7 +284,19 @@ function AutoBrowse() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" data-testid="auto-grid">
-              {items.map((l) => <ListingCard key={l.id} listing={l} />)}
+              {cells.map((c) =>
+                c.type === "listing"
+                  ? <ListingCard key={c.item.id} listing={c.item} />
+                  : <SharedLinkCard key={c.item.id} link={c.item} viewer={viewer} onChanged={() => void load()} />,
+              )}
+            </div>
+          )}
+          {kind === "shared" && structuredActive && (
+            <p className="mt-3 text-xs text-muted-foreground">Spec filters (make, year, fuel…) don't apply to shared links — only search and price do.</p>
+          )}
+          {kind === "all" && sharedTotal > shared.length && (
+            <div className="mt-4 text-center">
+              <button type="button" onClick={() => apply({ ...filters, kind: "shared", page: undefined })} className="rounded-full border-2 border-[#0b0b0c] px-4 py-1.5 text-sm font-bold">See all {sharedTotal} shared links</button>
             </div>
           )}
 
