@@ -10,7 +10,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 const TABS = [
   { to: "/" as const, label: "Looters Computas", icon: Store },
   { to: "/siftah-message" as const, label: "Siftah Message", icon: MessageSquare },
-  { to: "/siftah" as const, label: "Siftah AI", icon: Sparkles },
+  { to: "/siftah" as const, label: "Mr CluedUp", icon: Sparkles },
   { to: "/arcade" as const, label: "Arcade", icon: Gamepad2 },
 ] as const;
 

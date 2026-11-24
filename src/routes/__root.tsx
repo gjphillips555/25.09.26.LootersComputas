@@ -22,7 +22,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Siftah Solutions (trading as Looters Computas) is a New Zealand marketplace and maker hub: true-size NZ plate stickers, an arcade, Siftah AI chat and a marketplace to buy, sell and swap computers, laptops, gaming gear, phones, drones, e-bikes and more. Direct PayPal deals between looters.",
+          "Siftah Solutions (trading as Looters Computas) is a New Zealand marketplace and maker hub: true-size NZ plate stickers, an arcade, Mr CluedUp AI chat and a marketplace to buy, sell and swap computers, laptops, gaming gear, phones, drones, e-bikes and more. Direct PayPal deals between looters.",
       },
       { name: "theme-color", content: "#0b0b0c" },
       { name: "color-scheme", content: "light dark" },

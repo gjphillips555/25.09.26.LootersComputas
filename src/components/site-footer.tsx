@@ -53,9 +53,9 @@ export function SiteFooter() {
           <Link to="/sell" className="hover:text-foreground">
             Sell
           </Link>
-          <Link to="/account" className="hover:text-foreground">
+          <a href="/siftah-message" className="hover:text-foreground">
             Inbox
-          </Link>
+          </a>
           <Link to="/forum" className="hover:text-foreground">
             Forum
           </Link>

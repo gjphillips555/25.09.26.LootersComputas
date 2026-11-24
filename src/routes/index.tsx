@@ -79,7 +79,7 @@ function Home() {
               <span className="siftah-sticker-text">Trade it.</span>
             </h1>
             <p className="max-w-xl text-base text-white/75 sm:text-lg">
-              True-size NZ plate stickers, a free arcade, Siftah AI chat and a marketplace to buy, sell and swap
+              True-size NZ plate stickers, a free arcade, Mr CluedUp AI chat and a marketplace to buy, sell and swap
               tech — all in one app from Siftah Solutions, trading as looterscomputas.online.
             </p>
             <div className="flex flex-wrap gap-3">
@@ -125,7 +125,7 @@ function Home() {
           </span>
         </a>
         <AppTile to="/arcade" icon={Gamepad2} label="Arcade" hint="Free games" tone="blue" />
-        <AppTile href="/siftah/" icon={Sparkles} label="Siftah AI" hint="Chat & create" tone="red" />
+        <AppTile href="/siftah/" icon={Sparkles} label="Mr CluedUp" hint="AI chat & create" tone="red" />
         <AppTile to="/shop" icon={ShoppingBag} label="Shop" hint="Browse gear" />
         <AppTile to="/sell" icon={Store} label="Sell" hint="List gear" />
         <AppTile to="/siftah-message" icon={MessageSquare} label="Message" hint="Member chat" />
