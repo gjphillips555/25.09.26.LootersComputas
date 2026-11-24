@@ -46,7 +46,7 @@ export function ShopSearch({
         role="search"
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 px-3">
-          <Search className="size-5 shrink-0 text-[#ff9a00]" strokeWidth={2} />
+          <Search className="size-5 shrink-0 text-[#e3121b]" strokeWidth={2} />
           <input
             value={query}
             autoFocus={autoFocus}
@@ -61,7 +61,7 @@ export function ShopSearch({
         </div>
         <button
           type="submit"
-          className="shrink-0 rounded-xl bg-[#ff9a00] px-5 py-2.5 text-sm font-bold text-[#1a1000] hover:bg-[#ffb020]"
+          className="shrink-0 rounded-xl bg-[#e3121b] px-5 py-2.5 text-sm font-bold text-[#ffffff] hover:bg-[#ff2a33]"
         >
           Search
         </button>

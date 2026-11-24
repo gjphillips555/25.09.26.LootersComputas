@@ -86,7 +86,7 @@ export function SimpleHeader() {
           <nav className="grid grid-cols-2 gap-2" aria-label="Mobile marketplace">
             {NAV.map(({ to, label, icon: Icon }) => (
               <Link key={label} to={to} onClick={() => setMobileOpen(false)} className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">
-                <Icon className="size-4 text-[#ff9a00]" />{label}
+                <Icon className="size-4 text-[#e3121b]" />{label}
               </Link>
             ))}
             <Link to="/login" onClick={() => setMobileOpen(false)} className="flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary">Sign in / Join</Link>
