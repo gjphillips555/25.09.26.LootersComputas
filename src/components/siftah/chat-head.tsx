@@ -33,8 +33,11 @@ export function SiftahChatHead() {
       /* ignore */
     }
     const onOpen = (e: Event) => {
-      const detail = (e as CustomEvent<{ tab?: Tab }>).detail;
-      if (detail?.tab) setTab(detail.tab);
+      const detail = (e as CustomEvent<{ tab?: Tab; peer?: ChatUser }>).detail;
+      if (detail?.peer) {
+        setPeer(detail.peer);
+        setTab("people");
+      } else if (detail?.tab) setTab(detail.tab);
       setOpen(true);
     };
     window.addEventListener("siftah:open-chat", onOpen);
