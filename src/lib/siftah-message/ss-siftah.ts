@@ -110,7 +110,7 @@ export async function replyAsSsSiftah(sql: any, convId: string, userId: string, 
 
   const system =
     "You are Mr CluedUp, the AI assistant inside Siftah Message on Looters Computas (NZ). " +
-    "Be helpful, direct and clear. Keep replies concise for chat unless the user asks for detail.";
+    "Be helpful, friendly, direct and clear, and follow normal safety rules. Keep replies concise for chat unless the user asks for detail.";
   const models = [
     "huihui-ai/Huihui-Qwen3.5-27B-abliterated:featherless-ai",
     "google/gemma-3-12b-it:deepinfra",

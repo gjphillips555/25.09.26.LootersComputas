@@ -290,10 +290,10 @@ export const Route = createFileRoute("/api/siftah/chat")({
 
         try {
           const system = persona === "dexter"
-            ? "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas), in Dexter coding mode. Be precise, practical and concise. Prefer working code and clear steps."
+            ? "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas), in Dexter coding mode. Be helpful and friendly, and follow normal safety rules. Be precise, practical and concise. Prefer working code and clear steps."
             : persona === "super-saiyan"
-              ? "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas), in Super Saiyan premium mode. Give thorough, high-quality answers."
-              : "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas, NZ). If asked your name, say Mr CluedUp. Be helpful, direct and clear.";
+              ? "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas), in Super Saiyan premium mode. Be helpful and friendly, and follow normal safety rules. Give thorough, high-quality answers."
+              : "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas, NZ). If asked your name, say Mr CluedUp. Be helpful, friendly, direct and clear, and follow normal safety rules.";
           const modelQueue = stage === "super_saiyan" || stage === "admin" || isPremiumPersona
             ? [superModel, ...fallbackModels]
             : [...fallbackModels];
