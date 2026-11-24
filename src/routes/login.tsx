@@ -119,7 +119,7 @@ function Login() {
                 <button
                   type="submit"
                   disabled={busy || (isSignUp && !termsAccepted)}
-                  className="w-full rounded-xl bg-[#ff9a00] px-4 py-2.5 text-sm font-bold text-[#1a1000] disabled:opacity-50"
+                  className="w-full rounded-xl bg-[#e3121b] px-4 py-2.5 text-sm font-bold text-[#ffffff] disabled:opacity-50"
                 >
                   {busy ? "Please wait…" : isSignUp ? "Create account" : "Sign in with email"}
                 </button>

@@ -46,7 +46,7 @@ function OverlayPage() {
         <section className="max-w-md rounded-2xl border border-border bg-card p-7">
           <h1 className="font-display text-2xl font-semibold">Sign in to continue</h1>
           <p className="mt-3 text-sm text-muted-foreground">Create or sign in to your Looters account to use this tool.</p>
-          <a href="/login?callbackURL=%2Foverlay" className="mt-6 inline-flex rounded-xl bg-[#ff9a00] px-6 py-3 font-semibold text-[#1a1000]">Sign in / Create account</a>
+          <a href="/login?callbackURL=%2Foverlay" className="mt-6 inline-flex rounded-xl bg-[#e3121b] px-6 py-3 font-semibold text-[#ffffff]">Sign in / Create account</a>
         </section>
       </main>
     );

@@ -24,10 +24,14 @@ import {
   MessageSquare,
   MessagesSquare,
   Store,
-  UserPlus,
+  CarFront,
+  Sparkles,
+  ShoppingBag,
+  Printer,
+  type LucideIcon,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { BrandLogo } from "@/components/brand-logo";
+import { SiftahLogo } from "@/components/siftah/brand";
 import { BrandTicker } from "@/components/brand-ticker";
 import { ShopSearch } from "@/components/shop-search";
 import { SiftahMatrixAd } from "@/components/siftah-matrix-ad";
@@ -58,90 +62,81 @@ const CATEGORIES = [
 function Home() {
   return (
     <AppShell>
-      <BrandTicker />
-
-      <section className="relative mt-2 bg-transparent">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-50"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at 70% 40%, rgba(255,154,0,0.18), transparent 55%), radial-gradient(ellipse 50% 40% at 20% 80%, rgba(147,51,234,0.22), transparent 50%)",
-          }}
-        />
-        <div className="relative grid gap-8 py-8 sm:py-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-10">
+      <section className="siftah-hero relative -mx-4 -mt-[1.1rem] overflow-hidden px-4 pb-10 pt-8 text-white sm:-mx-6 sm:rounded-b-[2rem] sm:px-8 sm:pt-12">
+        <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full border-[28px] border-[#e3121b]/25" />
+        <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="space-y-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ff9a00]">
-              Tech · Gaming · Gadgets · Real deals
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-[#5cc8f2]">
+              <span className="size-1.5 rounded-full bg-[#5cc8f2]" /> Siftah Solutions · NZ
             </p>
-            <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
-              BUY. SELL.
+            <h1 className="font-display text-[2.6rem] leading-[0.95] sm:text-6xl lg:text-[4.1rem]">
+              Make it.
               <br />
-              SWAP. TRADE.
+              <span className="text-[#e3121b]">Print it.</span>
               <br />
-              <span className="bg-gradient-to-r from-[#ff9a00] to-[#ffc14d] bg-clip-text text-transparent">
-                GET REAL DEALS.
-              </span>
+              <span className="siftah-sticker-text">Trade it.</span>
             </h1>
-            <p className="max-w-xl text-base text-muted-foreground sm:text-lg">
-              NZ marketplace for computers, laptops, gaming gear, components,
-              phones, drones, e-bikes, scooters and more. Same penguin. Powered
-              by PayPal between looters.
+            <p className="max-w-xl text-base text-white/75 sm:text-lg">
+              True-size NZ plate stickers, a free arcade, Siftah AI chat and a marketplace to buy, sell and swap
+              tech — all in one app from Siftah Solutions, trading as looterscomputas.online.
             </p>
-
-            <div className="hidden max-w-xl pt-1 md:block">
-              <ShopSearch
-                variant="hero"
-                placeholder="Search laptops, GPUs, phones, drones…"
-              />
-              <p className="mt-2 text-xs text-muted-foreground">
-                Try “RTX”, “MacBook”, “iPhone”, “e-bike” — or pick a category below.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2.5">
-              <TrustPill>PayPal — Safe & Secure</TrustPill>
-              <TrustPill>Verified Users</TrustPill>
-              <TrustPill>Swap + Cash</TrustPill>
-            </div>
-            <div className="flex flex-wrap gap-3 pt-1">
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="/plates/index.html"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[#e3121b] px-5 py-3 font-display text-base text-white shadow-[0_10px_30px_-10px_rgba(227,18,27,0.8)] hover:bg-[#ff2a33]"
+              >
+                <CarFront className="size-5" /> Open Plate maker
+              </a>
               <Link
                 to="/sell"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#ff9a00] px-5 py-2.5 text-sm font-bold text-[#1a1000] shadow-lg shadow-orange-500/25 hover:bg-[#ffb020]"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white hover:bg-white/10"
               >
-                <Store className="size-4" />
-                Start Trading
-              </Link>
-              <Link
-                to="/login"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card/60 px-5 py-2.5 text-sm font-semibold text-foreground backdrop-blur-sm hover:bg-secondary"
-              >
-                <UserPlus className="size-4" />
-                Not yet a member? Sign Up
+                <Store className="size-4" /> Start trading
               </Link>
             </div>
+            <div className="hidden max-w-xl pt-1 md:block [&_input]:bg-white [&_input]:text-[#0b0b0c]">
+              <ShopSearch variant="hero" placeholder="Search laptops, GPUs, phones, drones…" />
+            </div>
           </div>
-
           <div className="flex justify-center lg:justify-end">
             <img
-              src={ARTWORK.logoOrange}
-              alt="Looters Computas"
-              width={420}
-              height={280}
+              src="/brand/siftah-solutions-logo.svg"
+              alt="Siftah Solutions – trading as looterscomputas.online"
               decoding="async"
-              className="h-auto w-full max-w-[280px] object-contain drop-shadow-2xl sm:max-w-[340px]"
+              className="h-auto w-full max-w-[320px] -rotate-3 object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.6)] sm:max-w-[420px]"
             />
           </div>
         </div>
       </section>
 
-      <SiftahMatrixAd />
-
-      <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <QuickLink to="/sell" icon={Store} label="Sell / List" hint="List gear" />
-        <QuickLink to="/siftah-message" icon={MessageSquare} label="Message" hint="Siftah Message" />
-        <QuickLink to="/hidden/forum" icon={MessagesSquare} label="Forum" hint="Community den" />
-        <QuickLink to="/account" icon={Wallet} label="Wallet" hint="Connect PayPal" />
+      <section className="relative z-10 -mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" aria-label="Siftah apps">
+        <a
+          href="/plates/index.html"
+          className="siftah-tile col-span-2 flex items-center gap-4 rounded-3xl border-2 border-[#0b0b0c] bg-[#e3121b] p-4 text-white shadow-[5px_5px_0_#0b0b0c] sm:col-span-3 lg:col-span-2 lg:row-span-2 lg:flex-col lg:items-start lg:justify-between lg:p-5"
+        >
+          <span className="flex size-14 items-center justify-center rounded-2xl bg-white text-[#e3121b]">
+            <CarFront className="size-8" />
+          </span>
+          <span>
+            <span className="block font-display text-2xl leading-tight">Plate maker</span>
+            <span className="block text-sm text-white/85">360×124 mm · 78 mm characters · print-ready PDF</span>
+          </span>
+        </a>
+        <AppTile to="/arcade" icon={Gamepad2} label="Arcade" hint="Free games" tone="blue" />
+        <AppTile href="/siftah/" icon={Sparkles} label="Siftah AI" hint="Chat & create" tone="red" />
+        <AppTile to="/shop" icon={ShoppingBag} label="Shop" hint="Browse gear" />
+        <AppTile to="/sell" icon={Store} label="Sell" hint="List gear" />
+        <AppTile to="/siftah-message" icon={MessageSquare} label="Message" hint="Member chat" />
+        <AppTile to="/forum" icon={MessagesSquare} label="Forum" hint="Community" />
+        <AppTile to="/account" icon={Wallet} label="Wallet" hint="PayPal & credits" />
+        <AppTile to="/prints" icon={Printer} label="Prints" hint="Print studio" />
       </section>
+
+      <div className="mt-8">
+        <BrandTicker />
+      </div>
+
+      <SiftahMatrixAd />
 
       <section className="mt-10" aria-label="Marketplace categories">
         <div className="mb-3 flex items-end justify-between gap-3">
@@ -153,7 +148,7 @@ function Home() {
               Computers · gaming · gadgets · mobility · collectables
             </p>
           </div>
-          <Link to="/sell" className="text-sm font-medium text-[#ff9a00] hover:underline">
+          <Link to="/sell" className="text-sm font-medium text-[#e3121b] hover:underline">
             List yours
           </Link>
         </div>
@@ -162,10 +157,10 @@ function Home() {
             <Link
               key={label}
               to="/sell"
-              className="group flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-2 py-3 text-center transition hover:border-[#ff9a00]/40 hover:bg-secondary/60"
+              className="group flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-2 py-3 text-center transition hover:border-[#e3121b]/40 hover:bg-secondary/60"
               title={`${label} — list yours now`}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-[#ff9a00] transition group-hover:bg-[#ff9a00]/15">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-[#e3121b] transition group-hover:bg-[#e3121b]/15">
                 <Icon className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <span className="text-[11px] font-medium leading-tight text-muted-foreground group-hover:text-foreground sm:text-xs">
@@ -186,7 +181,7 @@ function Home() {
               <span
                 className="font-display text-3xl font-black tracking-tight sm:text-4xl"
                 style={{
-                  background: "linear-gradient(180deg, #ffb020 0%, #ff9a00 45%, #e85d04 100%)",
+                  background: "linear-gradient(180deg, #ff2a33 0%, #e3121b 45%, #e85d04 100%)",
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
                   color: "transparent",
@@ -237,7 +232,7 @@ function Home() {
             <Link to="/hidden/forum" className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20">Open Forum</Link>
             <Link to="/siftah-message" className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20">Siftah Message</Link>
             <Link to="/login" className="rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/25">Not yet a member? Sign Up</Link>
-            <Link to="/sell" className="rounded-full bg-[#ff9a00] px-3 py-1.5 text-xs font-bold text-[#1a1000] hover:bg-[#ffb020]">List an item</Link>
+            <Link to="/sell" className="rounded-full bg-[#e3121b] px-3 py-1.5 text-xs font-bold text-[#ffffff] hover:bg-[#ff2a33]">List an item</Link>
           </div>
         </div>
       </section>
@@ -254,7 +249,7 @@ function Home() {
       <div className="mt-4 space-y-8">
         <NewsCard date="Sat 31 Oct 2026" dateTime="2026-10-31">
           <h2 className="text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">Tech & gadgets marketplace.</h2>
-          <p className="text-sm font-medium text-[#ff9a00]">Computers, laptops, gaming, components, phones, drones, e-bikes and more — direct PayPal between looters.</p>
+          <p className="text-sm font-medium text-[#e3121b]">Computers, laptops, gaming, components, phones, drones, e-bikes and more — direct PayPal between looters.</p>
           <div className="max-w-3xl space-y-4 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
             <p>G'day everyone.</p>
             <p>Looters Computas is a community marketplace for computers, laptops, gaming gear, games, components, TVs, drones, e-bikes, e-scooters, cellphones, chargers, vacuums, watches, other gadgets and collectables. Sign in with Google, connect PayPal once when you're ready to deal, then list gear or make buy / swap offers.</p>
@@ -270,7 +265,7 @@ function Home() {
 
         <NewsCard date="Wed 9 Sep 2026" dateTime="2026-09-09">
           <h2 className="text-balance font-display text-2xl font-bold tracking-tight sm:text-3xl">Shop's shut. The loot lives on.</h2>
-          <p className="text-sm font-medium text-[#ff9a00]">Physical shop closed — the brand moves online as a trading platform.</p>
+          <p className="text-sm font-medium text-[#e3121b]">Physical shop closed — the brand moves online as a trading platform.</p>
           <img src={ARTWORK.storefront} alt="The old Looters Computas storefront" width={1600} height={720} decoding="async" className="w-full rounded-xl border border-border object-cover" />
           <div className="max-w-3xl space-y-4 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
             <p>The orange front, the penguin on the footpath, PCs in the glass — that's the old days. Doors are shut. What continues is the name, the people, and a place for looters to buy, sell and swap tech and gadgets with each other.</p>
@@ -281,10 +276,10 @@ function Home() {
 
       <div className="mt-10 flex flex-col items-center gap-6 pb-8 pt-4">
         <div className="flex flex-wrap justify-center gap-3">
-          <Link to="/login" className="rounded-xl bg-[#ff9a00] px-5 py-2.5 text-sm font-bold text-[#1a1000] hover:bg-[#ffb020]">Not yet a member? Sign Up</Link>
+          <Link to="/login" className="rounded-xl bg-[#e3121b] px-5 py-2.5 text-sm font-bold text-[#ffffff] hover:bg-[#ff2a33]">Not yet a member? Sign Up</Link>
           <Link to="/sell" className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold hover:bg-secondary">List something</Link>
         </div>
-        <BrandLogo className="h-24 w-auto max-w-[360px] object-contain sm:h-32 sm:max-w-[480px]" />
+        <SiftahLogo className="h-28 w-auto max-w-[360px] sm:h-36 sm:max-w-[480px]" />
         <Link to="/siftah" className="inline-flex items-center justify-center rounded-xl p-2 transition hover:scale-[1.03]" aria-label="Open Siftah Mobile">
           <img src="/siftah-mobile-logo.svg" alt="Siftah Mobile" className="h-28 w-auto max-w-[180px] object-contain" loading="lazy" />
         </Link>
@@ -293,45 +288,10 @@ function Home() {
   );
 }
 
-function QuickLink({
-  to,
-  icon: Icon,
-  label,
-  hint,
-}: {
-  to: "/sell" | "/account" | "/hidden/forum" | "/siftah-message";
-  icon: typeof Store;
-  label: string;
-  hint: string;
-}) {
-  return (
-    <Link
-      to={to}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 transition hover:border-[#ff9a00]/40 hover:bg-secondary/50"
-    >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#ff9a00]/15 text-[#ff9a00]">
-        <Icon className="size-4" strokeWidth={1.85} />
-      </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold">{label}</span>
-        <span className="block truncate text-xs text-muted-foreground">{hint}</span>
-      </span>
-    </Link>
-  );
-}
-
-function TrustPill({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full border border-border bg-card/70 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur-sm">
-      {children}
-    </span>
-  );
-}
-
 function TrustCard({ icon: Icon, title, body }: { icon: typeof Users; title: string; body: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff9a00]/15 text-[#ff9a00]">
+      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-[#e3121b]/15 text-[#e3121b]">
         <Icon className="h-4 w-4" strokeWidth={1.75} />
       </div>
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
@@ -344,7 +304,7 @@ function Rule() {
   return (
     <div className="my-5 space-y-1" aria-hidden="true">
       <div className="h-px w-full bg-black" />
-      <div className="h-px w-full bg-[#ff9a00]" />
+      <div className="h-px w-full bg-[#e3121b]" />
     </div>
   );
 }
@@ -353,7 +313,7 @@ function NewsCard({ date, dateTime, children }: { date: string; dateTime: string
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border bg-secondary/40 px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground sm:px-6">
-        <span className="rounded bg-[#ff9a00] px-1.5 py-0.5 text-[10px] font-bold text-[#1a1000]">Site news</span>
+        <span className="rounded bg-[#e3121b] px-1.5 py-0.5 text-[10px] font-bold text-[#ffffff]">Site news</span>
         <span aria-hidden="true">·</span>
         <time dateTime={dateTime}>{date}</time>
         <span className="ml-auto normal-case tracking-normal">Looters</span>
@@ -361,4 +321,38 @@ function NewsCard({ date, dateTime, children }: { date: string; dateTime: string
       <div className="space-y-5 px-4 py-6 sm:px-6 sm:py-8">{children}</div>
     </article>
   );
+}
+
+
+function AppTile({
+  to,
+  href,
+  icon: Icon,
+  label,
+  hint,
+  tone = "ink",
+}: {
+  to?: "/arcade" | "/shop" | "/sell" | "/siftah-message" | "/forum" | "/account" | "/prints";
+  href?: string;
+  icon: LucideIcon;
+  label: string;
+  hint: string;
+  tone?: "ink" | "red" | "blue";
+}) {
+  const toneCls =
+    tone === "red" ? "bg-[#e3121b] text-white" : tone === "blue" ? "bg-[#5cc8f2] text-[#0b0b0c]" : "bg-[#0b0b0c] text-white";
+  const inner = (
+    <>
+      <span className={`flex size-11 items-center justify-center rounded-xl ${toneCls}`}>
+        <Icon className="size-5" strokeWidth={2.2} />
+      </span>
+      <span className="min-w-0">
+        <span className="block font-display text-base leading-tight text-foreground">{label}</span>
+        <span className="block truncate text-xs text-muted-foreground">{hint}</span>
+      </span>
+    </>
+  );
+  const cls = "siftah-tile flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm";
+  if (href) return <a href={href} className={cls}>{inner}</a>;
+  return <Link to={to ?? "/"} className={cls}>{inner}</Link>;
 }
