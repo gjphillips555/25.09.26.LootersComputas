@@ -1,3 +1,6 @@
+// Decode brand-assets/*.png.b64 into public/brand/ whenever Vite starts (dev or build),
+// independent of which build command the host runs.
+import "./scripts/decode-brand-assets.mjs";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Plugin } from "vite";
