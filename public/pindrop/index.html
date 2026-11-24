@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>PinDrop | Siftah Solutions</title>
+<meta name="description" content="Drop labelled emoji pins on an offline map of New Zealand. Mark radars, lost tools and gear for workmates to collect — works offline once opened.">
+<meta name="theme-color" content="#e3121b">
+<link rel="manifest" href="/pindrop/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/brand/pindrop-favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/brand/pindrop-favicon-16.png">
+<link rel="apple-touch-icon" href="/brand/pindrop-apple-touch-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PinDrop">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="Siftah PinDrop">
+<meta property="og:description" content="Offline map pins for radars, lost tools and gear — share with your crew.">
+<meta property="og:image" content="https://www.looterscomputas.online/brand/pindrop-icon-512.png">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css" crossorigin="anonymous">
+<link rel="stylesheet" href="/pindrop/app.css?v=1">
+</head>
+<body>
+<div id="app">
+  <header class="pd-bar">
+    <a class="pd-home" href="/" title="Back to Siftah Solutions" aria-label="Back to Siftah Solutions">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <img class="pd-logo" src="/brand/pindrop-icon-192.png" alt="" width="36" height="36">
+    <div class="pd-title"><b>Pin<span>Drop</span></b><small>by Siftah Solutions</small></div>
+    <span id="netBadge" class="pd-net" title="Connection status">Online</span>
+    <button id="btnInstallTop" class="pd-chip pd-chip-red" hidden>Install</button>
+    <button id="btnList" class="pd-icon-btn" title="My pins" aria-label="My pins">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <i id="pinCount" class="pd-count">0</i>
+    </button>
+  </header>
+
+  <main id="map" aria-label="Map"></main>
+  <div id="crosshair" class="pd-crosshair" hidden aria-hidden="true"><span></span></div>
+
+  <div class="pd-fabs">
+    <button id="btnLocate" class="pd-fab" title="Locate me" aria-label="Locate me">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+    <button id="btnDropMe" class="pd-fab" title="Drop a pin at my location" aria-label="Drop a pin at my location">📍</button>
+    <button id="btnOffline" class="pd-fab" title="Save this area for offline" aria-label="Save this area for offline">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button id="btnLabels" class="pd-fab" title="Always show labels" aria-label="Toggle labels" aria-pressed="false">Aa</button>
+  </div>
+
+  <div class="pd-dropbar">
+    <button id="btnDrop" class="pd-drop-btn"><span class="pd-drop-emoji">📌</span><span id="dropText">Drop pin</span></button>
+    <button id="btnCancelDrop" class="pd-chip" hidden>Cancel</button>
+  </div>
+  <p id="hint" class="pd-hint">Long-press (or right-click) the map to drop a pin</p>
+
+  <!-- Pin editor sheet -->
+  <section id="editor" class="pd-sheet" hidden aria-label="Pin editor">
+    <div class="pd-sheet-grip"></div>
+    <div class="pd-sheet-head">
+      <h2 id="editorTitle">New pin</h2>
+      <button class="pd-x" data-close="editor" aria-label="Close">✕</button>
+    </div>
+    <div class="pd-preview"><span id="pvEmoji">📌</span><b id="pvLabel">Label preview</b></div>
+    <label class="pd-field"><span>Label</span>
+      <input id="fLabel" maxlength="60" placeholder="e.g. Speed radar, Makita drill, Pallet of tiles" autocomplete="off">
+    </label>
+    <div class="pd-field"><span>Pin emoji</span>
+      <div id="emojiGrid" class="pd-emoji-grid" role="listbox" aria-label="Choose pin emoji"></div>
+      <div class="pd-row">
+        <input id="fEmojiCustom" class="pd-emoji-input" maxlength="8" placeholder="Any emoji ✍️" aria-label="Custom emoji">
+        <button id="btnUseCustom" class="pd-chip">Use</button>
+      </div>
+    </div>
+    <div class="pd-field"><span>Text colour</span>
+      <div id="colorRow" class="pd-color-row"></div>
+    </div>
+    <label class="pd-field"><span>Note (optional)</span>
+      <textarea id="fNote" rows="2" maxlength="500" placeholder="Where exactly, who it's for, gate code…"></textarea>
+    </label>
+    <label class="pd-check"><input type="checkbox" id="fCollected"> Collected / done</label>
+    <p id="fMeta" class="pd-meta"></p>
+    <div class="pd-actions">
+      <button id="btnSave" class="pd-btn pd-btn-red">Save pin</button>
+      <button id="btnMove" class="pd-btn">Move</button>
+      <button id="btnSharePin" class="pd-btn">Share</button>
+      <a id="btnNav" class="pd-btn" target="_blank" rel="noopener">Directions</a>
+      <button id="btnDelete" class="pd-btn pd-btn-danger">Delete</button>
+    </div>
+  </section>
+
+  <!-- Pins list -->
+  <section id="list" class="pd-sheet pd-sheet-tall" hidden aria-label="My pins">
+    <div class="pd-sheet-grip"></div>
+    <div class="pd-sheet-head">
+      <h2>My pins <small id="listCount"></small></h2>
+      <button class="pd-x" data-close="list" aria-label="Close">✕</button>
+    </div>
+    <div class="pd-row">
+      <input id="listSearch" type="search" placeholder="Search pins…" aria-label="Search pins">
+    </div>
+    <div class="pd-row pd-row-wrap">
+      <button id="btnShareAll" class="pd-chip pd-chip-red">Share with crew</button>
+      <button id="btnExportJson" class="pd-chip">Export JSON</button>
+      <button id="btnExportGeo" class="pd-chip">Export GeoJSON</button>
+      <label class="pd-chip pd-file">Import<input id="fileImport" type="file" accept=".json,.geojson,application/json,application/geo+json" hidden></label>
+      <button id="btnFitAll" class="pd-chip">Show all</button>
+    </div>
+    <ul id="pinList" class="pd-list"></ul>
+    <p class="pd-small">Pins are saved on this device and work offline. Share a link or file so workmates can import them.</p>
+  </section>
+
+  <!-- Install / welcome card -->
+  <section id="installCard" class="pd-card" hidden aria-label="Install PinDrop">
+    <img src="/brand/pindrop-icon-192.png" alt="PinDrop app icon" width="64" height="64">
+    <div>
+      <h3>Install PinDrop</h3>
+      <p id="installText">Add the PinDrop button to your home screen or desktop. It opens straight to the map — even with no signal.</p>
+      <div class="pd-row">
+        <button id="btnInstall" class="pd-btn pd-btn-red">Install</button>
+        <button id="btnInstallLater" class="pd-btn">Not now</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="welcome" class="pd-card pd-card-center" hidden aria-label="Welcome">
+    <img src="/brand/pindrop-icon-512.png" alt="Siftah PinDrop" width="96" height="96">
+    <h3>Kia ora! Welcome to PinDrop</h3>
+    <p>Mark speed radars, lost tools and gear for workmates to collect. Pins stay on your phone and the app works offline after this visit.</p>
+    <button id="btnWelcome" class="pd-btn pd-btn-red">Get started</button>
+    <p class="pd-small">Get started also saves a light NZ overview map for offline use. Zoom into your work area and tap ⬇ to save street detail.</p>
+  </section>
+
+  <!-- Offline save dialog -->
+  <section id="offlineDlg" class="pd-card pd-card-center" hidden aria-label="Save for offline">
+    <h3>Save this area offline</h3>
+    <p id="offlineText"></p>
+    <div class="pd-progress" hidden><i id="offlineBar"></i></div>
+    <div class="pd-row pd-row-center">
+      <button id="btnOfflineGo" class="pd-btn pd-btn-red">Save area</button>
+      <button id="btnOfflineClose" class="pd-btn">Close</button>
+    </div>
+    <p class="pd-small" id="offlineStats"></p>
+  </section>
+
+  <!-- Import dialog -->
+  <section id="importDlg" class="pd-card pd-card-center" hidden aria-label="Import shared pins">
+    <h3>Pins shared with you</h3>
+    <p id="importText"></p>
+    <ul id="importList" class="pd-list pd-list-mini"></ul>
+    <div class="pd-row pd-row-center">
+      <button id="btnImportGo" class="pd-btn pd-btn-red">Add to my map</button>
+      <button id="btnImportCancel" class="pd-btn">Ignore</button>
+    </div>
+  </section>
+
+  <div id="toast" class="pd-toast" role="status" aria-live="polite" hidden></div>
+</div>
+<script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js" crossorigin="anonymous"></script>
+<script src="/pindrop/app.js?v=1"></script>
+</body>
+</html>
