@@ -19,6 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = location.pathname;
   const publicBrowse =
     path === "/" ||
+    path === "/settings" ||
     path === "/shop" ||
     path.startsWith("/shop/") ||
     // Siftah Auto: guests can browse and open listings; listing a vehicle or sharing a link needs sign-in.
