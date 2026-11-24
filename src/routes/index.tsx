@@ -38,6 +38,8 @@ import { SiftahMatrixAd } from "@/components/siftah-matrix-ad";
 import { ARTWORK } from "@/lib/artwork";
 
 export const Route = createFileRoute("/")({
+  // Canonical lives here (not in __root) so other pages don't all point search engines at the home page.
+  head: () => ({ links: [{ rel: "canonical", href: "https://www.looterscomputas.online/" }] }),
   component: Home,
 });
 

@@ -225,11 +225,11 @@ export function decodeEntities(s: string) {
   });
 }
 
-/** Read <meta property|name=… content=…> pairs from the document <head> only. */
-export function readMeta(html: string): Map<string, string> {
+/** Read <meta property|name=… content=…> pairs, in document order, from the document <head> only. */
+export function readMetaList(html: string): Array<[string, string]> {
   const headEnd = html.search(/<\/head\s*>|<body[\s>]/i);
   const head = headEnd > 0 ? html.slice(0, headEnd) : html.slice(0, 200_000);
-  const out = new Map<string, string>();
+  const out: Array<[string, string]> = [];
   for (const tag of head.match(/<meta\b[^>]*>/gi) || []) {
     const attrs = new Map<string, string>();
     for (const a of tag.matchAll(/([a-zA-Z:_-]+)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'>]+))/g)) {
@@ -237,9 +237,44 @@ export function readMeta(html: string): Map<string, string> {
     }
     const key = (attrs.get("property") || attrs.get("name") || "").toLowerCase();
     const content = attrs.get("content");
-    if (key && content != null && !out.has(key)) out.set(key, decodeEntities(content).replace(/\s+/g, " ").trim());
+    if (key && content != null) out.push([key, decodeEntities(content).replace(/\s+/g, " ").trim()]);
   }
   return out;
+}
+
+export function readMeta(html: string): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const [k, v] of readMetaList(html)) if (!out.has(k)) out.set(k, v);
+  return out;
+}
+
+/**
+ * Pick the highest-resolution image the page publishes: every og:image (with its og:image:secure_url /
+ * :width / :height structured properties) is a candidate; the largest declared area wins, preferring the
+ * https secure_url. Falls back to the first og:image, then twitter:image. Never rewrites URLs.
+ */
+export function pickLargestImage(list: Array<[string, string]>): string | null {
+  type Cand = { url: string; secure?: string; w: number; h: number; order: number };
+  const cands: Cand[] = [];
+  let cur: Cand | null = null;
+  for (const [k, v] of list) {
+    if (k === "og:image" || k === "og:image:url") {
+      cur = { url: v, w: 0, h: 0, order: cands.length };
+      cands.push(cur);
+    } else if (cur && k === "og:image:secure_url") cur.secure = v;
+    else if (cur && k === "og:image:width") cur.w = Number(v) || 0;
+    else if (cur && k === "og:image:height") cur.h = Number(v) || 0;
+    else if (!cur && k === "og:image:secure_url") {
+      cur = { url: v, secure: v, w: 0, h: 0, order: cands.length };
+      cands.push(cur);
+    }
+  }
+  if (cands.length) {
+    const best = [...cands].sort((a, b) => b.w * b.h - a.w * a.h || a.order - b.order)[0];
+    return best.secure || best.url;
+  }
+  const tw = list.find(([k]) => k === "twitter:image" || k === "twitter:image:src");
+  return tw ? tw[1] : null;
 }
 
 const clip = (s: string | undefined, n: number) => {
@@ -295,11 +330,13 @@ export async function fetchPreview(rawUrl: string): Promise<Preview | { error: s
     // If a redirect landed somewhere that isn't a single listing (login wall, home page), don't use its meta.
     const landed = parseShareUrl(r.finalUrl.toString());
     if ("error" in landed || landed.site !== parsed.site) return { ...base, fetchStatus: "blocked", detail: `Redirected to ${r.finalUrl.pathname}` };
-    const meta = readMeta(r.body);
+    const list = readMetaList(r.body);
+    const meta = new Map<string, string>();
+    for (const [k, v] of list) if (!meta.has(k)) meta.set(k, v);
     const title = clip(meta.get("og:title") || meta.get("twitter:title"), 200);
     const description = clip(meta.get("og:description") || meta.get("twitter:description"), 200);
     let image: string | null = null;
-    const img = meta.get("og:image:secure_url") || meta.get("og:image") || meta.get("twitter:image") || meta.get("twitter:image:src");
+    const img = pickLargestImage(list);
     if (img) {
       try {
         const iu = new URL(img, r.finalUrl);

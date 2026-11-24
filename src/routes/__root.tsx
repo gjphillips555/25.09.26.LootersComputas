@@ -28,7 +28,6 @@ export const Route = createRootRoute({
       { name: "color-scheme", content: "light dark" },
     ],
     links: [
-      { rel: "canonical", href: "https://www.looterscomputas.online/" },
       { rel: "icon", type: "image/svg+xml", href: "/brand/siftah-mark.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/brand/siftah-mark-32.png" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/brand/siftah-mark-16.png" },

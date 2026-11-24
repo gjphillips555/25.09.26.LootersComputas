@@ -4,10 +4,10 @@ import { getSessionUser } from "@/lib/auth/verify.server";
 import { newId } from "@/lib/auto/server";
 
 const TYPES = new Set(["image/jpeg", "image/webp", "image/png"]);
-const MAX_BYTES = 3 * 1024 * 1024;
+const MAX_BYTES = Math.floor(4.4 * 1024 * 1024); // just under Vercel's 4.5 MB request body limit
 
 /**
- * Upload one listing photo (multipart field "file"). The browser resizes to ≤1600 px first.
+ * Upload one listing photo (multipart field "file"). The browser re-encodes at original resolution (EXIF stripped), ≤4 MB.
  * Stored in Vercel Blob when BLOB_READ_WRITE_TOKEN is configured; otherwise (or if Blob fails)
  * in Postgres and served from /api/auto/photo/:id. Either way it's recorded in auto_photos so
  * listings can only use photos their owner uploaded.
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/auto/upload")({
         }
         if (!file) return json({ error: "No photo received." }, 400);
         if (!TYPES.has(file.type)) return json({ error: "Photos must be JPEG, WebP or PNG." }, 400);
-        if (file.size > MAX_BYTES) return json({ error: "Photo is too large (max 3 MB after resizing)." }, 413);
+        if (file.size > MAX_BYTES) return json({ error: "Photo is too large (max 4 MB)." }, 413);
         const bytes = new Uint8Array(await file.arrayBuffer());
         // Magic-number check so the declared type matches the bytes.
         const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
