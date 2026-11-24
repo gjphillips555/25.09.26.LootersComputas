@@ -1,4 +1,5 @@
 import type { Sql } from "@/lib/db";
+import { safeAvatar } from "@/lib/profile/shared";
 import { SHARE_SITES, type ShareSite, type SharedLink } from "./shared";
 
 type Row = {
@@ -26,7 +27,7 @@ export function toSharedLink(r: Row, withReports = false): SharedLink {
     fetchStatus: r.fetch_status,
     status: r.status,
     createdAt: new Date(r.created_at).toISOString(),
-    sharer: { id: r.sharer_id, name: name.slice(0, 40), image: r.sharer_image && /^https:\/\//.test(r.sharer_image) ? r.sharer_image : null },
+    sharer: { id: r.sharer_id, name: name.slice(0, 40), image: safeAvatar(r.sharer_image) },
     ...(withReports ? { reports: Number(r.reports) || 0 } : {}),
   };
 }

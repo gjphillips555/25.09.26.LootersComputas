@@ -1,7 +1,8 @@
 import { randomBytes } from "node:crypto";
 import type { Sql } from "@/lib/db";
+import { safeAvatar } from "@/lib/profile/shared";
 import {
-  BODY_TYPES, FUELS, MAX_PHOTOS, NZ_REGIONS, TRANSMISSIONS,
+  BODY_TYPES, FUELS, MAX_PHOTOS, NZ_REGIONS, TRANSMISSIONS, normalizeNzMobile,
   type AutoFilters, type AutoListing, type SortKey,
 } from "./shared";
 
@@ -46,7 +47,7 @@ type Row = {
   id: string; seller_id: string; title: string; make: string; model: string; year: number; price: number;
   odometer: number | null; region: string; location: string | null; body_type: string | null; fuel: string | null;
   transmission: string | null; rego: string | null; description: string; photos: unknown; status: AutoListing["status"];
-  created_at: string | Date; updated_at: string | Date; seller_name: string | null; seller_email: string | null; seller_image: string | null;
+  created_at: string | Date; updated_at: string | Date; contact_phone?: string | null; contact_chat?: boolean | null; seller_name: string | null; seller_email: string | null; seller_image: string | null;
 };
 
 function sellerName(name: string | null, email: string | null) {
@@ -61,10 +62,12 @@ export function toListing(r: Row, opts: { showRego?: boolean } = {}): AutoListin
     odometer: r.odometer == null ? null : Number(r.odometer), region: r.region, location: r.location, bodyType: r.body_type,
     fuel: r.fuel, transmission: r.transmission, rego: opts.showRego === false ? null : r.rego, description: r.description,
     photos, status: r.status, createdAt: new Date(r.created_at).toISOString(), updatedAt: new Date(r.updated_at).toISOString(),
+    contactChat: r.contact_chat !== false,
+    hasPhone: Boolean(r.contact_phone),
     seller: {
       id: r.seller_id,
       name: sellerName(r.seller_name, r.seller_email),
-      image: r.seller_image && /^https:\/\//.test(r.seller_image) ? r.seller_image : null,
+      image: safeAvatar(r.seller_image),
     },
   };
 }
@@ -130,7 +133,7 @@ export async function myListings(sql: Sql, userId: string) {
 export type ListingInput = {
   title: string; make: string; model: string; year: number; price: number; odometer: number | null; region: string;
   location: string | null; bodyType: string | null; fuel: string | null; transmission: string | null; rego: string | null;
-  description: string; photos: string[];
+  description: string; photos: string[]; contactPhone: string | null; contactChat: boolean;
 };
 
 /** Validate and normalise listing input. Returns field errors (if any). */
@@ -156,6 +159,10 @@ export function validateListing(body: Record<string, unknown>): { value?: Listin
   let title = clean(body.title, 90);
   if (!title && make && model && year) title = `${year} ${make} ${model}`;
   if (title.length < 3) errors.title = "Add a title.";
+  const phoneRaw = clean(body.contactPhone, 24);
+  const contactPhone = phoneRaw ? normalizeNzMobile(phoneRaw) : null;
+  if (phoneRaw && !contactPhone) errors.contactPhone = "Enter an NZ mobile, e.g. 021 123 4567 or +64 21 123 4567.";
+  const contactChat = body.contactChat === undefined ? true : body.contactChat === true || body.contactChat === "true";
   const photos = Array.isArray(body.photos)
     ? body.photos.filter((p): p is string => typeof p === "string" && p.length < 600).slice(0, MAX_PHOTOS)
     : [];
@@ -170,6 +177,8 @@ export function validateListing(body: Record<string, unknown>): { value?: Listin
       rego: rego || null,
       description,
       photos,
+      contactPhone,
+      contactChat,
     },
   };
 }

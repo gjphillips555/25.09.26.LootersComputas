@@ -62,7 +62,30 @@ export type AutoListing = {
   createdAt: string;
   updatedAt: string;
   seller: AutoSeller | null;
+  /** Live chat section on the listing page (messages delete after 2 hours). */
+  contactChat?: boolean;
+  /** Seller listed a mobile number (revealed on tap via the API, never in page HTML). */
+  hasPhone?: boolean;
+  /** Only included for the listing's owner (edit form). */
+  contactPhone?: string | null;
 };
+
+/** Normalise an NZ mobile (021/022/027/029/020/028…, or +64 2x…) to 02XXXXXXXX; null when invalid. */
+export function normalizeNzMobile(input: string): string | null {
+  let d = String(input || "").trim().replace(/[\s().-]/g, "");
+  if (d.startsWith("+64")) d = "0" + d.slice(3);
+  else if (d.startsWith("0064")) d = "0" + d.slice(4);
+  else if (/^642\d/.test(d)) d = "0" + d.slice(2);
+  return /^02\d{7,9}$/.test(d) ? d : null;
+}
+
+/** 0211234567 → "021 123 4567". */
+export function formatNzMobile(d: string): string {
+  const rest = d.slice(3);
+  return `${d.slice(0, 3)} ${rest.slice(0, 3)} ${rest.slice(3)}`.trim();
+}
+
+export const LISTING_CHAT_TTL_HOURS = 2;
 
 export function nzd(n: number) {
   return new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD", maximumFractionDigits: 0 }).format(n);

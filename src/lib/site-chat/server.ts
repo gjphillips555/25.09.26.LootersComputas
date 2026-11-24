@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import type { Sql } from "@/lib/db";
+import { safeAvatar } from "@/lib/profile/shared";
 
 /** Public room id. DMs use room = 'dm' with sender/recipient. */
 export const LOBBY = "lobby";
@@ -43,8 +44,7 @@ export function displayName(name: string | null | undefined, email?: string | nu
 
 /** Only http(s) avatar URLs are passed to the client. */
 export function safeImage(url: string | null | undefined): string | null {
-  if (!url) return null;
-  return /^https:\/\//i.test(url) ? url : null;
+  return safeAvatar(url);
 }
 
 type Row = {
