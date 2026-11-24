@@ -300,49 +300,60 @@ export const Route = createFileRoute("/api/siftah/chat")({
           let modelUsed = "";
           let lastError: unknown;
           let content = "";
-          // Prefer the admin-configured Hugging Face token (DB), then HUGGINGFACE_API_TOKEN / HF_TOKEN,
-          // routed through router.huggingface.co (model ids carry ":provider" suffixes for HF Inference
-          // Providers). Fall back to Featherless only when a Featherless/OpenRouter key is set instead.
-          let hfToken = "";
+          // Credentials are tried in order: HUGGINGFACE_API_TOKEN / HF_TOKEN (Vercel env) first, then the
+          // admin-settings token stored in the DB. If one is rejected (401/403) the next is tried, so a stale
+          // value in either place can't block a fresh one in the other. HF tokens go through
+          // router.huggingface.co (model ids carry ":provider" suffixes for HF Inference Providers);
+          // a Featherless/OpenRouter key, if set, is the last resort.
+          const envToken = (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
+          let dbToken = "";
           try {
             const [tokRow] = await sql.query<{ hf_token: string | null }>(
               "select hf_token from siftah_admin_settings where id = 1",
             );
-            hfToken = (tokRow?.hf_token || "").trim();
+            dbToken = (tokRow?.hf_token || "").trim();
           } catch {
-            hfToken = "";
+            dbToken = "";
           }
-          if (!hfToken) hfToken = (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
           const altKey = (process.env.FEATHERLESS_API_KEY || process.env.OPENROUTER_API_KEY || "").trim();
-          const endpoint = hfToken
-            ? "https://router.huggingface.co/v1/chat/completions"
-            : "https://api.featherless.ai/v1/chat/completions";
-          const bearer = hfToken || altKey;
-          for (const candidate of modelQueue) {
-            try {
-              const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${bearer}`,
-                  "Content-Type": "application/json",
-                  "HTTP-Referer": "https://www.looterscomputas.online",
-                  "X-Title": "Siftah Mobile",
-                },
-                body: JSON.stringify({
-                  model: hfToken ? candidate : candidate.replace(/:[a-z0-9-]+$/i, ""),
-                  messages: [{ role: "system", content: system }, ...messages],
-                  temperature: 0.7,
-                  max_tokens: 2048,
-                }),
-              });
-              if (!response.ok) throw new Error(`Model ${candidate} failed: ${response.status}`);
-              const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-              content = data.choices?.[0]?.message?.content || "";
-              if (!content) throw new Error("Empty response");
-              modelUsed = candidate;
-              break;
-            } catch (error) {
-              lastError = error;
+          const routes: Array<{ endpoint: string; bearer: string; hf: boolean }> = [];
+          for (const token of [envToken, dbToken]) {
+            if (token && !routes.some((route) => route.bearer === token)) {
+              routes.push({ endpoint: "https://router.huggingface.co/v1/chat/completions", bearer: token, hf: true });
+            }
+          }
+          if (altKey) routes.push({ endpoint: "https://api.featherless.ai/v1/chat/completions", bearer: altKey, hf: false });
+          outer: for (const route of routes) {
+            for (const candidate of modelQueue) {
+              try {
+                const response = await fetch(route.endpoint, {
+                  method: "POST",
+                  headers: {
+                    "Authorization": `Bearer ${route.bearer}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://www.looterscomputas.online",
+                    "X-Title": "Siftah Mobile",
+                  },
+                  body: JSON.stringify({
+                    model: route.hf ? candidate : candidate.replace(/:[a-z0-9-]+$/i, ""),
+                    messages: [{ role: "system", content: system }, ...messages],
+                    temperature: 0.7,
+                    max_tokens: 2048,
+                  }),
+                });
+                if (response.status === 401 || response.status === 403) {
+                  lastError = new Error(`Credential rejected (${response.status}) by ${route.endpoint}`);
+                  continue outer;
+                }
+                if (!response.ok) throw new Error(`Model ${candidate} failed: ${response.status}`);
+                const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+                content = data.choices?.[0]?.message?.content || "";
+                if (!content) throw new Error("Empty response");
+                modelUsed = candidate;
+                break outer;
+              } catch (error) {
+                lastError = error;
+              }
             }
           }
           if (!modelUsed) throw lastError ?? new Error("All Siftah models are currently busy.");

@@ -119,18 +119,23 @@ export async function replyAsSsSiftah(sql: any, convId: string, userId: string, 
   ];
   let content = "";
   let lastError: unknown;
+  const hfToken = (process.env.HUGGINGFACE_API_TOKEN || process.env.HF_TOKEN || "").trim();
+  const endpoint = hfToken
+    ? "https://router.huggingface.co/v1/chat/completions"
+    : "https://api.featherless.ai/v1/chat/completions";
+  const bearer = hfToken || process.env.FEATHERLESS_API_KEY || process.env.OPENROUTER_API_KEY || "";
   for (const candidate of models) {
     try {
-      const response = await fetch("https://api.featherless.ai/v1/chat/completions", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.FEATHERLESS_API_KEY || process.env.OPENROUTER_API_KEY || ""}`,
+          Authorization: `Bearer ${bearer}`,
           "Content-Type": "application/json",
           "HTTP-Referer": "https://www.looterscomputas.online",
           "X-Title": "SS Siftah Message",
         },
         body: JSON.stringify({
-          model: candidate,
+          model: hfToken ? candidate : candidate.replace(/:[a-z0-9-]+$/i, ""),
           messages: [{ role: "system", content: system }, { role: "user", content: userText.slice(0, 8000) }],
           temperature: 0.7,
           max_tokens: 1200,
