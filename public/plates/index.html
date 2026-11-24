@@ -242,6 +242,8 @@
       } catch (e) {}
     })();
   </script>
+  <script src="/artwork/siftah-plates-header-a.js"></script>
+  <script src="/artwork/siftah-plates-header-b.js"></script>
   <script src="/fonts/licenz-glyphs.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="/plates/plate-pdf.js"></script>
@@ -249,7 +251,7 @@
 <body>
   <header>
     <a href="/" aria-label="LootersComputas home">
-      <img class="header-logo" src="/artwork/siftah-plates-header.png" width="1008" height="868" alt="Siftah Plates – looterscomputas.online" />
+      <img class="header-logo" id="headerLogo" src="/artwork/siftah-plates-header.png" width="1008" height="868" alt="Siftah Plates – looterscomputas.online" />
     </a>
     <a href="/">← Back to site</a>
   </header>
@@ -337,6 +339,12 @@
   <footer>LootersComputas · Not affiliated with NZTA or any official plate issuer</footer>
 
   <script>
+    (function () {
+      var img = document.getElementById("headerLogo");
+      if (img && window.SIFTAH_HEADER_A && window.SIFTAH_HEADER_B) {
+        img.src = "data:image/png;base64," + window.SIFTAH_HEADER_A + window.SIFTAH_HEADER_B;
+      }
+    })();
     var colours = { font: "#0a0a0a", border: "#111111", bg: "#ffffff" };
 
     function currentText() {
