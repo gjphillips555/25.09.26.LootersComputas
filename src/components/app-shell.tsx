@@ -17,7 +17,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { user, isPending } = useCurrentUserState();
   const path = location.pathname;
-  const publicBrowse = path === "/" || path === "/shop" || path.startsWith("/shop/");
+  const publicBrowse =
+    path === "/" ||
+    path === "/shop" ||
+    path.startsWith("/shop/") ||
+    // Siftah Auto: guests can browse and open listings; listing a vehicle needs sign-in.
+    ((path === "/auto" || path.startsWith("/auto/")) && !path.startsWith("/auto/sell"));
   const signInRequired = authEnabled && !publicBrowse && (isPending || !user);
   const callbackURL = path + (location.searchStr || "");
 
