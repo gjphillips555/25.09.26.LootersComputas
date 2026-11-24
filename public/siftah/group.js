@@ -321,7 +321,7 @@
         id: id,
         client: myId,
         role: m.role === "assistant" ? "assistant" : "user",
-        name: m.role === "assistant" ? (m.name || "Siftah") : myName(),
+        name: m.role === "assistant" ? (m.name || "Mr CluedUp") : myName(),
         content: String(m.content || "").slice(0, 12000),
         ts: Date.now(),
         image: (function () {

@@ -399,7 +399,7 @@
         var rootFiles = Object.keys(p.files || {}).sort();
         if (!folderNames.length && !rootFiles.length) {
           tree.innerHTML =
-            '<div class="files-empty">No project files yet.<br><br>When Siftah writes code, use <strong>+ Project</strong> on a code block, or turn on auto-add in Settings.</div>';
+            '<div class="files-empty">No project files yet.<br><br>When Mr CluedUp writes code, use <strong>+ Project</strong> on a code block, or turn on auto-add in Settings.</div>';
           if (typeof updateFilesBadge === "function") updateFilesBadge();
           updateSelBar();
           return;
