@@ -1,0 +1,24 @@
+{
+  "id": "/pindrop/",
+  "name": "Siftah PinDrop",
+  "short_name": "PinDrop",
+  "description": "Drop labelled emoji pins on an offline map of New Zealand — mark radars, lost tools and gear for workmates to collect.",
+  "start_url": "/pindrop/?source=pwa",
+  "scope": "/pindrop/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#151517",
+  "theme_color": "#e3121b",
+  "categories": ["navigation", "utilities", "productivity"],
+  "icons": [
+    { "src": "/brand/pindrop-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/pindrop-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/pindrop-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/brand/pindrop-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Drop a pin here", "short_name": "Drop here", "url": "/pindrop/?action=drop-here", "icons": [{ "src": "/brand/pindrop-icon-192.png", "sizes": "192x192" }] },
+    { "name": "My pins", "short_name": "Pins", "url": "/pindrop/?action=list", "icons": [{ "src": "/brand/pindrop-icon-192.png", "sizes": "192x192" }] }
+  ]
+}
