@@ -25,7 +25,7 @@ async function callSiftah(body: Record<string, unknown>) {
 }
 
 /**
- * Siftah AI tab of the chat panel. Wired to the site's existing Siftah AI backend
+ * Mr CluedUp (AI) tab of the chat panel. Wired to the site's existing Siftah AI backend
  * (POST /api/siftah/chat, persona "siftah"); guests get the backend's signed guest-trial cookie.
  */
 export function SiftahAiPane({ active }: { active: boolean }) {
@@ -77,12 +77,12 @@ export function SiftahAiPane({ active }: { active: boolean }) {
       if (ok && reply) {
         setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       } else {
-        const err = typeof data.error === "string" ? data.error : "Siftah is unavailable right now. Please try again.";
+        const err = typeof data.error === "string" ? data.error : "Mr CluedUp is unavailable right now. Please try again.";
         setNotice(err);
       }
     } catch {
-      setNotice("Couldn't reach Siftah. Check your connection and try again.");
-      toast.error("Siftah chat is offline");
+      setNotice("Couldn't reach Mr CluedUp. Check your connection and try again.");
+      toast.error("Mr CluedUp is offline");
     } finally {
       setBusy(false);
     }
@@ -95,7 +95,7 @@ export function SiftahAiPane({ active }: { active: boolean }) {
         <div className="flex gap-2">
           <img src={SIFTAH_MARK_SRC} alt="" className="mt-0.5 size-7 shrink-0 rounded-lg" />
           <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-white px-3.5 py-2.5 text-sm shadow-sm">
-            Kia ora{firstName ? ` ${firstName}` : ""}! I'm <b>Siftah</b>. Ask me about plates, gear on the
+            Kia ora{firstName ? ` ${firstName}` : ""}! I'm <b>Mr CluedUp</b>. Ask me about plates, gear on the
             marketplace, or anything else.
           </div>
         </div>
@@ -119,7 +119,7 @@ export function SiftahAiPane({ active }: { active: boolean }) {
       )}
       {busy && (
         <div className="flex items-center gap-2 text-xs text-[#55555c]">
-          <Loader2 className="size-4 animate-spin text-[#e3121b]" /> Siftah is typing…
+          <Loader2 className="size-4 animate-spin text-[#e3121b]" /> Mr CluedUp is typing…
         </div>
       )}
       {notice && (
@@ -146,7 +146,7 @@ export function SiftahAiPane({ active }: { active: boolean }) {
           }
         }}
         rows={1}
-        placeholder="Message Siftah…"
+        placeholder="Message Mr CluedUp…"
         className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-black/15 bg-[#f4f4f5] px-3.5 py-2.5 text-sm text-[#0b0b0c] outline-none focus:border-[#1f9fd6]"
       />
       <button

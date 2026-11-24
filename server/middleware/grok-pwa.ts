@@ -37,7 +37,7 @@ function requestHost(event: GrokPwaEvent): string {
 }
 
 /** Routes that render their own per-page Open Graph / Twitter tags (keep them; skip site-wide OG). */
-const PAGE_OWNED_SHARE_META = /^\/auto\/listing\/[^/]+\/?$/;
+const PAGE_OWNED_SHARE_META = /^\/auto\/(listing\/[^/]+|rego)\/?$/;
 
 function injectHeadStreaming(response: Response, host: string, path = ""): Response {
   const injector = createHeadInjector({

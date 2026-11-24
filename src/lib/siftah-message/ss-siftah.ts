@@ -3,7 +3,7 @@ import { getCreditBalance } from "@/lib/paypal.server";
 
 export const SS_SIFTAH_ID = "ss-siftah";
 export const SS_SIFTAH_USERNAME = "SS Siftah";
-export const SS_SIFTAH_NAME = "SS Siftah";
+export const SS_SIFTAH_NAME = "Mr CluedUp";
 const PAID_CREDIT_COST = 2;
 const FREE_SS_SIFTAH = 5;
 const SS_SIFTAH_COOLDOWN_HOURS = 5;
@@ -43,7 +43,7 @@ export async function ensureSsSiftahContact(sql: any, userId: string) {
   await sql.query(`insert into sm_conversations (id, kind, title, created_by) values ($1,'direct',$2,$3)`, [id, SS_SIFTAH_USERNAME, SS_SIFTAH_ID]);
   await sql.query(`insert into sm_members (conversation_id, user_id) values ($1,$2),($1,$3)`, [id, userId, SS_SIFTAH_ID]);
   const welcome = encryptBody(
-    "Kia ora — I'm SS Siftah, the Siftah Mobile AI. Ask me anything.\n\nSame rules as Siftah Mobile: short free trial, then credits. Full workspace at /siftah/.",
+    "Kia ora — I'm Mr CluedUp, the Siftah AI assistant. Ask me anything.\n\nSame rules as Siftah Mobile: short free trial, then credits. Full workspace at /siftah/.",
   );
   await sql.query(
     `insert into sm_messages (id, conversation_id, sender_id, body_enc, msg_type, expires_at)
@@ -71,7 +71,7 @@ export async function replyAsSsSiftah(sql: any, convId: string, userId: string, 
   if (cooldownUntil && cooldownUntil > new Date()) {
     return {
       ok: false as const,
-      error: "Your SS Siftah trial is cooling down. It resets after five hours, or buy credits on /siftah/credits.",
+      error: "Your Mr CluedUp trial is cooling down. It resets after five hours, or buy credits on /siftah/credits.",
       code: "TRIAL_COOLDOWN",
       creditsBalance: await getCreditBalance(userId),
     };
@@ -100,7 +100,7 @@ export async function replyAsSsSiftah(sql: any, convId: string, userId: string, 
     if (!creditRows[0]) {
       return {
         ok: false as const,
-        error: "Free SS Siftah trial used. Buy credits on /siftah/credits to keep chatting.",
+        error: "Free Mr CluedUp trial used. Buy credits on /siftah/credits to keep chatting.",
         code: "CREDITS_REQUIRED",
         creditsBalance: await getCreditBalance(userId),
       };
@@ -109,7 +109,7 @@ export async function replyAsSsSiftah(sql: any, convId: string, userId: string, 
   }
 
   const system =
-    "You are SS Siftah, the Siftah Mobile AI assistant inside Siftah Message on Looters Computas (NZ). " +
+    "You are Mr CluedUp, the AI assistant inside Siftah Message on Looters Computas (NZ). " +
     "Be helpful, direct and clear. Keep replies concise for chat unless the user asks for detail.";
   const models = [
     "huihui-ai/Huihui-Qwen3.5-27B-abliterated:featherless-ai",

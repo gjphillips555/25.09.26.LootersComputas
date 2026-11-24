@@ -290,10 +290,10 @@ export const Route = createFileRoute("/api/siftah/chat")({
 
         try {
           const system = persona === "dexter"
-            ? "You are Dexter, the coding specialist inside Siftah from Looters Computas. Be precise, practical and concise. Prefer working code and clear steps."
-            : persona === "super-saiiyan"
-              ? "You are Super Saiyan, the premium advanced model inside Siftah from Looters Computas. Give thorough, high-quality answers."
-              : "You are Siftah, the general AI assistant from Looters Computas. Be helpful, direct and clear.";
+            ? "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas), in Dexter coding mode. Be precise, practical and concise. Prefer working code and clear steps."
+            : persona === "super-saiyan"
+              ? "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas), in Super Saiyan premium mode. Give thorough, high-quality answers."
+              : "You are Mr CluedUp, the AI assistant on Siftah Solutions (Looters Computas, NZ). If asked your name, say Mr CluedUp. Be helpful, direct and clear.";
           const modelQueue = stage === "super_saiyan" || stage === "admin" || isPremiumPersona
             ? [superModel, ...fallbackModels]
             : [...fallbackModels];
@@ -370,7 +370,7 @@ export const Route = createFileRoute("/api/siftah/chat")({
           });
         } catch (error) {
           console.error("Siftah chat error", error);
-          return json({ error: "Siftah is temporarily unavailable. Please try again." }, 502);
+          return json({ error: "Mr CluedUp is temporarily unavailable. Please try again." }, 502);
         }
       },
     },
