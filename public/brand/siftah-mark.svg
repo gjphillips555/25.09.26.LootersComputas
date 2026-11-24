@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Siftah">
+  <!-- PLACEHOLDER mark. Replaced by the real sticker mark via scripts/brand/process-logo.py -->
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="#E3121B" stroke="#0B0B0C" stroke-width="10"/>
+  <text x="124" y="200" text-anchor="middle" font-family="'Arial Black','Archivo Black',Impact,sans-serif" font-style="italic" font-weight="900" font-size="190" fill="#fff" stroke="#0B0B0C" stroke-width="9" stroke-linejoin="round" paint-order="stroke">S</text>
+  <circle cx="196" cy="62" r="20" fill="#5CC8F2" stroke="#0B0B0C" stroke-width="6"/>
+</svg>

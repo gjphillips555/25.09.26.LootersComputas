@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260" width="640" height="260" role="img" aria-label="Siftah Solutions – trading as looterscomputas.online">
+  <!-- PLACEHOLDER wordmark. Replaced by the real sticker logo via scripts/brand/process-logo.py -->
+  <g font-family="'Arial Black','Archivo Black',Impact,sans-serif" font-style="italic" font-weight="900" text-anchor="middle">
+    <text x="320" y="120" font-size="118" fill="#fff" stroke="#fff" stroke-width="26" stroke-linejoin="round">Siftah</text>
+    <text x="320" y="120" font-size="118" fill="#E3121B" stroke="#0B0B0C" stroke-width="7" stroke-linejoin="round" paint-order="stroke">Siftah</text>
+    <circle cx="283" cy="34" r="11" fill="#5CC8F2" stroke="#0B0B0C" stroke-width="4"/>
+    <text x="320" y="196" font-size="64" fill="#fff" stroke="#fff" stroke-width="20" stroke-linejoin="round" letter-spacing="2">SOLUTIONS</text>
+    <text x="320" y="196" font-size="64" fill="#fff" stroke="#0B0B0C" stroke-width="6" stroke-linejoin="round" paint-order="stroke" letter-spacing="2">SOLUTIONS</text>
+  </g>
+  <text x="320" y="244" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="22" fill="#0B0B0C" stroke="#fff" stroke-width="5" paint-order="stroke">trading as: <tspan fill="#2BA8E0">looterscomputas</tspan>.online</text>
+</svg>
