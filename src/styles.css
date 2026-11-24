@@ -4,62 +4,73 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Siftah Solutions brand: red / black / white + light-blue accent. */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
-  --font-mark: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Archivo", "Archivo Black", ui-sans-serif, system-ui, sans-serif;
+  --font-mark: "Archivo", "Archivo Black", ui-sans-serif, system-ui, sans-serif;
   --font-oled: "Chakra Petch", ui-monospace, monospace;
   --font-cmd: "Chakra Petch", ui-monospace, monospace;
 
-  --color-background: oklch(0.17 0.03 300);
-  --color-foreground: oklch(0.96 0.01 300);
-  --color-card: oklch(0.21 0.035 300);
-  --color-card-foreground: oklch(0.96 0.01 300);
-  --color-popover: oklch(0.22 0.038 300);
-  --color-popover-foreground: oklch(0.96 0.01 300);
-  --color-primary: oklch(0.62 0.22 300);
-  --color-primary-foreground: oklch(0.99 0.005 300);
-  --color-secondary: oklch(0.27 0.04 300);
-  --color-secondary-foreground: oklch(0.96 0.01 300);
-  --color-muted: oklch(0.25 0.03 300);
-  --color-muted-foreground: oklch(0.72 0.03 300);
-  --color-accent: oklch(0.83 0.15 85);
-  --color-accent-foreground: oklch(0.2 0.04 300);
-  --color-destructive: oklch(0.62 0.23 20);
-  --color-border: oklch(0.96 0.01 300 / 12%);
-  --color-input: oklch(0.96 0.01 300 / 16%);
-  --color-ring: oklch(0.62 0.22 300);
+  --color-siftah-red: #e3121b;
+  --color-siftah-red-bright: #ff2a33;
+  --color-siftah-red-deep: #a80b12;
+  --color-siftah-black: #0b0b0c;
+  --color-siftah-ink: #151517;
+  --color-siftah-white: #ffffff;
+  --color-siftah-blue: #5cc8f2;
+  --color-siftah-blue-deep: #1f9fd6;
+
+  /* Dark (default when html.dark) */
+  --color-background: #0b0b0c;
+  --color-foreground: #f6f6f7;
+  --color-card: #151517;
+  --color-card-foreground: #f6f6f7;
+  --color-popover: #18181b;
+  --color-popover-foreground: #f6f6f7;
+  --color-primary: #e3121b;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #222226;
+  --color-secondary-foreground: #f6f6f7;
+  --color-muted: #1d1d21;
+  --color-muted-foreground: #a3a3ab;
+  --color-accent: #5cc8f2;
+  --color-accent-foreground: #0b0b0c;
+  --color-destructive: #ff3b30;
+  --color-border: rgb(255 255 255 / 11%);
+  --color-input: rgb(255 255 255 / 16%);
+  --color-ring: #5cc8f2;
   --color-paypal: #ffc439;
   --color-paypal-foreground: #003087;
   --color-trademe: #fde3b5;
   --color-trademe-foreground: #1a1a1a;
 
   --radius-sm: 0.45rem;
-  --radius-md: 0.6rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1.05rem;
-  --radius-2xl: 1.35rem;
+  --radius-md: 0.65rem;
+  --radius-lg: 0.85rem;
+  --radius-xl: 1.1rem;
+  --radius-2xl: 1.5rem;
 }
 
 html.light {
   color-scheme: light;
-  --color-background: oklch(0.97 0.01 300);
-  --color-foreground: oklch(0.22 0.04 300);
-  --color-card: oklch(0.995 0.005 300);
-  --color-card-foreground: oklch(0.22 0.04 300);
-  --color-popover: oklch(1 0.004 300);
-  --color-popover-foreground: oklch(0.22 0.04 300);
-  --color-primary: oklch(0.48 0.2 300);
-  --color-primary-foreground: oklch(0.99 0.005 300);
-  --color-secondary: oklch(0.94 0.02 300);
-  --color-secondary-foreground: oklch(0.22 0.04 300);
-  --color-muted: oklch(0.94 0.015 300);
-  --color-muted-foreground: oklch(0.42 0.03 300);
-  --color-accent: oklch(0.72 0.14 85);
-  --color-accent-foreground: oklch(0.22 0.04 300);
-  --color-destructive: oklch(0.55 0.22 20);
-  --color-border: oklch(0.22 0.04 300 / 12%);
-  --color-input: oklch(0.22 0.04 300 / 14%);
-  --color-ring: oklch(0.48 0.2 300);
+  --color-background: #f4f4f5;
+  --color-foreground: #0b0b0c;
+  --color-card: #ffffff;
+  --color-card-foreground: #0b0b0c;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0b0b0c;
+  --color-primary: #e3121b;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #ececee;
+  --color-secondary-foreground: #0b0b0c;
+  --color-muted: #ececee;
+  --color-muted-foreground: #55555c;
+  --color-accent: #1f9fd6;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #d70f17;
+  --color-border: rgb(11 11 12 / 12%);
+  --color-input: rgb(11 11 12 / 16%);
+  --color-ring: #1f9fd6;
 }
 
 @layer base {
@@ -264,7 +275,7 @@ html.light .kb-cream .kb-cap {
 }
 
 .kb-teal {
-  background: #5ea8a0;
+  background: #e3121b;
   box-shadow:
     0 0.45rem 0 #3e7a74,
     0 0.7rem 1rem color-mix(in oklab, black 16%, transparent);
@@ -340,9 +351,9 @@ html.light .kb-trademe .kb-cap {
 }
 
 .kb-orange .kb-cap {
-  background: linear-gradient(180deg, #ffc14d, #ff9a00);
-  color: #1a1000;
-  border-color: color-mix(in oklab, #ffc14d 50%, transparent);
+  background: linear-gradient(180deg, #5cc8f2, #e3121b);
+  color: #ffffff;
+  border-color: color-mix(in oklab, #5cc8f2 50%, transparent);
 }
 
 html.light .kb-orange {
@@ -351,8 +362,8 @@ html.light .kb-orange {
 }
 
 html.light .kb-orange .kb-cap {
-  background: linear-gradient(180deg, #ffc14d, #ff9a00);
-  color: #1a1000;
+  background: linear-gradient(180deg, #5cc8f2, #e3121b);
+  color: #ffffff;
 }
 
 .kb-key.kb-white {
@@ -674,9 +685,9 @@ html.light .kb-board {
 .kb-enter-v .kb-cap,
 .kb-enter-h .kb-cap {
   border-radius: 0.4rem;
-  background: linear-gradient(180deg, #ffc14d, #ff9a00);
-  color: #1a1000;
-  border-color: color-mix(in oklab, #ffc14d 55%, transparent);
+  background: linear-gradient(180deg, #5cc8f2, #e3121b);
+  color: #ffffff;
+  border-color: color-mix(in oklab, #5cc8f2 55%, transparent);
 }
 
 .kb-enter-v .kb-cap {
@@ -931,12 +942,12 @@ html.light .kb-board {
 }
 
 .cat-nav-item:hover {
-  border-color: #5ea8a0;
+  border-color: #e3121b;
   color: #163834;
 }
 
 .cat-nav-item.is-active {
-  background: #5ea8a0;
+  background: #e3121b;
   border-color: #3e7a74;
   color: #f4fffd;
 }
@@ -976,7 +987,7 @@ html.light .kb-board {
   padding: 0 0.85rem;
   border: 0;
   border-radius: 0.45rem;
-  background: #5ea8a0;
+  background: #e3121b;
   color: #f4fffd;
   font-size: 0.8rem;
   font-weight: 700;
@@ -991,7 +1002,7 @@ html.light .kb-board {
   min-height: 2.5rem;
   border: 0;
   border-radius: 0.4rem;
-  background: #5ea8a0;
+  background: #e3121b;
   color: #f4fffd;
   font-size: 0.82rem;
   font-weight: 700;
@@ -1717,7 +1728,7 @@ html.light .kb-key.kb-search-key .kb-cap {
 }
 
 .legal-copy a {
-  color: #ff9a00;
+  color: #e3121b;
   text-underline-offset: 2px;
 }
 
@@ -2395,7 +2406,7 @@ html.light .kb-key.kb-search-key .kb-cap {
   margin: 0;
   font-size: 1.6rem;
   line-height: 1.1;
-  color: var(--kb-orange, #ff9a00);
+  color: var(--kb-orange, #e3121b);
 }
 .builder-split,
 .builder-note,
@@ -2526,5 +2537,127 @@ a.loot-outline:hover {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Siftah Solutions redesign                                            */
+/* ------------------------------------------------------------------ */
+
+/* Bold italic display type to match the sticker logo. */
+.font-display,
+.siftah-display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* Sticker-style outlined headline: white fill, black stroke, red drop. */
+.siftah-sticker-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 900;
+  color: #fff;
+  -webkit-text-stroke: 2px #0b0b0c;
+  paint-order: stroke fill;
+  text-shadow: 3px 4px 0 var(--color-siftah-red);
+}
+
+.siftah-red-text {
+  color: var(--color-siftah-red);
+}
+
+.siftah-stripe {
+  background: linear-gradient(90deg, var(--color-siftah-red) 0 72%, var(--color-siftah-blue) 72% 78%, #fff 78% 100%);
+}
+
+.siftah-hero {
+  background:
+    radial-gradient(ellipse 70% 60% at 85% 10%, rgb(227 18 27 / 0.35), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 0% 100%, rgb(92 200 242 / 0.18), transparent 60%),
+    linear-gradient(180deg, #121214, #0b0b0c);
+}
+
+.siftah-tile {
+  position: relative;
+  isolation: isolate;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.siftah-tile:hover,
+.siftah-tile:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--color-siftah-red);
+  box-shadow: 0 10px 30px -12px rgb(227 18 27 / 0.55);
+}
+
+.siftah-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Leave room for the mobile bottom tab bar. */
+@media (max-width: 1023px) {
+  .siftah-has-tabbar {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes siftah-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.siftah-pop {
+  transform-origin: bottom right;
+  animation: siftah-pop 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes siftah-drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.siftah-drawer {
+  animation: siftah-drawer-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes siftah-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.siftah-fade {
+  animation: siftah-fade-in 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siftah-pop,
+  .siftah-drawer,
+  .siftah-fade {
+    animation: none;
+  }
+}
+
+/* Page-scroll keys move to the left so the chat head owns the right corner;
+   hidden on touch/mobile where the bottom tab bar lives. */
+.pg-float {
+  right: auto;
+  left: 0.75rem;
+}
+@media (max-width: 1023px) {
+  .pg-float {
+    display: none;
   }
 }
