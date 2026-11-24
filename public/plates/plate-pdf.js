@@ -5,15 +5,16 @@
   var MM = 72 / 25.4;
   function mm(n) { return n * MM; }
 
-  var CAP_MM = 78;
+  var geo = global.PLATE_GEOMETRY || {};
+  var CAP_MM = geo.capHeightMm || 78;
   var CAP_UNITS = (global.LICENZ_METRICS && global.LICENZ_METRICS.capHeight) || 700;
-  var PLATE_W = 360;
-  var PLATE_H = 124;
+  var PLATE_W = geo.widthMm || 360;
+  var PLATE_H = geo.heightMm || 124;
   var BORDER = 4.5;
   var BORDER_THIN = 1.2;
-  var BOLT_D = 7;
-  var BOLT_INSET_SIDE = 15;
-  var BOLT_INSET_END = 19;
+  var BOLT_D = geo.boltDiameterMm || 6;
+  var BOLT_INSET_X = geo.boltInsetXMm || 74.5;
+  var BOLT_INSET_Y = geo.boltInsetYMm || 13;
   var NZ_SIZE = 11;
   var NZ_BOTTOM = 4.5;
   var NZ_RIGHT = 10;
@@ -78,9 +79,10 @@
     });
 
     if (opts.showBolts) {
+      /* Centres are measured from the plate's outer edges, not the inner border. */
       var d = mm(BOLT_D);
-      var cxs = [ox + bw + mm(BOLT_INSET_SIDE) + d / 2, ox + w - bw - mm(BOLT_INSET_SIDE) - d / 2];
-      var cys = [oy + h - bw - mm(BOLT_INSET_END) - d / 2, oy + bw + mm(BOLT_INSET_END) + d / 2];
+      var cxs = [ox + mm(BOLT_INSET_X), ox + w - mm(BOLT_INSET_X)];
+      var cys = [oy + h - mm(BOLT_INSET_Y), oy + mm(BOLT_INSET_Y)];
       for (var i = 0; i < cxs.length; i++) {
         for (var j = 0; j < cys.length; j++) {
           page.drawCircle({ x: cxs[i], y: cys[j], size: d / 2, color: PDFLib.rgb(0, 0, 0) });

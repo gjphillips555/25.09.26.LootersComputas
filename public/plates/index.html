@@ -6,6 +6,7 @@
   <title>Siftah Plates · NZ Plate Sticker Maker – Siftah Solutions</title>
   <meta name="description" content="Generate and print realistic New Zealand number plate stickers at true 360×124 mm size, with 78 mm cap-height characters." />
   <link rel="icon" type="image/svg+xml" href="/brand/siftah-mark.svg" />
+  <script src="/plates/plate-geometry.js"></script>
   <meta name="theme-color" content="#0b0b0c" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -165,19 +166,42 @@
     }
     .nz-badge.hidden { display: none; }
 
+    /* Fallbacks; canonical values are applied from plate-geometry.js. */
+    :root {
+      --plate-w: 360mm;
+      --plate-h: 124mm;
+      --bolt-d: 6mm;
+      --bolt-cx: 74.5mm;
+      --bolt-cy: 13mm;
+    }
     .bolt {
       position: absolute;
-      width: 7mm;
-      height: 7mm;
+      width: var(--bolt-d);
+      height: var(--bolt-d);
       border-radius: 50%;
       background: #000000;
       z-index: 3;
     }
     .bolt.hidden { display: none; }
-    .bolt.tl { top: 19mm; left: 15mm; }
-    .bolt.tr { top: 19mm; right: 15mm; }
-    .bolt.bl { bottom: 19mm; left: 15mm; }
-    .bolt.br { bottom: 19mm; right: 15mm; }
+    .bolt.tl, .bolt.tr, .bolt.bl, .bolt.br {
+      top: auto; right: auto; bottom: auto; left: auto;
+    }
+    .bolt.tl {
+      top: calc(var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--bolt-cx) - var(--bolt-d) / 2);
+    }
+    .bolt.tr {
+      top: calc(var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--plate-w) - var(--bolt-cx) - var(--bolt-d) / 2);
+    }
+    .bolt.bl {
+      top: calc(var(--plate-h) - var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--bolt-cx) - var(--bolt-d) / 2);
+    }
+    .bolt.br {
+      top: calc(var(--plate-h) - var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--plate-w) - var(--bolt-cx) - var(--bolt-d) / 2);
+    }
 
     .hint {
       max-width: 640px; text-align: center; color: rgba(255,255,255,0.62);
