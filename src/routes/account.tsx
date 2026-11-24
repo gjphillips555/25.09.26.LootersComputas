@@ -115,6 +115,14 @@ function AccountPage() {
               </a>
             </section>
 
+            <a href="/settings" className="flex items-center justify-between rounded-2xl border border-border bg-card p-5 hover:border-[#e3121b]" data-testid="account-settings-link">
+              <span>
+                <span className="block font-display text-lg font-semibold">Settings</span>
+                <span className="text-sm text-muted-foreground">Choose your mobile tab bar buttons</span>
+              </span>
+              <span aria-hidden className="text-xl">›</span>
+            </a>
+
             <SiftahCreditsWallet />
 
             <section className="rounded-2xl border border-border bg-card p-6">

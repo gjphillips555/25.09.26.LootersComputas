@@ -11,6 +11,7 @@ import {
   MessageSquare,
   MessagesSquare,
   Printer,
+  Settings,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
@@ -72,6 +73,7 @@ export const APPS: NavItem[] = [
   { href: "/prints", label: "Prints", hint: "Print studio", icon: Printer, tone: "ink" },
   { href: "/build", label: "PC Builder", hint: "Spec a custom rig", icon: Cpu, tone: "ink" },
   { href: "/overlay", label: "Overlay", hint: "Stream overlay studio", icon: Layers, tone: "ink" },
+  { href: "/settings", label: "Settings", hint: "Customise your tab bar", icon: Settings, tone: "ink" },
 ];
 
 export const LEGAL: NavItem[] = [
