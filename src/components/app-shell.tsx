@@ -21,8 +21,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     path === "/" ||
     path === "/shop" ||
     path.startsWith("/shop/") ||
-    // Siftah Auto: guests can browse and open listings; listing a vehicle needs sign-in.
-    ((path === "/auto" || path.startsWith("/auto/")) && !path.startsWith("/auto/sell"));
+    // Siftah Auto: guests can browse and open listings; listing a vehicle or sharing a link needs sign-in.
+    ((path === "/auto" || path.startsWith("/auto/")) && !path.startsWith("/auto/sell") && !path.startsWith("/auto/share"));
   const signInRequired = authEnabled && !publicBrowse && (isPending || !user);
   const callbackURL = path + (location.searchStr || "");
 
