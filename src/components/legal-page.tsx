@@ -18,7 +18,7 @@ export function LegalPage({
         <div className="mb-6 rounded-2xl bg-black px-4 py-8 sm:py-10">
           <BrandLogoCrossfade heightClass="h-28 sm:h-36" />
         </div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#ff9a00]">
+        <p className="text-xs font-semibold uppercase tracking-wider text-[#e3121b]">
           Looters Computas · Siftah
         </p>
         <h1 className="mt-1 font-display text-3xl font-bold tracking-tight">{title}</h1>
