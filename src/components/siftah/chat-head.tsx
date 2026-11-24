@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bot, Maximize2, MessagesSquare, Users, X } from "lucide-react";
+import { ArrowLeft, Bot, Maximize2, MessagesSquare, UserRound, Users, X } from "lucide-react";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { useSiteChat, type ChatUser } from "@/lib/site-chat/use-site-chat";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,10 @@ import { SIFTAH_MARK_SRC } from "./brand";
 import { UserAvatar } from "./user-avatar";
 import { SiftahAiPane } from "./ai-pane";
 import { DmPane, PeoplePane, RoomPane } from "./site-chat-panes";
+import { ProfileEditor } from "./profile-editor";
+
+/** Any link to these paths opens the pop-up chat in place instead of navigating. */
+export const CHAT_LINK_PATH = /^\/(siftah-message|siftah-messenger|messages|messenger|inbox|chat)\/?$/i;
 
 type Tab = "room" | "people" | "ai";
 const TAB_KEY = "siftah-chat-tab";
@@ -15,7 +19,7 @@ const TAB_KEY = "siftah-chat-tab";
  * Floating chat head (bottom corner) that pops open into the site chat panel:
  *  - Room: public chat everyone on the site can read (signed-in members post).
  *  - Online: who's online now + DM conversations; click someone for a private 1:1 thread.
- *  - Siftah AI: the existing Siftah assistant.
+ *  - Mr CluedUp: the site AI assistant (existing /api/siftah/chat backend).
  * Desktop: a side pop-up. Mobile: a full-height sheet. The head shows the user's Google photo
  * and a red badge for unread DMs (blue dot for new room messages).
  */
@@ -24,6 +28,7 @@ export function SiftahChatHead() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("room");
   const [peer, setPeer] = useState<ChatUser | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -33,7 +38,8 @@ export function SiftahChatHead() {
       /* ignore */
     }
     const onOpen = (e: Event) => {
-      const detail = (e as CustomEvent<{ tab?: Tab; peer?: ChatUser }>).detail;
+      const detail = (e as CustomEvent<{ tab?: Tab; peer?: ChatUser; profile?: boolean }>).detail;
+      setProfileOpen(Boolean(detail?.profile));
       if (detail?.peer) {
         setPeer(detail.peer);
         setTab("people");
@@ -41,7 +47,55 @@ export function SiftahChatHead() {
       setOpen(true);
     };
     window.addEventListener("siftah:open-chat", onOpen);
-    return () => window.removeEventListener("siftah:open-chat", onOpen);
+
+    // Old message routes redirect here with ?chat=messages|room|ai|profile: open the pop-up, then tidy the URL.
+    try {
+      const url = new URL(window.location.href);
+      const want = url.searchParams.get("chat");
+      if (want) {
+        url.searchParams.delete("chat");
+        window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+        const map: Record<string, Tab> = { messages: "people", people: "people", dm: "people", room: "room", ai: "ai" };
+        if (want === "profile") setProfileOpen(true);
+        setTab(map[want] ?? "people");
+        setOpen(true);
+      }
+    } catch {
+      /* ignore */
+    }
+
+    // Every Siftah Message / Messenger / Inbox link opens the pop-up in place (capture phase, before router links).
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.("a[href], [data-open-chat]") as HTMLElement | null;
+      if (!a) return;
+      let tabWanted: Tab = "people";
+      if (a.hasAttribute("data-open-chat")) {
+        const v = a.getAttribute("data-open-chat");
+        if (v === "room" || v === "ai") tabWanted = v;
+      } else {
+        const href = a.getAttribute("href") || "";
+        let u: URL;
+        try {
+          u = new URL(href, window.location.href);
+        } catch {
+          return;
+        }
+        if (u.origin !== window.location.origin || !CHAT_LINK_PATH.test(u.pathname)) return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      window.dispatchEvent(new Event("siftah:close-menu"));
+      setProfileOpen(false);
+      setPeer(null);
+      setTab(tabWanted);
+      setOpen(true);
+    };
+    document.addEventListener("click", onClick, true);
+    return () => {
+      window.removeEventListener("siftah:open-chat", onOpen);
+      document.removeEventListener("click", onClick, true);
+    };
   }, []);
   useEffect(() => {
     try {
@@ -76,7 +130,7 @@ export function SiftahChatHead() {
 
   const headUnread = chat.dmUnread;
   const subtitle = tab === "ai"
-    ? user ? "Siftah AI assistant" : "Siftah AI · guest trial"
+    ? user ? "Mr CluedUp · AI assistant" : "Mr CluedUp · guest trial"
     : chat.signedIn
       ? `${chat.online.length} online${chat.realtime ? " · live" : ""}`
       : `${chat.online.length} online · guests can read`;
@@ -84,7 +138,7 @@ export function SiftahChatHead() {
   const tabs: Array<{ id: Tab; label: string; icon: typeof Bot; badge?: number; dot?: boolean }> = [
     { id: "room", label: "Room", icon: MessagesSquare, dot: tab !== "room" && chat.roomUnread > 0 },
     { id: "people", label: `Online${chat.online.length ? ` ${chat.online.length}` : ""}`, icon: Users, badge: chat.dmUnread },
-    { id: "ai", label: "Siftah AI", icon: Bot },
+    { id: "ai", label: "Mr CluedUp", icon: Bot },
   ];
 
   return (
@@ -110,12 +164,24 @@ export function SiftahChatHead() {
                 {subtitle}
               </p>
             </div>
+            {chat.signedIn && (
+              <button
+                type="button"
+                onClick={() => setProfileOpen((v) => !v)}
+                className={cn("inline-flex size-8 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white", profileOpen && "bg-white/15 text-white")}
+                title="Edit my username and avatar"
+                aria-label="Edit my username and avatar"
+                data-testid="chat-profile-button"
+              >
+                <UserRound className="size-4" />
+              </button>
+            )}
             {tab === "ai" && (
               <a
                 href="/siftah/"
                 className="inline-flex size-8 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
-                title="Open full Siftah AI"
-                aria-label="Open full Siftah AI"
+                title="Open Mr CluedUp full screen"
+                aria-label="Open Mr CluedUp full screen"
               >
                 <Maximize2 className="size-4" />
               </a>
@@ -137,6 +203,7 @@ export function SiftahChatHead() {
                 role="tab"
                 aria-selected={tab === t.id}
                 onClick={() => {
+                  setProfileOpen(false);
                   setTab(t.id);
                   if (t.id === "people" && tab === "people") setPeer(null);
                 }}
@@ -157,7 +224,14 @@ export function SiftahChatHead() {
           </nav>
           <div className="siftah-stripe h-1" />
 
-          {tab === "room" && (
+          {profileOpen && (
+            <div className="flex-1 overflow-y-auto p-4" data-testid="chat-profile-pane">
+              <button type="button" onClick={() => setProfileOpen(false)} className="mb-3 inline-flex items-center gap-1 text-xs font-bold text-[#1f9fd6]"><ArrowLeft className="size-3.5" /> Back to chat</button>
+              <p className="mb-3 font-display text-lg">My profile</p>
+              <ProfileEditor compact />
+            </div>
+          )}
+          {!profileOpen && tab === "room" && (
             <RoomPane
               me={chat.me}
               signedIn={chat.signedIn}
@@ -169,10 +243,10 @@ export function SiftahChatHead() {
               active={open && tab === "room"}
             />
           )}
-          {tab === "people" && !peer && (
+          {!profileOpen && tab === "people" && !peer && (
             <PeoplePane me={chat.me} signedIn={chat.signedIn} online={chat.online} inbox={chat.inbox} onOpen={openDm} />
           )}
-          {tab === "people" && peer && (
+          {!profileOpen && tab === "people" && peer && (
             <DmPane
               me={chat.me}
               signedIn={chat.signedIn}
@@ -184,7 +258,7 @@ export function SiftahChatHead() {
               active={open}
             />
           )}
-          {tab === "ai" && <SiftahAiPane active={open && tab === "ai"} />}
+          {!profileOpen && tab === "ai" && <SiftahAiPane active={open && tab === "ai"} />}
         </section>
       )}
 

@@ -115,6 +115,16 @@ export function useSiteChat({ open, roomVisible, dmPeer }: { open: boolean; room
     }
   }, []);
 
+  // Name/avatar changed: re-read "me", the room (sender names) and the online list straight away.
+  useEffect(() => {
+    const onProfile = () => {
+      state.current.lastFull = 0;
+      void sync({ fullRoom: true });
+    };
+    window.addEventListener("siftah:profile-updated", onProfile);
+    return () => window.removeEventListener("siftah:profile-updated", onProfile);
+  }, [sync]);
+
   // Realtime nudges.
   useEffect(() => {
     const cfg = rtCfg.current;

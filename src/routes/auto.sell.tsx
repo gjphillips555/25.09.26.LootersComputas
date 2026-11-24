@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { ListingCard, autoApi, resizeImage } from "@/components/auto/auto-ui";
 import {
-  BODY_TYPES, FUELS, MAX_PHOTOS, NZ_REGIONS, POPULAR_MAKES, TRANSMISSIONS, type AutoListing,
+  BODY_TYPES, FUELS, MAX_PHOTOS, NZ_REGIONS, POPULAR_MAKES, TRANSMISSIONS, formatNzMobile, normalizeNzMobile, type AutoListing,
 } from "@/lib/auto/shared";
 import { cn } from "@/lib/utils";
 
@@ -17,16 +17,19 @@ export const Route = createFileRoute("/auto/sell")({
 type Form = {
   title: string; make: string; model: string; year: string; price: string; odometer: string; region: string; location: string;
   bodyType: string; fuel: string; transmission: string; rego: string; description: string; photos: string[];
+  contactPhone: string; contactChat: boolean;
 };
 const EMPTY: Form = {
   title: "", make: "", model: "", year: "", price: "", odometer: "", region: "", location: "",
   bodyType: "", fuel: "", transmission: "", rego: "", description: "", photos: [],
+  contactPhone: "", contactChat: true,
 };
 
 function AutoSell() {
   const navigate = useNavigate();
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
+  const [showPhone, setShowPhone] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(0);
@@ -57,7 +60,9 @@ function AutoSell() {
           odometer: l.odometer == null ? "" : String(l.odometer), region: l.region, location: l.location || "",
           bodyType: l.bodyType || "", fuel: l.fuel || "", transmission: l.transmission || "", rego: l.rego || "",
           description: l.description, photos: l.photos,
+          contactPhone: l.contactPhone ? formatNzMobile(l.contactPhone) : "", contactChat: l.contactChat !== false,
         });
+        setShowPhone(Boolean(l.contactPhone));
       });
     }
     if (window.location.hash === "#mine") setTimeout(() => document.getElementById("mine")?.scrollIntoView(), 400);
@@ -107,9 +112,13 @@ function AutoSell() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (uploading) return toast.message("Wait for photos to finish uploading.");
+    if (showPhone && !normalizeNzMobile(form.contactPhone)) {
+      setErrors((er) => ({ ...er, contactPhone: "Enter an NZ mobile, e.g. 021 123 4567 or +64 21 123 4567." }));
+      return toast.error("Check the mobile number.");
+    }
     setSaving(true);
     const { ok, data } = await autoApi<{ id: string }>("/api/auto/listings", {
-      body: { action: editId ? "update" : "create", id: editId ?? undefined, ...form },
+      body: { action: editId ? "update" : "create", id: editId ?? undefined, ...form, contactPhone: showPhone ? form.contactPhone : "" },
     });
     setSaving(false);
     if (!ok) {
@@ -212,6 +221,24 @@ function AutoSell() {
             </div>
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => void addPhotos(e.target.files)} data-testid="auto-photo-input" />
           </div>
+
+          <fieldset className="rounded-2xl border-2 border-[#0b0b0c] p-4" data-testid="contact-fieldset">
+            <legend className="px-1 text-xs font-black uppercase tracking-[0.15em] text-[#e3121b]">How buyers contact you</legend>
+            <p className="text-[11px] text-[#55555c]">Buyers can always message you privately in Siftah chat. Add either or both of these too:</p>
+            <label className="mt-3 flex items-start gap-2 text-sm font-bold">
+              <input type="checkbox" checked={showPhone} onChange={(e) => { setShowPhone(e.target.checked); if (!e.target.checked) set("contactPhone", ""); }} className="mt-0.5 size-4 accent-[#e3121b]" data-testid="contact-phone-toggle" />
+              <span>Show my mobile number<span className="block text-[11px] font-normal text-[#55555c]">Shown only on the listing page, after a buyer taps "Show number".</span></span>
+            </label>
+            {showPhone && (
+              <div className="mt-2 pl-6">
+                {field("contactPhone", "NZ mobile number", { inputMode: "tel", autoComplete: "tel", placeholder: "021 123 4567", maxLength: 20, "data-testid": "contact-phone" } as React.InputHTMLAttributes<HTMLInputElement>)}
+              </div>
+            )}
+            <label className="mt-3 flex items-start gap-2 text-sm font-bold">
+              <input type="checkbox" checked={form.contactChat} onChange={(e) => setForm((f) => ({ ...f, contactChat: e.target.checked }))} className="mt-0.5 size-4 accent-[#e3121b]" data-testid="contact-chat-toggle" />
+              <span>Live chat at the bottom of the listing<span className="block text-[11px] font-normal text-[#55555c]">A public chat about this vehicle. Signed-in members can post; messages delete after 2 hours.</span></span>
+            </label>
+          </fieldset>
 
           <button type="submit" disabled={saving || uploading > 0} className="h-12 w-full rounded-full bg-[#e3121b] text-base font-bold text-white hover:bg-[#ff2a33] disabled:opacity-50">
             {saving ? "Saving…" : editId ? "Save changes" : "Publish listing"}
