@@ -69,7 +69,7 @@ export function ListingCard({ listing }: { listing: AutoListing }) {
   return listing.externalUrl ? (
     <a href={listing.externalUrl} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>
   ) : (
-    <Link to={"/auto/$id" as "/"} params={{ id: listing.id } as never} className={cls}>{inner}</Link>
+    <Link to={"/auto/listing/$id" as "/"} params={{ id: listing.id } as never} className={cls}>{inner}</Link>
   );
 }
 
@@ -136,8 +136,14 @@ export function PhotoGallery({ photos, title }: { photos: string[]; title: strin
   );
 }
 
-/** Resize an image in the browser (≤1600 px, JPEG) before upload. */
-export async function resizeImage(file: File, max = 1600): Promise<Blob> {
+export const UPLOAD_MAX_BYTES = 4 * 1024 * 1024; // Vercel functions accept ~4.5 MB request bodies
+
+/**
+ * Prepare a photo for upload at its ORIGINAL resolution. It is re-encoded once in the browser so camera
+ * metadata (EXIF GPS location, serials) is stripped and orientation is baked in. It is only scaled down if
+ * the browser's canvas limit (~16 MP) or the 4 MB upload cap can't otherwise be met.
+ */
+export async function resizeImage(file: File): Promise<Blob> {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -146,14 +152,27 @@ export async function resizeImage(file: File, max = 1600): Promise<Blob> {
       el.onerror = reject;
       el.src = url;
     });
-    const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-    const w = Math.round(img.naturalWidth * scale);
-    const h = Math.round(img.naturalHeight * scale);
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-    return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("resize failed"))), "image/jpeg", 0.82));
+    const MAX_AREA = 16_000_000;
+    let scale = Math.min(1, Math.sqrt(MAX_AREA / (img.naturalWidth * img.naturalHeight)));
+    const encode = (q: number) => {
+      const w = Math.round(img.naturalWidth * scale);
+      const h = Math.round(img.naturalHeight * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, w, h);
+      return new Promise<Blob>((resolve, reject) => canvas.toBlob((bl) => (bl ? resolve(bl) : reject(new Error("encode failed"))), "image/jpeg", q));
+    };
+    for (let attempt = 0; attempt < 8; attempt++) {
+      for (const q of [0.92, 0.86, 0.8]) {
+        const blob = await encode(q);
+        if (blob.size <= UPLOAD_MAX_BYTES) return blob;
+      }
+      scale *= 0.85; // still too big at full size: step down gently
+    }
+    return await encode(0.75);
   } finally {
     URL.revokeObjectURL(url);
   }

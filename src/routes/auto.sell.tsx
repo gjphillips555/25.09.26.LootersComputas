@@ -117,7 +117,7 @@ function AutoSell() {
       return toast.error(data.error || "Couldn't save");
     }
     toast.success(editId ? "Listing updated" : "Your vehicle is live on Siftah Auto");
-    void navigate({ to: "/auto/$id" as "/", params: { id: data.id } as never });
+    void navigate({ to: "/auto/listing/$id" as "/", params: { id: data.id } as never });
   };
 
   const field = (k: keyof Form, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { ExternalLink, Flag, Link2, ShieldAlert, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ChatAvatar } from "@/components/siftah/site-chat-panes";
@@ -36,7 +37,7 @@ export function SharedLinkCard({ link, viewer, onChanged }: { link: SharedLink; 
   const title = link.title || `Listing on ${link.siteLabel}`;
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border-2 border-dashed border-[#0b0b0c] bg-white shadow-[4px_4px_0_#5cc8f2]" data-testid="shared-card">
-      <div className="relative aspect-[4/3] overflow-hidden bg-[#f4f4f5]">
+      <Link to={"/auto/listing/$id" as "/"} params={{ id: link.id } as never} className="relative block aspect-[4/3] overflow-hidden bg-[#f4f4f5]" data-testid="shared-open">
         {imgOk && link.image ? (
           <img src={link.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setImgOk(false)} className="size-full object-cover" />
         ) : (
@@ -48,9 +49,9 @@ export function SharedLinkCard({ link, viewer, onChanged }: { link: SharedLink; 
         <span className={cn("absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider shadow", SITE_TONE[link.site] || "bg-white text-black")}>
           <Link2 className="size-3" /> Shared from {link.siteLabel}
         </span>
-      </div>
+      </Link>
       <div className="flex flex-1 flex-col gap-1.5 p-3">
-        <p className="line-clamp-2 font-display text-base leading-tight text-[#0b0b0c]">{title}</p>
+        <Link to={"/auto/listing/$id" as "/"} params={{ id: link.id } as never} className="line-clamp-2 font-display text-base leading-tight text-[#0b0b0c] hover:underline">{title}</Link>
         {link.price != null && <p className="text-lg font-black text-[#e3121b]">{nzd(link.price)}</p>}
         {link.description && <p className="line-clamp-2 text-xs text-[#55555c]">{link.description}</p>}
         {!link.description && link.fetchStatus !== "ok" && (

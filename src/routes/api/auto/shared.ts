@@ -41,6 +41,19 @@ export const Route = createFileRoute("/api/auto/shared")({
           });
           return json({ ...result, viewer: { id: session?.id ?? null, isAdmin: Boolean(admin) } }, 200, { "Cache-Control": "no-store" });
         }
+        if (op === "link") {
+          const id = (url.searchParams.get("id") || "").slice(0, 40);
+          const link = id ? await getSharedLink(sql, id) : null;
+          const admin = session ? await getAdminAccess().catch(() => null) : null;
+          const isOwner = Boolean(session && link && link.sharer.id === session.id);
+          if (!link || (link.status === "removed" && !admin && !isOwner)) return json({ error: "Link not found" }, 404);
+          let reports = 0;
+          if (admin) {
+            const [r] = await sql.query<{ n: number }>(`select count(*) as n from auto_link_reports where link_id = $1`, [id]);
+            reports = Number(r?.n) || 0;
+          }
+          return json({ link: { ...link, reports }, isOwner, viewer: { id: session?.id ?? null, isAdmin: Boolean(admin) } });
+        }
         if (op === "mine") {
           if (!session) return json({ error: "Sign in to see your shared links.", code: "SIGN_IN_REQUIRED" }, 401);
           return json({ items: await mySharedLinks(sql, session.id) });
