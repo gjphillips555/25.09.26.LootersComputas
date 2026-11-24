@@ -1,6 +1,6 @@
-import { SimpleHeader } from "@/components/simple-header";
+import { SiftahAppBar } from "@/components/siftah/app-bar";
 
-/** Marketplace header only — cart / Attack Shark keyboard modes removed. */
+/** Legacy export — the Siftah app bar is now rendered globally by SiftahFrame. */
 export function SiteHeader() {
-  return <SimpleHeader />;
+  return <SiftahAppBar />;
 }
