@@ -1,7 +1,7 @@
 /* Siftah mode model bindings v2.2 */
 (function () {
   "use strict";
-  // Knowledge (unrestricted): huihui-ai/Huihui-Qwen3-14B-abliterated-v2:featherless-ai
+  // Knowledge model: huihui-ai/Huihui-Qwen3-14B-abliterated-v2:featherless-ai
   // Coding: Qwen/Qwen3-Coder-30B-A3B-Instruct
   // Images: black-forest-labs/FLUX.1-dev (best on HF Inference Providers)
 

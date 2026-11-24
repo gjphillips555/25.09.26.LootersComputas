@@ -348,7 +348,7 @@
         model: preset.abliterated,
         temperature: typeof s.temperature === "number" ? s.temperature : 0.7,
         max_tokens: Math.min(Number(s.maxTokens) || 800, 1200),
-        messages: [{ role: "system", content: "You are " + preset.short + ", a second unrestricted chatter in this Knowledge chat. Answer the latest turn in your own words. Do not repeat the previous reply. No refusals." }].concat(prior),
+        messages: [{ role: "system", content: "You are " + preset.short + ", a second friendly chatter in this Knowledge chat alongside Mr CluedUp. Answer the latest turn in your own words. Do not repeat the previous reply. Be helpful and friendly, and follow normal safety rules." }].concat(prior),
       }),
     });
     var data = await res.json().catch(function () { return {}; });
