@@ -1,6 +1,7 @@
 import {
   Car,
   CarFront,
+  ClipboardCheck,
   Cpu,
   FileText,
   Gamepad2,
@@ -42,6 +43,9 @@ export const PLATES: NavItem = {
 /** Siftah Auto: NZ vehicle marketplace. */
 export const AUTO: NavItem = { href: "/auto", label: "Siftah Auto", hint: "Cars for sale · list yours", icon: Car, tone: "blue" };
 
+/** Rego Checker: plate lookup (CarJam) + link to the official NZTA expiry check + reminders. */
+export const REGO: NavItem = { href: "/auto/rego", label: "Rego Checker", hint: "Plate lookup & expiry reminders", icon: ClipboardCheck, tone: "blue" };
+
 /** PinDrop: offline-first map pin app (static PWA at /pindrop/). */
 export const PINDROP: NavItem = {
   href: "/pindrop/",
@@ -57,6 +61,7 @@ export const APPS: NavItem[] = [
   PINDROP,
   { href: "/", label: "Marketplace", hint: "Buy, sell & swap tech", icon: Home, tone: "ink" },
   AUTO,
+  REGO,
   { href: "/shop", label: "Shop", hint: "Browse categories", icon: ShoppingBag, tone: "ink" },
   { href: "/sell", label: "Sell", hint: "List your gear", icon: Store, tone: "ink" },
   { href: "/arcade", label: "Arcade", hint: "Free browser games", icon: Gamepad2, tone: "blue" },
@@ -78,12 +83,12 @@ export const LEGAL: NavItem[] = [
 export const TOP_LINKS: NavItem[] = [
   APPS[2], // Marketplace
   AUTO,
-  APPS[4], // Shop
+  APPS[5], // Shop
   PLATES,
   PINDROP,
-  APPS[6], // Arcade
-  APPS[7], // Siftah AI
-  APPS[5], // Sell
+  APPS[7], // Arcade
+  APPS[8], // Siftah AI
+  APPS[6], // Sell
 ];
 
 export function isActive(pathname: string, href: string): boolean {

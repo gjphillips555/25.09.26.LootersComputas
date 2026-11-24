@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CarFront, Link2, Loader2, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { CarFront, ClipboardCheck, Link2, Loader2, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { ListingCard, SearchEverywhere, autoApi } from "@/components/auto/auto-ui";
 import { SharedLinkCard, type Viewer } from "@/components/auto/shared-link-card";
@@ -213,6 +213,9 @@ function AutoBrowse() {
           </Link>
           <Link to={"/auto/share" as "/"} className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 text-sm font-bold hover:bg-white/10" data-testid="share-cta">
             <Link2 className="size-4" /> Share a car from another site
+          </Link>
+          <Link to={"/auto/rego" as "/"} className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 text-sm font-bold hover:bg-white/10" data-testid="rego-cta">
+            <ClipboardCheck className="size-4" /> Rego Checker
           </Link>
           <Link to={"/auto/sell" as "/"} hash="mine" className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-4 py-2 text-sm font-bold hover:bg-white/10">
             My listings
