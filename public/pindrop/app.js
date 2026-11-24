@@ -424,7 +424,7 @@
     if (!navigator.onLine || prefs.nzSaved) return;
     var plan = { b: NZ_OVERVIEW, minz: NZ_OVERVIEW.minz, maxz: NZ_OVERVIEW.maxz, count: countFor(NZ_OVERVIEW, NZ_OVERVIEW.minz, NZ_OVERVIEW.maxz) };
     $("btnOffline").classList.add("busy");
-    downloadArea(plan, null).then(function (r) { if (!r.failed) { prefs.nzSaved = Date.now(); savePrefs(); } toast("NZ overview map saved for offline ✅"); }, function () {}).then(function () { $("btnOffline").classList.remove("busy"); });
+    downloadArea(plan, null).then(function (r) { if (!r.failed) { prefs.nzSaved = Date.now(); savePrefs(); toast("NZ overview map saved for offline ✅"); } }, function () {}).then(function () { $("btnOffline").classList.remove("busy"); });
   }
 
   // ---------- install ----------
