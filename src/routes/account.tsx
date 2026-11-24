@@ -1,3 +1,4 @@
+import { ProfileEditor } from "@/components/siftah/profile-editor";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -102,15 +103,16 @@ function AccountPage() {
                   <p className="text-sm text-muted-foreground">{user?.primaryEmail}</p>
                 </div>
               </div>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Username, avatar and Siftah Message settings live in the messenger.
-              </p>
-              <Link
-                to="/siftah-message"
+              <div id="profile" className="mt-5 rounded-2xl bg-white p-4">
+                <p className="mb-3 font-display text-base text-[#0b0b0c]">Username &amp; avatar</p>
+                <ProfileEditor />
+              </div>
+              <a
+                href="/siftah-message"
                 className="mt-3 inline-flex rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-500"
               >
                 Open Siftah Message
-              </Link>
+              </a>
             </section>
 
             <SiftahCreditsWallet />

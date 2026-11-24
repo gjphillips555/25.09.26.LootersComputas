@@ -31,8 +31,13 @@ export function SiftahAppBar() {
 
   useEffect(() => {
     const open = () => setMenuOpen(true);
+    const close = () => setMenuOpen(false);
     window.addEventListener("siftah:open-menu", open);
-    return () => window.removeEventListener("siftah:open-menu", open);
+    window.addEventListener("siftah:close-menu", close);
+    return () => {
+      window.removeEventListener("siftah:open-menu", open);
+      window.removeEventListener("siftah:close-menu", close);
+    };
   }, []);
 
   useEffect(() => {
@@ -64,7 +69,7 @@ export function SiftahAppBar() {
                   key={item.href}
                   item={item}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold transition",
+                    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-2 text-[13px] font-bold transition xl:px-3 xl:text-sm",
                     featured
                       ? "bg-[#e3121b] text-white hover:bg-[#ff2a33]"
                       : active

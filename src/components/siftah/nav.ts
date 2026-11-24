@@ -65,8 +65,8 @@ export const APPS: NavItem[] = [
   { href: "/shop", label: "Shop", hint: "Browse categories", icon: ShoppingBag, tone: "ink" },
   { href: "/sell", label: "Sell", hint: "List your gear", icon: Store, tone: "ink" },
   { href: "/arcade", label: "Arcade", hint: "Free browser games", icon: Gamepad2, tone: "blue" },
-  { href: "/siftah/", label: "Siftah AI", hint: "Chat, images & modes", icon: Sparkles, external: true, tone: "red" },
-  { href: "/siftah-message", label: "Message", hint: "Private member chat", icon: MessageSquare, tone: "ink" },
+  { href: "/siftah/", label: "Mr CluedUp", hint: "AI chat, images & modes", icon: Sparkles, external: true, tone: "red" },
+  { href: "/siftah-message", label: "Siftah Message", hint: "Opens the chat window", icon: MessageSquare, tone: "ink" },
   { href: "/forum", label: "Forum", hint: "Community den", icon: MessagesSquare, tone: "ink" },
   { href: "/account", label: "Wallet", hint: "Account & PayPal", icon: Wallet, tone: "ink" },
   { href: "/prints", label: "Prints", hint: "Print studio", icon: Printer, tone: "ink" },
@@ -87,7 +87,7 @@ export const TOP_LINKS: NavItem[] = [
   PLATES,
   PINDROP,
   APPS[7], // Arcade
-  APPS[8], // Siftah AI
+  APPS[8], // Mr CluedUp (AI)
   APPS[6], // Sell
 ];
 
