@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { SearchEverywhere, autoApi, messageSeller } from "@/components/auto/auto-ui";
 import { FullResGallery, ShareButton } from "@/components/auto/gallery";
+import { ListingChat, ShowPhone } from "@/components/auto/listing-chat";
 import { ChatAvatar, signInHref } from "@/components/siftah/site-chat-panes";
 import { getAutoDetail, type AutoDetailData } from "@/lib/auto/detail";
 import { km, nzd, type AutoListing, type SharedLink } from "@/lib/auto/shared";
@@ -221,6 +222,14 @@ function MemberDetail({ initial }: { initial: AutoListing }) {
               )}
             </div>
           )}
+          {l.status === "active" && (l.hasPhone || l.contactChat !== false) && (
+            <div className="flex flex-wrap items-center gap-2" data-testid="contact-options">
+              {l.hasPhone && <ShowPhone listingId={l.id} />}
+              {l.contactChat !== false && (
+                <a href="#live-chat" className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#0b0b0c] px-4 py-2 text-sm font-bold" data-testid="jump-live-chat"><MessageCircle className="size-4" /> Live chat</a>
+              )}
+            </div>
+          )}
           {v?.isOwner && (
             <div className="flex flex-wrap gap-2">
               <Link to={"/auto/sell" as "/"} search={{ edit: l.id } as never} className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#0b0b0c] px-4 py-2 text-sm font-bold" data-testid="owner-edit"><Pencil className="size-4" /> Edit</Link>
@@ -253,6 +262,7 @@ function MemberDetail({ initial }: { initial: AutoListing }) {
         <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6" data-testid="detail-description">{l.description || "No description provided."}</p>
       </section>
       <SearchEverywhere className="mt-8" make={l.make} model={l.model} rego={l.rego ?? undefined} />
+      {l.contactChat !== false && l.status !== "removed" && <ListingChat listingId={l.id} />}
     </AppShell>
   );
 }

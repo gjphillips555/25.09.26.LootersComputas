@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createHash } from "node:crypto";
+import { formatNzMobile } from "@/lib/auto/shared";
 import { getSql } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/verify.server";
 import { getAdminAccess } from "@/lib/admin.server";
@@ -41,7 +43,31 @@ export const Route = createFileRoute("/api/auto/listings")({
             const [r] = await sql.query<{ n: number }>(`select count(*) as n from auto_reports where listing_id = $1`, [id]);
             reports = Number(r?.n) || 0;
           }
+          if (isOwner) {
+            const [p] = await sql.query<{ contact_phone: string | null }>(`select contact_phone from auto_listings where id = $1`, [id]);
+            listing.contactPhone = p?.contact_phone ?? null;
+          }
           return json({ listing, isOwner, isAdmin: Boolean(admin), reports, signedIn: Boolean(session) });
+        }
+        if (op === "phone") {
+          // Revealed on tap (kept out of page HTML and listing JSON). Basic anti-scraping limit per viewer.
+          const id = (url.searchParams.get("id") || "").slice(0, 40);
+          const session = await getSessionUser().catch(() => null);
+          const ip = request.headers.get("x-real-ip") || (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+          const viewer = session ? `u:${session.id}` : `ip:${createHash("sha256").update(`siftah-phone:${ip}`).digest("hex").slice(0, 32)}`;
+          const [lim] = await sql.query<{ n: number }>(
+            `select count(*)::int as n from auto_phone_reveals where viewer = $1 and created_at > now() - interval '1 hour'`,
+            [viewer],
+          );
+          if (Number(lim?.n) >= (session ? 30 : 10)) return json({ error: "Too many numbers viewed. Try again later or message the seller." }, 429);
+          const [row] = await sql.query<{ contact_phone: string | null; status: string }>(
+            `select contact_phone, status from auto_listings where id = $1`,
+            [id],
+          );
+          if (!row || row.status !== "active" || !row.contact_phone) return json({ error: "No number for this listing." }, 404);
+          await sql.query(`insert into auto_phone_reveals (listing_id, viewer) values ($1, $2)`, [id, viewer]);
+          await sql.query(`delete from auto_phone_reveals where created_at < now() - interval '2 days'`).catch(() => undefined);
+          return json({ phone: formatNzMobile(row.contact_phone), tel: `+64${row.contact_phone.slice(1)}` }, 200, { "Cache-Control": "no-store" });
         }
         if (op === "config") {
           return json({ regoLookup: carjamEnabled(), providers: providerStatus() });
@@ -86,19 +112,22 @@ export const Route = createFileRoute("/api/auto/listings")({
             const newIdValue = newId();
             await sql.query(
               `insert into auto_listings (id, seller_id, title, make, model, year, price, odometer, region, location,
-                 body_type, fuel, transmission, rego, description, photos)
-               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb)`,
+                 body_type, fuel, transmission, rego, description, photos, contact_phone, contact_chat)
+               values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18)`,
               [newIdValue, me, value.title, value.make, value.model, value.year, value.price, value.odometer, value.region,
-               value.location, value.bodyType, value.fuel, value.transmission, value.rego, value.description, JSON.stringify(value.photos)],
+               value.location, value.bodyType, value.fuel, value.transmission, value.rego, value.description, JSON.stringify(value.photos),
+               value.contactPhone, value.contactChat],
             );
             return json({ ok: true, id: newIdValue });
           }
           const updated = await sql.query(
             `update auto_listings set title=$3, make=$4, model=$5, year=$6, price=$7, odometer=$8, region=$9, location=$10,
-                    body_type=$11, fuel=$12, transmission=$13, rego=$14, description=$15, photos=$16::jsonb, updated_at=now()
+                    body_type=$11, fuel=$12, transmission=$13, rego=$14, description=$15, photos=$16::jsonb,
+                    contact_phone=$17, contact_chat=$18, updated_at=now()
               where id=$1 and seller_id=$2 and status <> 'removed' returning id`,
             [id, me, value.title, value.make, value.model, value.year, value.price, value.odometer, value.region,
-             value.location, value.bodyType, value.fuel, value.transmission, value.rego, value.description, JSON.stringify(value.photos)],
+             value.location, value.bodyType, value.fuel, value.transmission, value.rego, value.description, JSON.stringify(value.photos),
+             value.contactPhone, value.contactChat],
           );
           if (!updated.length) return json({ error: "Listing not found or not yours." }, 404);
           return json({ ok: true, id });
