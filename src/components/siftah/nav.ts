@@ -1,4 +1,5 @@
 import {
+  Car,
   CarFront,
   Cpu,
   FileText,
@@ -37,9 +38,13 @@ export const PLATES: NavItem = {
 };
 
 /** Every section of the site, as app tiles. */
+/** Siftah Auto: NZ vehicle marketplace. */
+export const AUTO: NavItem = { href: "/auto", label: "Siftah Auto", hint: "Cars for sale · list yours", icon: Car, tone: "blue" };
+
 export const APPS: NavItem[] = [
   PLATES,
   { href: "/", label: "Marketplace", hint: "Buy, sell & swap tech", icon: Home, tone: "ink" },
+  AUTO,
   { href: "/shop", label: "Shop", hint: "Browse categories", icon: ShoppingBag, tone: "ink" },
   { href: "/sell", label: "Sell", hint: "List your gear", icon: Store, tone: "ink" },
   { href: "/arcade", label: "Arcade", hint: "Free browser games", icon: Gamepad2, tone: "blue" },
@@ -60,11 +65,12 @@ export const LEGAL: NavItem[] = [
 /** Desktop top-bar links. */
 export const TOP_LINKS: NavItem[] = [
   APPS[1], // Marketplace
-  APPS[2], // Shop
+  AUTO,
+  APPS[3], // Shop
   PLATES,
-  APPS[4], // Arcade
-  APPS[5], // Siftah AI
-  APPS[3], // Sell
+  APPS[5], // Arcade
+  APPS[6], // Siftah AI
+  APPS[4], // Sell
 ];
 
 export function isActive(pathname: string, href: string): boolean {
