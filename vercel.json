@@ -35,5 +35,10 @@
       "destination": "/siftah/",
       "permanent": true
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  }
 }

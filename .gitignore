@@ -11,3 +11,6 @@ artifacts/
 .grok/status
 .grok/preview.log
 .grok/og-pending
+
+# decoded from brand-assets/*.b64 at build time
+public/brand/*.png
