@@ -110,26 +110,49 @@
     }
 
     .plate {
-      width: 360mm;
-      height: 124mm;
+      width: var(--plate-w, 360mm);
+      height: var(--plate-h, 124mm);
       position: relative;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      border-radius: 2.5mm;
+      box-sizing: border-box;
+      border-radius: var(--corner-r, 13mm);
       background: #ffffff;
-      border: 4.5mm solid #111111;
+      /* Outer aluminium lip; the black raised rim and inner highlight are separate layers. */
+      border: var(--lip, 1mm) solid var(--metal, #c5c5c0);
       box-shadow: 0 6px 18px rgba(0,0,0,0.35);
       transition: border-color 0.15s, background-color 0.15s;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .plate.no-frame {
-      border-width: 1.2mm;
-      border-color: #cccccc;
+    .plate-rim, .plate-highlight {
+      position: absolute;
+      pointer-events: none;
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
+    .plate-rim {
+      inset: var(--lip, 1mm);
+      border: var(--black-rim, 4mm) solid #111111;
+      border-radius: calc(var(--corner-r, 13mm) - var(--lip, 1mm));
+      z-index: 1;
+    }
+    .plate-highlight {
+      inset: calc(var(--lip, 1mm) + var(--black-rim, 4mm));
+      border: var(--highlight-w, 1.5mm) solid var(--rim-highlight, #e6e6e0);
+      border-radius: calc(var(--corner-r, 13mm) - var(--lip, 1mm) - var(--black-rim, 4mm));
+      z-index: 1;
+    }
+    .plate.no-frame {
+      border-width: 0.6mm;
+      border-color: #bbbbbb;
+    }
+    .plate.no-frame .plate-rim,
+    .plate.no-frame .plate-highlight { display: none; }
 
     /* Licenz sCapHeight is 700/1000 em, so font-size 78mm/0.7 makes cap height 78 mm. */
     .plate-content {
@@ -154,8 +177,8 @@
 
     .nz-badge {
       position: absolute;
-      bottom: 4.5mm;
-      right: 10mm;
+      bottom: 8mm;
+      right: 22mm;
       font-size: 11mm;
       font-weight: 800;
       letter-spacing: 0.4px;
@@ -171,8 +194,15 @@
       --plate-w: 360mm;
       --plate-h: 124mm;
       --bolt-d: 6mm;
-      --bolt-cx: 74.5mm;
+      --bolt-inner-x: 74.5mm;
+      --bolt-corner-x: 13mm;
       --bolt-cy: 13mm;
+      --lip: 1mm;
+      --black-rim: 4mm;
+      --highlight-w: 1.5mm;
+      --corner-r: 13mm;
+      --metal: #c5c5c0;
+      --rim-highlight: #e6e6e0;
     }
     .bolt {
       position: absolute;
@@ -183,24 +213,42 @@
       z-index: 3;
     }
     .bolt.hidden { display: none; }
-    .bolt.tl, .bolt.tr, .bolt.bl, .bolt.br {
+    .bolt {
       top: auto; right: auto; bottom: auto; left: auto;
     }
-    .bolt.tl {
+    /* Inner pair: 74.5 mm from the ends, 13 mm from top/bottom (211 x 98 mm pitch). */
+    .bolt.til {
       top: calc(var(--bolt-cy) - var(--bolt-d) / 2);
-      left: calc(var(--bolt-cx) - var(--bolt-d) / 2);
+      left: calc(var(--bolt-inner-x) - var(--bolt-d) / 2);
     }
-    .bolt.tr {
+    .bolt.tir {
       top: calc(var(--bolt-cy) - var(--bolt-d) / 2);
-      left: calc(var(--plate-w) - var(--bolt-cx) - var(--bolt-d) / 2);
+      left: calc(var(--plate-w) - var(--bolt-inner-x) - var(--bolt-d) / 2);
     }
-    .bolt.bl {
+    .bolt.bil {
       top: calc(var(--plate-h) - var(--bolt-cy) - var(--bolt-d) / 2);
-      left: calc(var(--bolt-cx) - var(--bolt-d) / 2);
+      left: calc(var(--bolt-inner-x) - var(--bolt-d) / 2);
     }
-    .bolt.br {
+    .bolt.bir {
       top: calc(var(--plate-h) - var(--bolt-cy) - var(--bolt-d) / 2);
-      left: calc(var(--plate-w) - var(--bolt-cx) - var(--bolt-d) / 2);
+      left: calc(var(--plate-w) - var(--bolt-inner-x) - var(--bolt-d) / 2);
+    }
+    /* Corner holes: 13 mm from both adjacent edges. */
+    .bolt.tcl {
+      top: calc(var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--bolt-corner-x) - var(--bolt-d) / 2);
+    }
+    .bolt.tcr {
+      top: calc(var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--plate-w) - var(--bolt-corner-x) - var(--bolt-d) / 2);
+    }
+    .bolt.bcl {
+      top: calc(var(--plate-h) - var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--bolt-corner-x) - var(--bolt-d) / 2);
+    }
+    .bolt.bcr {
+      top: calc(var(--plate-h) - var(--bolt-cy) - var(--bolt-d) / 2);
+      left: calc(var(--plate-w) - var(--bolt-corner-x) - var(--bolt-d) / 2);
     }
 
     .hint {
@@ -327,7 +375,7 @@
       <div class="row">
         <label class="option"><input type="checkbox" id="toggleFrame" checked> Border / frame</label>
         <label class="option"><input type="checkbox" id="toggleBolts" checked> Bolt holes</label>
-        <label class="option"><input type="checkbox" id="toggleNz" checked> NZ badge</label>
+        <label class="option"><input type="checkbox" id="toggleNz"> NZ badge</label>
       </div>
 
       <div class="section-label">Colours</div>
@@ -370,12 +418,18 @@
 
     <div id="plate-container">
       <div class="plate" id="plate">
-        <div class="bolt tl" id="boltTl"></div>
-        <div class="bolt tr" id="boltTr"></div>
-        <div class="bolt bl" id="boltBl"></div>
-        <div class="bolt br" id="boltBr"></div>
+        <div class="plate-rim" id="plateRim" aria-hidden="true"></div>
+        <div class="plate-highlight" id="plateHighlight" aria-hidden="true"></div>
+        <div class="bolt tcl" id="boltTcl"></div>
+        <div class="bolt til" id="boltTil"></div>
+        <div class="bolt tir" id="boltTir"></div>
+        <div class="bolt tcr" id="boltTcr"></div>
+        <div class="bolt bcl" id="boltBcl"></div>
+        <div class="bolt bil" id="boltBil"></div>
+        <div class="bolt bir" id="boltBir"></div>
+        <div class="bolt bcr" id="boltBcr"></div>
         <div class="plate-content" id="plateText">ABC123</div>
-        <div class="nz-badge" id="nzBadge">NZ</div>
+        <div class="nz-badge hidden" id="nzBadge">NZ</div>
       </div>
     </div>
 
@@ -402,12 +456,27 @@
       document.getElementById("plateText").textContent = currentText();
     }
 
+    function highlightFor(bg) {
+      var h = String(bg || "#ffffff").replace("#", "");
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+      var r = parseInt(h.slice(0,2), 16), g = parseInt(h.slice(2,4), 16), b = parseInt(h.slice(4,6), 16);
+      var luma = (0.3*r + 0.59*g + 0.11*b) / 255;
+      if (luma > 0.6) return "#e6e6e0";
+      var f = 0.22;
+      function ch(v) { return Math.max(0, Math.min(255, Math.round(v + (255-v)*f))); }
+      return "#" + [ch(r),ch(g),ch(b)].map(function(v){ return v.toString(16).padStart(2,"0"); }).join("");
+    }
+
     function applyColours() {
       var plate = document.getElementById("plate");
       var showFrame = document.getElementById("toggleFrame").checked;
       plate.classList.toggle("no-frame", !showFrame);
       plate.style.backgroundColor = colours.bg;
-      plate.style.borderColor = showFrame ? colours.border : "#cccccc";
+      plate.style.borderColor = showFrame ? (window.PLATE_GEOMETRY && window.PLATE_GEOMETRY.metalColour) || "#c5c5c0" : "#bbbbbb";
+      var rim = document.getElementById("plateRim");
+      var hi = document.getElementById("plateHighlight");
+      if (rim) rim.style.borderColor = colours.border;
+      if (hi) hi.style.borderColor = highlightFor(colours.bg);
       // Use !important so the rule beats the stylesheet colour.
       ["plateText","nzBadge"].forEach(function(id) {
         var el = document.getElementById(id);
@@ -416,11 +485,13 @@
       });
     }
 
+    var BOLT_IDS = ["boltTcl","boltTil","boltTir","boltTcr","boltBcl","boltBil","boltBir","boltBcr"];
+
     function updateOptions() {
       applyColours();
       var showBolts = document.getElementById("toggleBolts").checked;
       var showNz = document.getElementById("toggleNz").checked;
-      ["boltTl","boltTr","boltBl","boltBr"].forEach(function(id) {
+      BOLT_IDS.forEach(function(id) {
         document.getElementById(id).classList.toggle("hidden", !showBolts);
       });
       document.getElementById("nzBadge").classList.toggle("hidden", !showNz);
