@@ -1,121 +1,122 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Loader2, Maximize2, Send, X } from "lucide-react";
-import { toast } from "sonner";
-import { getBearerToken } from "@/lib/auth/client";
+import { useEffect, useState } from "react";
+import { Bot, Maximize2, MessagesSquare, Users, X } from "lucide-react";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { useSiteChat, type ChatUser } from "@/lib/site-chat/use-site-chat";
 import { cn } from "@/lib/utils";
 import { SIFTAH_MARK_SRC } from "./brand";
 import { UserAvatar } from "./user-avatar";
+import { SiftahAiPane } from "./ai-pane";
+import { DmPane, PeoplePane, RoomPane } from "./site-chat-panes";
 
-type Msg = { role: "user" | "assistant"; content: string };
-const STORE_KEY = "siftah-chathead-history";
-const API = "/api/siftah/chat";
-
-async function callSiftah(body: Record<string, unknown>) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  const bearer = getBearerToken();
-  if (bearer) headers.Authorization = `Bearer ${bearer}`;
-  const res = await fetch(API, { method: "POST", credentials: "same-origin", headers, body: JSON.stringify(body) });
-  let data: Record<string, unknown> = {};
-  try {
-    data = (await res.json()) as Record<string, unknown>;
-  } catch {
-    /* non-JSON */
-  }
-  return { ok: res.ok, status: res.status, data };
-}
+type Tab = "room" | "people" | "ai";
+const TAB_KEY = "siftah-chat-tab";
 
 /**
- * Floating chat head (bottom corner) that pops open into a chat bubble.
- * Signed in → the user's Google profile photo; signed out → the Siftah mark.
- * Wired to the site's existing Siftah AI backend (POST /api/siftah/chat,
- * persona "siftah"); guests get the backend's signed guest-trial cookie.
+ * Floating chat head (bottom corner) that pops open into the site chat panel:
+ *  - Room: public chat everyone on the site can read (signed-in members post).
+ *  - Online: who's online now + DM conversations; click someone for a private 1:1 thread.
+ *  - Siftah AI: the existing Siftah assistant.
+ * Desktop: a side pop-up. Mobile: a full-height sheet. The head shows the user's Google photo
+ * and a red badge for unread DMs (blue dot for new room messages).
  */
 export function SiftahChatHead() {
   const { user, isPending } = useCurrentUserState();
   const [open, setOpen] = useState(false);
-  const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [draft, setDraft] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [tab, setTab] = useState<Tab>("room");
+  const [peer, setPeer] = useState<ChatUser | null>(null);
 
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem(STORE_KEY);
-      if (saved) setMsgs(JSON.parse(saved) as Msg[]);
+      const saved = sessionStorage.getItem(TAB_KEY) as Tab | null;
+      if (saved === "room" || saved === "people" || saved === "ai") setTab(saved);
     } catch {
       /* ignore */
     }
+    const onOpen = (e: Event) => {
+      const detail = (e as CustomEvent<{ tab?: Tab }>).detail;
+      if (detail?.tab) setTab(detail.tab);
+      setOpen(true);
+    };
+    window.addEventListener("siftah:open-chat", onOpen);
+    return () => window.removeEventListener("siftah:open-chat", onOpen);
   }, []);
-
   useEffect(() => {
     try {
-      sessionStorage.setItem(STORE_KEY, JSON.stringify(msgs.slice(-30)));
+      sessionStorage.setItem(TAB_KEY, tab);
     } catch {
       /* ignore */
     }
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-  }, [msgs, busy]);
+  }, [tab]);
 
+  // Lock page scroll behind the full-height mobile sheet.
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 60);
+    if (!open || typeof window === "undefined" || window.innerWidth >= 640) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [open]);
 
-  const firstName = user?.displayName?.split(" ")[0];
+  const chat = useSiteChat({ open, roomVisible: tab === "room", dmPeer: tab === "people" && peer ? peer.id : null });
+  const onlineIds = new Set(chat.online.map((u) => u.id));
 
-  async function send(e?: FormEvent) {
-    e?.preventDefault();
-    const text = draft.trim();
-    if (!text || busy) return;
-    const next: Msg[] = [...msgs, { role: "user", content: text }];
-    setMsgs(next);
-    setDraft("");
-    setBusy(true);
-    setNotice(null);
-    try {
-      if (!user) await callSiftah({ action: "guest" });
-      const { ok, data } = await callSiftah({ action: "chat", persona: "siftah", messages: next.slice(-16) });
-      const reply = typeof data.reply === "string" ? data.reply : typeof data.content === "string" ? data.content : "";
-      if (ok && reply) {
-        setMsgs((m) => [...m, { role: "assistant", content: reply }]);
-      } else {
-        const err = typeof data.error === "string" ? data.error : "Siftah is unavailable right now. Please try again.";
-        setNotice(err);
-      }
-    } catch {
-      setNotice("Couldn't reach Siftah. Check your connection and try again.");
-      toast.error("Siftah chat is offline");
-    } finally {
-      setBusy(false);
+  const openDm = (u: ChatUser) => {
+    if (!chat.signedIn) {
+      setTab("people");
+      return;
     }
-  }
+    if (u.id === chat.me?.id) return;
+    setPeer(u);
+    setTab("people");
+  };
+
+  const headUnread = chat.dmUnread;
+  const subtitle = tab === "ai"
+    ? user ? "Siftah AI assistant" : "Siftah AI · guest trial"
+    : chat.signedIn
+      ? `${chat.online.length} online${chat.realtime ? " · live" : ""}`
+      : `${chat.online.length} online · guests can read`;
+
+  const tabs: Array<{ id: Tab; label: string; icon: typeof Bot; badge?: number; dot?: boolean }> = [
+    { id: "room", label: "Room", icon: MessagesSquare, dot: tab !== "room" && chat.roomUnread > 0 },
+    { id: "people", label: `Online${chat.online.length ? ` ${chat.online.length}` : ""}`, icon: Users, badge: chat.dmUnread },
+    { id: "ai", label: "Siftah AI", icon: Bot },
+  ];
 
   return (
     <div className="pointer-events-none fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-3 z-50 flex flex-col items-end gap-3 sm:right-5 lg:bottom-5">
       {open && (
         <section
-          className="siftah-pop pointer-events-auto flex h-[min(34rem,calc(100dvh-10rem))] w-[min(23rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[1.6rem] rounded-br-md border-2 border-[#0b0b0c] bg-white text-[#0b0b0c] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.55)]"
+          className={cn(
+            "siftah-pop pointer-events-auto flex flex-col overflow-hidden bg-white text-[#0b0b0c]",
+            // Mobile: full-height sheet.
+            "fixed inset-0 z-[60] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]",
+            // Desktop: side pop-up.
+            "sm:static sm:z-auto sm:h-[min(38rem,calc(100dvh-8rem))] sm:w-[25rem] sm:rounded-[1.6rem] sm:rounded-br-md sm:border-2 sm:border-[#0b0b0c] sm:p-0 sm:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.55)]",
+          )}
           aria-label="Siftah chat"
+          role="dialog"
         >
           <header className="flex items-center gap-3 bg-[#0b0b0c] px-4 py-3 text-white">
             <img src={SIFTAH_MARK_SRC} alt="" className="size-9 rounded-xl" />
             <div className="min-w-0 flex-1">
-              <p className="font-display text-base leading-tight">Siftah</p>
+              <p className="font-display text-base leading-tight">Siftah Chat</p>
               <p className="flex items-center gap-1.5 text-[11px] text-white/65">
-                <span className="size-1.5 rounded-full bg-[#5cc8f2]" />
-                {user ? `Signed in as ${firstName ?? "member"}` : "Guest trial · sign in for more"}
+                <span className={cn("size-1.5 rounded-full", chat.realtime || tab === "ai" ? "bg-[#5cc8f2]" : "bg-[#22c55e]")} />
+                {subtitle}
               </p>
             </div>
-            <a
-              href="/siftah/"
-              className="inline-flex size-8 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
-              title="Open full Siftah AI"
-              aria-label="Open full Siftah AI"
-            >
-              <Maximize2 className="size-4" />
-            </a>
+            {tab === "ai" && (
+              <a
+                href="/siftah/"
+                className="inline-flex size-8 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+                title="Open full Siftah AI"
+                aria-label="Open full Siftah AI"
+              >
+                <Maximize2 className="size-4" />
+              </a>
+            )}
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -125,76 +126,62 @@ export function SiftahChatHead() {
               <X className="size-4" />
             </button>
           </header>
+          <nav className="grid grid-cols-3 gap-1 bg-[#0b0b0c] px-2 pb-2" role="tablist">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === t.id}
+                onClick={() => {
+                  setTab(t.id);
+                  if (t.id === "people" && tab === "people") setPeer(null);
+                }}
+                className={cn(
+                  "relative inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-1.5 text-xs font-bold transition",
+                  tab === t.id ? "bg-white text-[#0b0b0c]" : "text-white/75 hover:bg-white/10 hover:text-white",
+                )}
+              >
+                <t.icon className="size-3.5" />
+                {t.label}
+                {t.badge ? (
+                  <span className="absolute -right-0.5 -top-1 min-w-4 rounded-full bg-[#e3121b] px-1 text-[9px] font-black leading-4 text-white">{t.badge > 99 ? "99+" : t.badge}</span>
+                ) : t.dot ? (
+                  <span className="absolute right-1.5 top-1 size-2 rounded-full bg-[#5cc8f2]" />
+                ) : null}
+              </button>
+            ))}
+          </nav>
           <div className="siftah-stripe h-1" />
 
-          <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto bg-[#f4f4f5] px-3 py-4">
-            {msgs.length === 0 && (
-              <div className="flex gap-2">
-                <img src={SIFTAH_MARK_SRC} alt="" className="mt-0.5 size-7 shrink-0 rounded-lg" />
-                <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-white px-3.5 py-2.5 text-sm shadow-sm">
-                  Kia ora{firstName ? ` ${firstName}` : ""}! I'm <b>Siftah</b>. Ask me about plates, gear on the
-                  marketplace, or anything else.
-                </div>
-              </div>
-            )}
-            {msgs.map((m, i) =>
-              m.role === "user" ? (
-                <div key={i} className="flex justify-end gap-2">
-                  <div className="max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-tr-md bg-[#e3121b] px-3.5 py-2.5 text-sm text-white shadow-sm">
-                    {m.content}
-                  </div>
-                  <UserAvatar user={user} className="mt-0.5 size-7 shrink-0" />
-                </div>
-              ) : (
-                <div key={i} className="flex gap-2">
-                  <img src={SIFTAH_MARK_SRC} alt="" className="mt-0.5 size-7 shrink-0 rounded-lg" />
-                  <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-md bg-white px-3.5 py-2.5 text-sm shadow-sm">
-                    {m.content}
-                  </div>
-                </div>
-              ),
-            )}
-            {busy && (
-              <div className="flex items-center gap-2 text-xs text-[#55555c]">
-                <Loader2 className="size-4 animate-spin text-[#e3121b]" /> Siftah is typing…
-              </div>
-            )}
-            {notice && (
-              <div className="rounded-xl border border-[#e3121b]/30 bg-[#e3121b]/5 px-3 py-2 text-xs text-[#a80b12]">
-                {notice}{" "}
-                {!user && (
-                  <a href="/login?callbackURL=%2F" className="font-bold underline">
-                    Sign in
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-
-          <form onSubmit={send} className="flex items-end gap-2 border-t border-black/10 bg-white p-2.5">
-            <textarea
-              ref={inputRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  void send();
-                }
-              }}
-              rows={1}
-              placeholder="Message Siftah…"
-              className="max-h-28 min-h-10 flex-1 resize-none rounded-2xl border border-black/15 bg-[#f4f4f5] px-3.5 py-2.5 text-sm text-[#0b0b0c] outline-none focus:border-[#1f9fd6]"
+          {tab === "room" && (
+            <RoomPane
+              me={chat.me}
+              signedIn={chat.signedIn}
+              messages={chat.room}
+              onlineCount={chat.online.length}
+              onUser={openDm}
+              onSend={(text) => chat.send(text, null)}
+              onAdmin={chat.admin}
+              active={open && tab === "room"}
             />
-            <button
-              type="submit"
-              disabled={busy || !draft.trim()}
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#e3121b] text-white transition hover:bg-[#ff2a33] disabled:opacity-40"
-              aria-label="Send"
-            >
-              <Send className="size-4" />
-            </button>
-          </form>
+          )}
+          {tab === "people" && !peer && (
+            <PeoplePane me={chat.me} signedIn={chat.signedIn} online={chat.online} inbox={chat.inbox} onOpen={openDm} />
+          )}
+          {tab === "people" && peer && (
+            <DmPane
+              me={chat.me}
+              signedIn={chat.signedIn}
+              peer={peer}
+              peerOnline={onlineIds.has(peer.id)}
+              messages={chat.dmThread}
+              onBack={() => setPeer(null)}
+              onSend={(text) => chat.send(text, peer.id)}
+              active={open}
+            />
+          )}
+          {tab === "ai" && <SiftahAiPane active={open && tab === "ai"} />}
         </section>
       )}
 
@@ -203,7 +190,7 @@ export function SiftahChatHead() {
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "pointer-events-auto relative size-16 rounded-full border-[3px] border-white bg-[#0b0b0c] p-0 shadow-[0_10px_30px_-8px_rgba(0,0,0,0.6)] outline-none ring-2 ring-[#e3121b] transition hover:scale-105 focus-visible:ring-4 focus-visible:ring-[#5cc8f2]",
-          open && "scale-95",
+          open && "scale-95 max-sm:hidden",
         )}
         aria-label={open ? "Close Siftah chat" : "Open Siftah chat"}
         aria-expanded={open}
@@ -217,9 +204,20 @@ export function SiftahChatHead() {
         ) : (
           <img src={SIFTAH_MARK_SRC} alt="" className="size-full rounded-full object-cover" />
         )}
-        <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full border-2 border-white bg-[#5cc8f2] text-[10px] font-black text-[#0b0b0c]">
-          {open ? "×" : "•"}
-        </span>
+        {headUnread > 0 && !open ? (
+          <span className="absolute -right-1 -top-1 flex min-w-6 items-center justify-center rounded-full border-2 border-white bg-[#e3121b] px-1 text-[11px] font-black leading-5 text-white" data-testid="chat-unread">
+            {headUnread > 99 ? "99+" : headUnread}
+          </span>
+        ) : (
+          <span
+            className={cn(
+              "absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full border-2 border-white text-[10px] font-black text-[#0b0b0c]",
+              chat.roomUnread > 0 && !open ? "bg-[#5cc8f2] animate-pulse" : "bg-[#5cc8f2]",
+            )}
+          >
+            {open ? "×" : chat.online.length > 1 ? chat.online.length : "•"}
+          </span>
+        )}
       </button>
     </div>
   );
