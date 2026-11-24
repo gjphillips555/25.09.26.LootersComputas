@@ -8,7 +8,7 @@ import { SITE_URL } from "@/lib/site";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t border-border bg-card text-foreground">
+    <footer className="mt-16 border-t-4 border-[#e3121b] bg-card text-foreground">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 py-10 sm:px-6">
         <div className="w-full overflow-hidden rounded-2xl border border-[#003087]/30 bg-gradient-to-r from-[#003087] via-[#009cde] to-[#003087] p-5 sm:p-6">
           <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
@@ -76,7 +76,7 @@ export function SiteFooter() {
         />
 
         <p className="text-center text-xs text-muted-foreground">
-          &copy; 2026 Looters Computas. Marketplace deals settle via PayPal
+          &copy; 2026 Siftah Solutions, trading as Looters Computas. Marketplace deals settle via PayPal
           between users. Contact:{" "}
           <a
             href="mailto:looterscomputas@outlook.com"
@@ -86,13 +86,11 @@ export function SiteFooter() {
           </a>
         </p>
         <LegalLinks className="text-muted-foreground [&_a]:text-muted-foreground [&_a:hover]:text-foreground" />
-        <a href={SITE_URL} className="mt-1 block" aria-label="Looters Computas">
+        <a href={SITE_URL} className="mt-1 block" aria-label="Siftah Solutions home">
           <img
-            src={ARTWORK.logoPurple}
-            alt="Looters Computas"
-            width={1191}
-            height={433}
-            className="mx-auto h-auto w-full max-w-xs"
+            src="/brand/siftah-solutions-logo.svg"
+            alt="Siftah Solutions – trading as looterscomputas.online"
+            className="mx-auto h-auto w-full max-w-[16rem]"
             loading="lazy"
             decoding="async"
           />
