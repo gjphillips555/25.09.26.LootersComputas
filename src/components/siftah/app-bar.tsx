@@ -109,7 +109,7 @@ export function SiftahAppBar() {
                 <UserAvatar user={user} className="size-10" />
               )}
               {!isPending && !user && (
-                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-[#e3121b] px-1.5 text-[9px] font-black uppercase leading-4 tracking-wide text-white">
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#0b0b0c] bg-[#e3121b] px-1.5 text-[8px] font-black uppercase leading-[14px] tracking-wide text-white">
                   Sign in
                 </span>
               )}
