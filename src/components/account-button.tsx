@@ -36,7 +36,7 @@ export function AccountButton({ showF8 = false }: { showF8?: boolean }) {
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Sign up or sign in"
-          className="relative size-10 shrink-0 overflow-hidden rounded-full border border-border bg-secondary ring-offset-background transition hover:ring-2 hover:ring-[#ff9a00]/50"
+          className="relative size-10 shrink-0 overflow-hidden rounded-full border border-border bg-secondary ring-offset-background transition hover:ring-2 hover:ring-[#e3121b]/50"
         >
           <img
             src={ARTWORK.guestAvatar}
@@ -86,7 +86,7 @@ export function AccountButton({ showF8 = false }: { showF8?: boolean }) {
               </p>
               <Link
                 to="/login"
-                className="block text-center text-xs font-medium text-[#ff9a00] hover:underline"
+                className="block text-center text-xs font-medium text-[#e3121b] hover:underline"
                 onClick={() => setMenuOpen(false)}
               >
                 More sign-in options
@@ -106,7 +106,7 @@ export function AccountButton({ showF8 = false }: { showF8?: boolean }) {
         type="button"
         onClick={() => setMenuOpen((v) => !v)}
         aria-label={`${label} account`}
-        className="size-10 shrink-0 overflow-hidden rounded-full border border-border bg-secondary ring-offset-background transition hover:ring-2 hover:ring-[#ff9a00]/50"
+        className="size-10 shrink-0 overflow-hidden rounded-full border border-border bg-secondary ring-offset-background transition hover:ring-2 hover:ring-[#e3121b]/50"
       >
         {user.profileImageUrl ? (
           <img

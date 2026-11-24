@@ -60,20 +60,20 @@ export function GoogleSignIn({
           setAgreed(e.target.checked);
           if (e.target.checked) setAgreedTerms();
         }}
-        className="mt-0.5 size-3.5 shrink-0 accent-[#5ea8a0]"
+        className="mt-0.5 size-3.5 shrink-0 accent-[#e3121b]"
       />
       <span>
         I agree to the{" "}
         <Link
           to="/termsandconditions"
-          className="font-medium text-[#ff9a00] underline-offset-2 hover:underline"
+          className="font-medium text-[#e3121b] underline-offset-2 hover:underline"
         >
           Terms and Conditions
         </Link>{" "}
         and{" "}
         <Link
           to="/storepolicy"
-          className="font-medium text-[#ff9a00] underline-offset-2 hover:underline"
+          className="font-medium text-[#e3121b] underline-offset-2 hover:underline"
         >
           Store Policy
         </Link>
