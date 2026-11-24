@@ -115,3 +115,91 @@ export function searchEverywhereLinks(f: { q?: string; make?: string; model?: st
   ];
   return links;
 }
+
+/* ------------------------------------------------------------------ */
+/* Shared link previews: members share ONE listing URL from these sites. */
+/* ------------------------------------------------------------------ */
+export const SHARE_SITES = {
+  trademe: { label: "Trade Me", hosts: ["trademe.co.nz", "www.trademe.co.nz"] },
+  turners: { label: "Turners", hosts: ["turners.co.nz", "www.turners.co.nz"] },
+  autotrader: { label: "AutoTrader NZ", hosts: ["autotrader.co.nz", "www.autotrader.co.nz"] },
+  facebook: { label: "Facebook Marketplace", hosts: ["facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com"] },
+  carjam: { label: "CarJam", hosts: ["carjam.co.nz", "www.carjam.co.nz"] },
+} as const;
+export type ShareSite = keyof typeof SHARE_SITES;
+
+export function siteForHost(host: string): ShareSite | null {
+  const h = host.toLowerCase().replace(/\.$/, "");
+  for (const [id, s] of Object.entries(SHARE_SITES)) if ((s.hosts as readonly string[]).includes(h)) return id as ShareSite;
+  return null;
+}
+
+const TRACKING = /^(utm_|rsqid$|bof$|fbclid$|gclid$|mibextid$|ref$|refid$|referral|rdid$|share_url$|_rdr$|__)/i;
+
+/**
+ * Validate a pasted URL: https, allowlisted host, default port, no credentials, and shaped like ONE listing
+ * (not a search/category page). Returns the canonical URL (fragment and tracking params stripped).
+ */
+export function parseShareUrl(raw: string): { url: string; site: ShareSite } | { error: string } {
+  let u: URL;
+  try {
+    u = new URL(raw.trim());
+  } catch {
+    return { error: "That doesn't look like a link." };
+  }
+  if (u.protocol !== "https:") return { error: "Only https:// links are accepted." };
+  if (u.username || u.password || u.port) return { error: "That link isn't supported." };
+  const site = siteForHost(u.hostname);
+  if (!site) return { error: "Only Trade Me, Turners, AutoTrader NZ, Facebook Marketplace or CarJam links can be shared." };
+  u.hash = "";
+  for (const k of [...u.searchParams.keys()]) if (TRACKING.test(k)) u.searchParams.delete(k);
+  const p = u.pathname.toLowerCase();
+  const ok = {
+    trademe: /\/listing\/\d{6,}/.test(p) || /auction-\d{6,}\.htm/.test(p),
+    turners: /\/\d{5,}\/?$/.test(p) || /\/\d{5,}\//.test(p),
+    // AutoTrader renders listings client-side; accept an id segment or a deep make/model/listing path.
+    autotrader:
+      !/^\/(car-dealers|car-reviews|brands|my-account|sell-my-car|create-listing|search)/.test(p) &&
+      !u.searchParams.has("keyword") &&
+      (/\/\d{5,}(\/|$)/.test(p) || /^\/(listing|car|vehicle|cars)\/[^/]+/.test(p) || p.replace(/\/$/, "").split("/").length >= 5),
+    facebook: /^\/marketplace\/item\/\d{6,}\/?$/.test(p),
+    carjam: (p === "/car/" || p === "/car") && /^[a-z0-9]{1,7}$/i.test(u.searchParams.get("plate") || ""),
+  }[site];
+  if (!ok) {
+    return {
+      error: site === "facebook"
+        ? "Paste a single Marketplace item link (facebook.com/marketplace/item/…)."
+        : site === "carjam"
+          ? "Paste a CarJam vehicle link (carjam.co.nz/car/?plate=…)."
+          : `Paste the link to one ${SHARE_SITES[site].label} listing, not a search page.`,
+    };
+  }
+  // One canonical host per site so the same listing can't be shared twice via www/non-www variants.
+  u.hostname = { trademe: "www.trademe.co.nz", turners: "www.turners.co.nz", autotrader: "autotrader.co.nz", facebook: "www.facebook.com", carjam: "www.carjam.co.nz" }[site];
+  if (site === "trademe" || site === "turners" || site === "autotrader") u.pathname = u.pathname.replace(/\/+$/, "") || "/";
+  if (site === "facebook") {
+    // Keep only the item path for Facebook; their query strings are tracking/session state.
+    u.search = "";
+    u.pathname = u.pathname.replace(/\/?$/, "/");
+  }
+  if (site === "carjam") u.search = `?plate=${encodeURIComponent((u.searchParams.get("plate") || "").toUpperCase())}`;
+  return { url: u.toString(), site };
+}
+
+export type SharedLink = {
+  id: string;
+  site: ShareSite;
+  siteLabel: string;
+  url: string;
+  title: string | null;
+  titleSource: "og" | "member" | null;
+  description: string | null;
+  image: string | null;
+  siteName: string | null;
+  price: number | null;
+  fetchStatus: "ok" | "no_og" | "blocked" | "robots" | "error";
+  status: "active" | "removed";
+  createdAt: string;
+  sharer: AutoSeller;
+  reports?: number;
+};
