@@ -1,4 +1,4 @@
-/* Quick type chips + list filters (PinDrop improve) */
+/* Quick types + filters */
 .pd-quick{display:flex;flex-wrap:wrap;gap:6px}
 .pd-quick button{border:2px solid #ddd;background:#fff;border-radius:999px;padding:6px 10px;font-size:13px;font-weight:800;line-height:1.2;display:inline-flex;align-items:center;gap:4px}
 .pd-quick button[aria-selected=true]{border-color:#000;background:#ffe9ea;box-shadow:2px 2px 0 var(--red)}
@@ -9,3 +9,68 @@
 .pd-list li.done .t b{text-decoration:line-through}
 .pd-undo{text-decoration:underline;font-weight:900;margin-left:8px;cursor:pointer}
 #map.pd-dark .maplibregl-ctrl-attrib{filter:invert(1) hue-rotate(180deg)}
+
+/* ---- No overlapping controls ---- */
+.pd-bar{gap:6px;padding-left:8px;padding-right:8px}
+.pd-title{min-width:0}
+.pd-title b{font-size:clamp(15px,4.2vw,20px)}
+.pd-title small{display:none}
+@media (min-width:420px){.pd-title small{display:block}}
+@media (max-width:360px){#btnInstallTop{display:none!important}}
+
+.pd-fabs{
+  right:10px;
+  top:calc(68px + var(--safe-t));
+  bottom:calc(120px + var(--safe-b));
+  z-index:15;
+  gap:8px;
+  overflow-y:auto;
+  overflow-x:visible;
+  pointer-events:none;
+}
+.pd-fabs .pd-fab{pointer-events:auto;flex:none}
+@media (max-width:759px){
+  .pd-fab{width:44px;height:44px;border-radius:12px;font-size:18px}
+}
+
+/* Hide map chrome while a modal/sheet is open */
+body.pd-modal-open .pd-fabs,
+body.pd-modal-open .pd-dropbar,
+body.pd-modal-open .pd-hint{
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.pd-dropbar{
+  bottom:calc(52px + var(--safe-b));
+  z-index:16;
+  max-width:calc(100vw - 24px);
+}
+.pd-drop-btn{font-size:16px;padding:11px 18px 11px 14px;max-width:100%}
+.pd-hint{
+  bottom:calc(112px + var(--safe-b));
+  max-width:min(92vw,360px);
+  white-space:normal;
+  text-align:center;
+  line-height:1.3;
+  font-size:11px;
+}
+
+.maplibregl-ctrl-bottom-left{
+  bottom:calc(4px + var(--safe-b))!important;
+  left:4px!important;
+  max-width:42vw;
+}
+.maplibregl-ctrl-bottom-right{
+  bottom:calc(4px + var(--safe-b))!important;
+  right:4px!important;
+}
+.maplibregl-ctrl-attrib{font-size:9px!important;line-height:1.2;max-width:46vw}
+.maplibregl-ctrl-scale{margin-bottom:2px!important}
+
+.pd-sheet{z-index:35}
+.pd-card{z-index:40}
+.pd-toast{z-index:70}
+
+/* Pins stay fixed size so tip doesn't drift on zoom */
+.pd-marker{width:44px!important;height:56px!important;margin:0!important}
