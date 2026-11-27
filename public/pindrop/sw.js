@@ -3,12 +3,12 @@
  * fallback, static assets stale-while-revalidate. Map tiles/fonts/sprites are
  * cached by the page itself (Cache API, "pindrop-map-v1"), not here, so this
  * worker never touches the rest of looterscomputas.online. */
-const VERSION = "pindrop-shell-v1";
+const VERSION = "pindrop-shell-v2";
 const ML = "https://unpkg.com/maplibre-gl@5.24.1/dist/";
 const SHELL = [
   "/pindrop/",
-  "/pindrop/app.js?v=1",
-  "/pindrop/app.css?v=1",
+  "/pindrop/app.js?v=2",
+  "/pindrop/app.css?v=2",
   "/pindrop/manifest.webmanifest",
   "/brand/pindrop-icon-192.png",
   "/brand/pindrop-icon-512.png",
@@ -99,5 +99,4 @@ self.addEventListener("fetch", (event) => {
   if (sameOriginAsset || req.url.startsWith(ML)) {
     event.respondWith(staleWhileRevalidate(req));
   }
-  // Everything else (site API, map tiles fetched by the page) passes straight through.
 });
