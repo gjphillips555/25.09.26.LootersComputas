@@ -18,8 +18,8 @@
 <meta property="og:description" content="Offline map pins for radars, lost tools and gear — share with your crew.">
 <meta property="og:image" content="https://www.looterscomputas.online/brand/pindrop-icon-512.png">
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css" crossorigin="anonymous">
-<link rel="stylesheet" href="/pindrop/app.css?v=2">
-<link rel="stylesheet" href="/pindrop/improve.css?v=2">
+<link rel="stylesheet" href="/pindrop/app.css?v=3">
+<link rel="stylesheet" href="/pindrop/improve.css?v=3">
 </head>
 <body>
 <div id="app">
@@ -58,7 +58,7 @@
     <button id="btnDrop" class="pd-drop-btn"><span class="pd-drop-emoji">📌</span><span id="dropText">Drop pin</span></button>
     <button id="btnCancelDrop" class="pd-chip" hidden>Cancel</button>
   </div>
-  <p id="hint" class="pd-hint">Long-press (or right-click) the map to drop a pin</p>
+  <p id="hint" class="pd-hint">Long-press (or right-click) the map · drag a pin to move it</p>
 
   <section id="editor" class="pd-sheet" hidden aria-label="Pin editor">
     <div class="pd-sheet-grip"></div>
@@ -121,7 +121,7 @@
       <button id="btnFitAll" class="pd-chip">Show all</button>
     </div>
     <ul id="pinList" class="pd-list"></ul>
-    <p class="pd-small">Pins are saved on this device and work offline. Share a link or file so workmates can import them.</p>
+    <p class="pd-small">Pins are saved on this device and work offline. Drag a pin on the map to move it. Share a link or file so workmates can import them.</p>
   </section>
 
   <section id="installCard" class="pd-card" hidden aria-label="Install PinDrop">
@@ -168,7 +168,7 @@
   <div id="toast" class="pd-toast" role="status" aria-live="polite" hidden></div>
 </div>
 <script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js" crossorigin="anonymous"></script>
-<script src="/pindrop/app.js?v=2"></script>
-<script src="/pindrop/improve.js?v=2"></script>
+<script src="/pindrop/app.js?v=3"></script>
+<script src="/pindrop/improve.js?v=3"></script>
 </body>
 </html>
