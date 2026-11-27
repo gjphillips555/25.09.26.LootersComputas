@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Grid3x3, Search, X } from "lucide-react";
+import { Grid3x3, Search, Wallet, X } from "lucide-react";
 import { ShopSearch } from "@/components/shop-search";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { ARTWORK } from "@/lib/artwork";
 import { cn } from "@/lib/utils";
 import { AccountPanel } from "./account-panel";
 import { SiftahLogo } from "./brand";
@@ -17,10 +18,68 @@ const TILE_TONE: Record<NonNullable<NavItem["tone"]>, string> = {
   white: "bg-white text-[#0b0b0c]",
 };
 
-/** App-style top bar (black, sticker logo) + slide-out app drawer. */
+/** Pick the logo that matches the current section of the site. */
+function HeaderLogo({ pathname }: { pathname: string }) {
+  const lootersClass =
+    "h-11 w-auto max-w-[150px] object-contain sm:h-12 sm:max-w-[190px]";
+
+  // Marketplace / shop / sell / account / forum / build → Looters Computas
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/shop") ||
+    pathname.startsWith("/sell") ||
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/forum") ||
+    pathname.startsWith("/build") ||
+    pathname.startsWith("/prints") ||
+    pathname.startsWith("/overlay") ||
+    pathname.startsWith("/settings")
+  ) {
+    return (
+      <img
+        src={ARTWORK.logoOrange}
+        alt="Looters Computas"
+        decoding="async"
+        className={lootersClass}
+      />
+    );
+  }
+
+  // Siftah Auto
+  if (pathname.startsWith("/auto")) {
+    return (
+      <img
+        src={ARTWORK.logoOrange}
+        alt="Siftah Auto · Looters Computas"
+        decoding="async"
+        className={lootersClass}
+      />
+    );
+  }
+
+  // Siftah AI / Plate maker / Arcade → Siftah Solutions sticker
+  if (
+    pathname.startsWith("/siftah") ||
+    pathname.startsWith("/plates") ||
+    pathname.startsWith("/arcade") ||
+    pathname.startsWith("/pindrop")
+  ) {
+    return (
+      <SiftahLogo className="h-12 max-w-[150px] sm:h-[3.25rem] sm:max-w-[190px]" />
+    );
+  }
+
+  // Default brand
+  return (
+    <SiftahLogo className="h-12 max-w-[150px] sm:h-[3.25rem] sm:max-w-[190px]" />
+  );
+}
+
+/** App-style top bar (black, section logo) + slide-out app drawer. */
 export function SiftahAppBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
   const { user, isPending } = useCurrentUserState();
   const { pathname, searchStr } = useLocation();
 
@@ -52,12 +111,42 @@ export function SiftahAppBar() {
     };
   }, [menuOpen]);
 
+  // Load Siftah Credits balance when signed in
+  useEffect(() => {
+    if (!user) {
+      setCredits(null);
+      return;
+    }
+    let active = true;
+    fetch("/api/siftah/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "status" }),
+      cache: "no-store",
+      credentials: "same-origin",
+    })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || "status failed");
+        return data;
+      })
+      .then((data) => {
+        if (active) setCredits(Number(data.usage?.creditsBalance ?? 0));
+      })
+      .catch(() => {
+        if (active) setCredits(0);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
   return (
     <>
       <header className="sticky top-0 z-40 bg-[#0b0b0c] text-white shadow-[0_6px_24px_-12px_rgba(0,0,0,0.6)]">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-3 sm:px-6">
-          <Link to="/" className="flex shrink-0 items-center" aria-label="Siftah Solutions home">
-            <SiftahLogo className="h-12 max-w-[150px] sm:h-[3.25rem] sm:max-w-[190px]" />
+          <Link to="/" className="flex shrink-0 items-center" aria-label="Home">
+            <HeaderLogo pathname={pathname} />
           </Link>
 
           <nav className="ml-2 hidden items-center gap-0.5 lg:flex" aria-label="Main">
@@ -84,7 +173,19 @@ export function SiftahAppBar() {
             })}
           </nav>
 
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            {/* Credits balance – visible when signed in */}
+            {user && (
+              <Link
+                to="/account"
+                className="hidden items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 py-1.5 text-xs font-bold tabular-nums text-white transition hover:bg-white/10 sm:inline-flex"
+                title="Siftah Credits · Account & wallet"
+              >
+                <Wallet className="size-3.5 text-[#5cc8f2]" />
+                <span>{credits === null ? "…" : credits}</span>
+              </Link>
+            )}
+
             <button
               type="button"
               onClick={() => setSearchOpen((v) => !v)}
@@ -153,6 +254,23 @@ export function SiftahAppBar() {
 
             <div className="space-y-5 p-4 siftah-safe-bottom">
               <AccountPanel onNavigate={() => setMenuOpen(false)} callbackURL={pathname + (searchStr || "")} />
+
+              {/* Inline balance when signed in */}
+              {user && (
+                <Link
+                  to="/account"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3"
+                >
+                  <span className="flex items-center gap-2 text-sm font-bold">
+                    <Wallet className="size-4 text-[#5cc8f2]" />
+                    Siftah Credits
+                  </span>
+                  <span className="text-lg font-black tabular-nums">
+                    {credits === null ? "…" : credits}
+                  </span>
+                </Link>
+              )}
 
               <NavLink
                 item={PLATES}
