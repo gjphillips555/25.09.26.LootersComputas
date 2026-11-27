@@ -1,8 +1,8 @@
-/* PinDrop improve v3 — drag pins via pointer + keep tip on geo point */
+/* PinDrop improve v4 — layout modals, drag pins, filters */
 (function () {
   "use strict";
-  if (window.__pindropImprove3) return;
-  window.__pindropImprove3 = true;
+  if (window.__pindropImprove4) return;
+  window.__pindropImprove4 = true;
 
   var STYLE_LIGHT = "https://tiles.openfreemap.org/styles/liberty";
   var STYLE_DARK = "https://tiles.openfreemap.org/styles/dark";
@@ -29,6 +29,15 @@
     if (c) { c.textContent = String(pins.length); c.toggleAttribute("data-zero", !pins.length); }
   }
 
+  function syncModalClass() {
+    var ids = ["welcome", "installCard", "offlineDlg", "importDlg", "editor", "list"];
+    var open = ids.some(function (id) {
+      var el = $(id);
+      return el && !el.hidden;
+    });
+    document.body.classList.toggle("pd-modal-open", open);
+  }
+
   function whenReady(fn) {
     if (window.__pindrop && window.__pindrop.map) return fn();
     var n = 0;
@@ -39,19 +48,6 @@
     }, 80);
   }
 
-  function getMarkerRoot(el) {
-    // MapLibre wraps custom elements; the positioned node is the parent with transform
-    var n = el;
-    while (n && n.parentElement && n.parentElement !== map.getContainer()) {
-      if (n.parentElement.classList && n.parentElement.classList.contains("maplibregl-marker"))
-        return n.parentElement;
-      // In recent MapLibre, the element itself is the marker root
-      if (n.classList && n.classList.contains("maplibregl-marker")) return n;
-      n = n.parentElement;
-    }
-    return el;
-  }
-
   var map;
 
   function enableDragOnMarker(el) {
@@ -59,7 +55,6 @@
     el.dataset.dragBound = "1";
     el.style.cursor = "grab";
 
-    // Wrap visual parts so filters don't affect anchor
     if (!el.querySelector(".pin-body")) {
       var bub = el.querySelector(".bub");
       var tip = el.querySelector(".tip");
@@ -84,8 +79,7 @@
       if (!pid) return;
       dragging = true;
       moved = false;
-      el.classList.add("dragging");
-      el.classList.add("show");
+      el.classList.add("dragging", "show");
       el.style.cursor = "grabbing";
       try { map.dragPan.disable(); } catch (e) {}
       ev.preventDefault();
@@ -98,14 +92,9 @@
         ? [ev.touches[0].clientX, ev.touches[0].clientY]
         : [ev.clientX, ev.clientY];
       var rect = map.getCanvas().getBoundingClientRect();
-      var x = pt[0] - rect.left;
-      var y = pt[1] - rect.top;
-      var ll = map.unproject([x, y]);
-      // Position the maplibre marker wrapper if present
-      var root = el.classList.contains("maplibregl-marker") ? el : (el.closest && el.closest(".maplibregl-marker")) || el;
-      // Prefer updating via MapLibre if the element is managed — set style transform through unproject+project
+      var ll = map.unproject([pt[0] - rect.left, pt[1] - rect.top]);
       var pixel = map.project(ll);
-      // Marker anchor bottom: left = x, top = y - height
+      var root = (el.closest && el.closest(".maplibregl-marker")) || el;
       var h = el.offsetHeight || 56;
       var w = el.offsetWidth || 44;
       if (root && root.style) {
@@ -114,7 +103,7 @@
       el._dragLngLat = { lng: ll.lng, lat: ll.lat };
       ev.preventDefault();
     }
-    function onUp(ev) {
+    function onUp() {
       if (!dragging) return;
       dragging = false;
       el.classList.remove("dragging");
@@ -122,42 +111,34 @@
       try { map.dragPan.enable(); } catch (e) {}
       if (moved && el._dragLngLat && pid) {
         var pins = loadPins();
-        var found = false;
         for (var i = 0; i < pins.length; i++) {
           if (pins[i].id === pid) {
             pins[i].lat = +el._dragLngLat.lat.toFixed(6);
             pins[i].lng = +el._dragLngLat.lng.toFixed(6);
             pins[i].updated = Date.now();
-            found = true;
             break;
           }
         }
-        if (found) {
-          savePins(pins);
-          // Sync core app pin list if exposed
-          try {
-            var core = window.__pindrop.pins();
-            if (Array.isArray(core)) {
-              for (var j = 0; j < core.length; j++) {
-                if (core[j].id === pid) {
-                  core[j].lat = pins.find(function (p) { return p.id === pid; }).lat;
-                  core[j].lng = pins.find(function (p) { return p.id === pid; }).lng;
-                  core[j].updated = Date.now();
-                  break;
-                }
+        savePins(pins);
+        try {
+          var core = window.__pindrop.pins();
+          if (Array.isArray(core)) {
+            for (var j = 0; j < core.length; j++) {
+              if (core[j].id === pid) {
+                core[j].lat = +el._dragLngLat.lat.toFixed(6);
+                core[j].lng = +el._dragLngLat.lng.toFixed(6);
+                core[j].updated = Date.now();
+                break;
               }
             }
-          } catch (e) {}
-          var toast = $("toast");
-          if (toast) {
-            toast.textContent = "Pin moved";
-            toast.hidden = false;
-            setTimeout(function () { toast.hidden = true; }, 2000);
           }
+        } catch (e) {}
+        var toast = $("toast");
+        if (toast) {
+          toast.textContent = "Pin moved";
+          toast.hidden = false;
+          setTimeout(function () { toast.hidden = true; }, 2000);
         }
-      }
-      // Suppress click after drag
-      if (moved) {
         el.dataset.skipClick = "1";
         setTimeout(function () { delete el.dataset.skipClick; }, 300);
       }
@@ -169,17 +150,24 @@
     window.addEventListener("touchmove", onMove, { passive: false });
     window.addEventListener("mouseup", onUp);
     window.addEventListener("touchend", onUp);
-
     el.addEventListener("click", function (ev) {
-      if (el.dataset.skipClick) {
-        ev.stopPropagation();
-        ev.preventDefault();
-      }
+      if (el.dataset.skipClick) { ev.stopPropagation(); ev.preventDefault(); }
     }, true);
   }
 
   function bindAll() {
     document.querySelectorAll(".pd-marker").forEach(enableDragOnMarker);
+  }
+
+  function watchModals() {
+    ["welcome", "installCard", "offlineDlg", "importDlg", "editor", "list"].forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      new MutationObserver(syncModalClass).observe(el, { attributes: true, attributeFilter: ["hidden"] });
+    });
+    var bw = $("btnWelcome");
+    if (bw) bw.addEventListener("click", function () { setTimeout(syncModalClass, 50); });
+    syncModalClass();
   }
 
   whenReady(function () {
@@ -188,13 +176,13 @@
     try { prefs = JSON.parse(localStorage.getItem("pindrop.prefs.v1") || "{}") || {}; } catch (e) {}
 
     bindAll();
-    // Observe new pins
+    watchModals();
+
     var mapEl = document.getElementById("map");
     if (mapEl) {
       new MutationObserver(function () { bindAll(); }).observe(mapEl, { childList: true, subtree: true });
     }
 
-    // Dark map
     var btnDark = $("btnDark");
     if (btnDark) {
       if (prefs.darkMap) {
@@ -211,7 +199,6 @@
       });
     }
 
-    // Quick types
     var g = $("quickTypes");
     if (g && !g.dataset.ready) {
       g.dataset.ready = "1";
@@ -241,7 +228,6 @@
       });
     }
 
-    // List filters
     var listFilter = "active";
     function applyListFilters() {
       var ul = $("pinList");
