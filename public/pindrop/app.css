@@ -36,22 +36,26 @@ button{cursor:pointer}
 .pd-crosshair span::before{left:-18px;top:0;width:38px;height:2px}
 .pd-crosshair span::after{left:0;top:-18px;width:2px;height:38px}
 
-/* Markers: emoji bubble + pointer whose tip is the exact coordinate (anchor bottom) */
-.pd-marker{position:relative;width:44px;height:58px;cursor:pointer;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35))}
-.pd-marker .bub{position:absolute;left:2px;top:0;width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #000;display:grid;place-items:center;font-size:23px;line-height:1}
-.pd-marker .tip{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:20px solid #000}
-.pd-marker .tip::after{content:"";position:absolute;left:-5px;top:-21px;border-left:5px solid transparent;border-right:5px solid transparent;border-top:12px solid #fff}
-.pd-marker .dot{position:absolute;left:50%;bottom:-3px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--red);border:1px solid #fff}
+/* Markers — tip locked to geo point; never transform outer .pd-marker */
+.pd-marker{position:relative;width:44px;height:56px;cursor:grab;will-change:auto;touch-action:none;user-select:none;-webkit-user-select:none}
+.pd-marker .pin-body{position:absolute;left:0;right:0;top:0;bottom:0;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));pointer-events:none}
+.pd-marker .bub{position:absolute;left:2px;top:0;width:40px;height:40px;border-radius:50%;background:#fff;border:3px solid #000;display:grid;place-items:center;font-size:22px;line-height:1;pointer-events:none}
+.pd-marker .tip{position:absolute;left:50%;bottom:0;margin-left:-9px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:18px solid #000;pointer-events:none}
+.pd-marker .tip::after{content:"";position:absolute;left:-6px;top:-18px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:12px solid #fff}
+.pd-marker .dot{position:absolute;left:50%;bottom:0;width:2px;height:2px;margin-left:-1px;background:transparent;pointer-events:none}
 .pd-marker.collected .bub{opacity:.55;background:#d9f7e2}
 .pd-marker.collected .bub::after{content:"✓";position:absolute;right:-8px;top:-8px;width:18px;height:18px;border-radius:50%;background:#1aa34a;color:#fff;font:900 12px/18px Arial,sans-serif;text-align:center;border:2px solid #000}
 .pd-marker.selected .bub{border-color:var(--red);box-shadow:0 0 0 3px var(--blue)}
-.pd-marker.moving{animation:pdbob .8s infinite alternate}
-@keyframes pdbob{to{transform:translateY(-6px)}}
-.pd-label{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);display:none;align-items:center;gap:6px;padding:5px 10px;border-radius:10px;background:rgba(255,255,255,.96);border:2px solid #000;box-shadow:2px 2px 0 #000;white-space:nowrap;font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:15px;line-height:1.15;max-width:240px;pointer-events:none}
+.pd-marker.dragging{cursor:grabbing;z-index:20}
+.pd-marker.dragging .pin-body{filter:drop-shadow(0 6px 6px rgba(0,0,0,.45))}
+.pd-marker.moving .bub{animation:pdbob .8s infinite alternate}
+@keyframes pdbob{to{transform:translateY(-5px)}}
+.pd-label{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);display:none;align-items:center;gap:6px;padding:5px 10px;border-radius:10px;background:rgba(255,255,255,.96);border:2px solid #000;box-shadow:2px 2px 0 #000;white-space:nowrap;font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:15px;line-height:1.15;max-width:240px;pointer-events:none;z-index:2}
 .pd-label .le{font-size:18px}
 .pd-label .lt{overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 1px rgba(255,255,255,.9)}
 .pd-marker:hover .pd-label,.pd-marker.show .pd-label,.labels-on .pd-label{display:flex}
 .pd-marker:hover,.pd-marker.show{z-index:5}
+.pd-marker.dragging .pd-label{display:flex}
 .pd-me{width:18px;height:18px;border-radius:50%;background:#1f9fd6;border:3px solid #fff;box-shadow:0 0 0 2px rgba(31,159,214,.4),0 0 14px rgba(31,159,214,.8)}
 
 /* Sheets & cards */
