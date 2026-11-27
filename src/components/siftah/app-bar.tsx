@@ -6,7 +6,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { ARTWORK } from "@/lib/artwork";
 import { cn } from "@/lib/utils";
 import { AccountPanel } from "./account-panel";
-import { SiftahLogo } from "./brand";
+import { SiftahLogo, SIFTAH_LOGO_SRC } from "./brand";
 import { APPS, LEGAL, PLATES, TOP_LINKS, isActive, type NavItem } from "./nav";
 import { NavLink } from "./nav-link";
 import { UserAvatar } from "./user-avatar";
@@ -18,64 +18,91 @@ const TILE_TONE: Record<NonNullable<NavItem["tone"]>, string> = {
   white: "bg-white text-[#0b0b0c]",
 };
 
-/** Pick the logo that matches the current section of the site. */
-function HeaderLogo({ pathname }: { pathname: string }) {
-  const lootersClass =
-    "h-11 w-auto max-w-[150px] object-contain sm:h-12 sm:max-w-[190px]";
-
-  // Marketplace / shop / sell / account / forum / build → Looters Computas
-  if (
-    pathname === "/" ||
-    pathname.startsWith("/shop") ||
-    pathname.startsWith("/sell") ||
-    pathname.startsWith("/account") ||
-    pathname.startsWith("/forum") ||
-    pathname.startsWith("/build") ||
-    pathname.startsWith("/prints") ||
-    pathname.startsWith("/overlay") ||
-    pathname.startsWith("/settings")
-  ) {
-    return (
-      <img
-        src={ARTWORK.logoOrange}
-        alt="Looters Computas"
-        decoding="async"
-        className={lootersClass}
-      />
-    );
-  }
-
-  // Siftah Auto
-  if (pathname.startsWith("/auto")) {
-    return (
-      <img
-        src={ARTWORK.logoOrange}
-        alt="Siftah Auto · Looters Computas"
-        decoding="async"
-        className={lootersClass}
-      />
-    );
-  }
-
-  // Siftah AI / Plate maker / Arcade → Siftah Solutions sticker
-  if (
-    pathname.startsWith("/siftah") ||
-    pathname.startsWith("/plates") ||
-    pathname.startsWith("/arcade") ||
-    pathname.startsWith("/pindrop")
-  ) {
-    return (
-      <SiftahLogo className="h-12 max-w-[150px] sm:h-[3.25rem] sm:max-w-[190px]" />
-    );
-  }
-
-  // Default brand
+/**
+ * Header brand mark — Looters Computas ↔ Siftah Solutions,
+ * soft crossfade + subtle scale, infinite loop (GIF-style).
+ */
+function HeaderLogo() {
   return (
-    <SiftahLogo className="h-12 max-w-[150px] sm:h-[3.25rem] sm:max-w-[190px]" />
+    <span
+      className="relative inline-flex h-12 w-[150px] items-center justify-start sm:h-[3.25rem] sm:w-[190px]"
+      aria-label="Looters Computas · Siftah Solutions"
+    >
+      {/* Looters Computas (orange) */}
+      <img
+        src={ARTWORK.logoOrange}
+        alt=""
+        decoding="async"
+        className={cn(
+          "absolute left-0 top-1/2 h-11 w-auto max-w-[150px] -translate-y-1/2 object-contain sm:h-12 sm:max-w-[190px]",
+          "animate-[header-logo-a_7s_ease-in-out_infinite]",
+        )}
+      />
+      {/* Siftah Solutions sticker */}
+      <img
+        src={SIFTAH_LOGO_SRC}
+        alt=""
+        decoding="async"
+        className={cn(
+          "absolute left-0 top-1/2 h-12 w-auto max-w-[150px] -translate-y-1/2 object-contain sm:h-[3.25rem] sm:max-w-[190px]",
+          "animate-[header-logo-b_7s_ease-in-out_infinite]",
+        )}
+      />
+      <style>{`
+        @keyframes header-logo-a {
+          0%, 38% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+            filter: blur(0);
+          }
+          48%, 88% {
+            opacity: 0;
+            transform: translateY(-50%) scale(0.92);
+            filter: blur(2px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+            filter: blur(0);
+          }
+        }
+        @keyframes header-logo-b {
+          0%, 38% {
+            opacity: 0;
+            transform: translateY(-50%) scale(1.06);
+            filter: blur(2px);
+          }
+          48%, 88% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+            filter: blur(0);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-50%) scale(1.06);
+            filter: blur(2px);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-\\[header-logo-a_7s_ease-in-out_infinite\\],
+          .animate-\\[header-logo-b_7s_ease-in-out_infinite\\] {
+            animation: none !important;
+          }
+          .animate-\\[header-logo-a_7s_ease-in-out_infinite\\] {
+            opacity: 1 !important;
+            filter: none !important;
+            transform: translateY(-50%) scale(1) !important;
+          }
+          .animate-\\[header-logo-b_7s_ease-in-out_infinite\\] {
+            opacity: 0 !important;
+          }
+        }
+      `}</style>
+    </span>
   );
 }
 
-/** App-style top bar (black, section logo) + slide-out app drawer. */
+/** App-style top bar (black, animated brand logo) + slide-out app drawer. */
 export function SiftahAppBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -146,7 +173,7 @@ export function SiftahAppBar() {
       <header className="sticky top-0 z-40 bg-[#0b0b0c] text-white shadow-[0_6px_24px_-12px_rgba(0,0,0,0.6)]">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-3 sm:px-6">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Home">
-            <HeaderLogo pathname={pathname} />
+            <HeaderLogo />
           </Link>
 
           <nav className="ml-2 hidden items-center gap-0.5 lg:flex" aria-label="Main">
