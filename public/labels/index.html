@@ -1,1 +1,185 @@
-PLACEHOLDER_WILL_FAIL
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Show Car Label Maker · Siftah Solutions</title>
+<style>
+:root{--bg:#f4f4f2;--fg:#1a1a1a;--card:#fff;--bd:#d0d0cc;--ac:#1f5fae;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1e;--fg:#eee;--card:#2a2a2d;--bd:#444;--ac:#6aa5ee}}
+@font-face{font-family:'LicenzFont';font-weight:100 900;font-display:block;src:local('LicenzFont')}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+.wrap{max-width:720px;margin:0 auto;padding:12px 14px 40px}
+.logo{width:min(280px,90%);height:72px;margin:4px auto 8px;background:var(--label-logo,none) center/contain no-repeat}
+h1{font-size:1.35rem;margin:0 0 10px;text-align:center}
+canvas{display:block;width:100%;max-width:600px;margin:0 auto 14px;background:#fff;border:1px solid var(--bd);border-radius:8px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+label{display:flex;flex-direction:column;gap:4px;margin:8px 0;font-size:13px;font-weight:600}
+input,select{padding:8px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--fg);font-size:14px}
+button{padding:10px 14px;border:0;border-radius:6px;background:var(--ac);color:#fff;font-size:14px;cursor:pointer}
+button.sec{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+small{opacity:.7}
+.site-top{width:100%;max-width:720px;margin:0 auto 12px;padding:10px 14px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.site-top a.back{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid var(--bd);background:var(--card);color:var(--fg);text-decoration:none;font-size:13px;font-weight:700}
+.site-top a.back:hover{border-color:var(--ac);color:var(--ac)}
+.site-footer{width:100%;max-width:720px;margin:28px auto 12px;padding:18px 14px 8px;border-top:1px solid var(--bd);text-align:center}
+.site-footer .logos{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;margin-bottom:12px}
+.site-footer .logos a{display:inline-block;line-height:0;opacity:.95}
+.site-footer .logos a:hover{opacity:1}
+.site-footer .logos img{height:40px;width:auto;max-width:180px;object-fit:contain}
+.site-footer .logos .mark{height:36px}
+.site-footer .disc{color:var(--fg);opacity:.55;font-size:12px;line-height:1.45;max-width:520px;margin:0 auto}
+</style>
+<script src="/labels/licenz-label-font.js"></script>
+<script src="/labels/show-label-logo.js"></script>
+<script>
+(function(){
+  try {
+    if (window.LICENZ_LABEL_FONT_B64) {
+      var s = document.createElement('style');
+      s.textContent = "@font-face{font-family:'LicenzFont';font-weight:100 900;font-display:block;src:url(data:font/ttf;base64," + window.LICENZ_LABEL_FONT_B64 + ") format('truetype')}";
+      document.head.appendChild(s);
+    }
+    if (window.SHOW_LABEL_LOGO_B64) {
+      document.documentElement.style.setProperty('--label-logo', "url(data:image/png;base64," + window.SHOW_LABEL_LOGO_B64 + ")");
+    }
+  } catch (e) {}
+})();
+</script>
+</head><body>
+<div class="site-top">
+  <a class="back" href="https://www.looterscomputas.online/">← Return to Siftah Solutions</a>
+</div>
+<div class="wrap">
+<div class="logo" role="img" aria-label="Siftah Label Maker logo"></div>
+<h1>Show Car Label Maker</h1>
+<canvas id="c" width="600" height="320"></canvas>
+<div class="card">
+<label>Date<input type="text" id="date" value="01/01/2030"></label>
+<label>Details line 1<input type="text" id="l1" value="2014 EXAMPLE MODEL"></label>
+<label>Details line 2<input type="text" id="l2" value="XX 1.5P/4AT/HA/5DR/5"></label>
+<label>Plate<input type="text" id="plate" value="SHOW01"></label>
+<label>Letter<input type="text" id="letter" value="G" maxlength="2"></label>
+<label>Small number (side)<input type="text" id="side" value="8/14"></label>
+<label>Vertical number 1<input type="text" id="ref" value="000000000"></label>
+<label>Vertical stamp<input type="text" id="stamp" value="00:00 01/01/2030"></label>
+<label>Vertical number 2 (barcode digits)<input type="text" id="digits" value="000000000"></label>
+<label>Plate font (upload .ttf, .otf, .woff)<input type="file" id="font" accept=".ttf,.otf,.woff,.woff2"></label>
+<label>Label width (mm)<input type="text" inputmode="decimal" id="wmm" value="100"></label>
+<label>Label height (mm, strip added below)<input type="text" inputmode="decimal" id="hmm" value="50"></label>
+<label>Background pattern<select id="bg"><option value="text">Custom tiled text</option><option value="stripes">Diagonal stripes</option><option value="dots">Dots</option><option value="plain">Plain tint</option><option value="none">None (white)</option></select></label>
+<label>Background colour<input type="color" id="bgc" value="#4a78b5" style="height:38px;width:100%"></label>
+<label>Tiled background text<input type="text" id="bgt" value="SHOW CAR"></label>
+<label>Tiled text size<input type="text" inputmode="decimal" id="bgs" value="14"></label>
+</div>
+<div class="row">
+<button id="gen" class="sec">Generate new barcode</button>
+<button id="save">Complete & save JPEG</button>
+<button id="pdf">Save A4 PDF (exact size)</button>
+<label style="flex-direction:row;align-items:center">Guest photo&nbsp;<input type="file" id="photo" accept="image/*"></label>
+<button id="card" class="sec">Save souvenir card</button>
+</div>
+<p><small>Exports at 300 DPI at the size entered, with a “DISPLAY ONLY” strip added underneath. The strip is always included.</small></p>
+</div>
+<script>
+const $=id=>document.getElementById(id),cv=$('c'),ctx=cv.getContext('2d');
+let fam="LicenzFont, 'Arial Black', Arial, sans-serif",bands=[],cells=[];
+const p2=n=>String(n).padStart(2,'0'),ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function syncStamp(){const m=$('date').value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return;let d=+m[1],mo=+m[2]-3,y=+m[3];if(mo<1){mo+=12;y--}
+d=Math.min(d,new Date(y,mo,0).getDate());
+const t=($('stamp').value.match(/^\d{1,2}:\d{2}/)||['00:00'])[0];
+$('stamp').value=t+' '+p2(d)+'/'+p2(mo)+'/'+y}
+function genBars(){bands=[];let y=0;while(y<170){const h=2+Math.floor(Math.random()*4);if(Math.random()>.3)bands.push([y,h]);y+=h+1+Math.floor(Math.random()*2)}
+cells=[];for(let j=0;j<17;j++){cells.push([]);for(let i=0;i<16;i++)cells[j].push(Math.random()>.5)}
+const dg=n=>Array.from({length:n},()=>Math.floor(Math.random()*10)).join('');
+$('digits').value=dg(9);$('ref').value=dg(9);
+$('date').value=p2(ri(1,28))+'/'+p2(ri(1,12))+'/'+ri(2027,2029);
+$('stamp').value=p2(ri(0,23))+':'+p2(ri(0,59));syncStamp()}
+function draw(){
+const wm=Math.max(20,parseFloat($('wmm').value)||100),hm=Math.max(15,parseFloat($('hmm').value)||50);
+const Wp=Math.round(wm*300/25.4),Lp=Math.round(hm*300/25.4);
+const sk=Math.min(Wp/600,Lp/295),strip=Math.round(22*sk),Hp=Lp+strip;cv.width=Wp;cv.height=Hp;
+ctx.fillStyle='#fff';ctx.fillRect(0,0,Wp,Hp);
+ctx.save();const s=Math.min(Wp/600,Lp/295);ctx.translate((Wp-600*s)/2,(Lp-295*s)/2);ctx.scale(s,s);
+ctx.save();ctx.beginPath();ctx.moveTo(0,8);ctx.lineTo(30,8);ctx.lineTo(270,295);ctx.lineTo(0,295);ctx.closePath();ctx.clip();
+const m=$('bg').value;
+if(m!=='none'){ctx.fillStyle=$('bgc').value;ctx.globalAlpha=m==='text'?.85:.22;ctx.fillRect(0,0,300,300);ctx.globalAlpha=.55;
+if(m==='text'){const t=($('bgt').value||'SHOW CAR').toUpperCase(),fs=Math.min(40,Math.max(6,parseFloat($('bgs').value)||14));ctx.fillStyle='#fff';ctx.globalAlpha=1;ctx.font='bold '+fs+'px Arial';ctx.translate(0,8);ctx.rotate(Math.atan2(287,240));
+const tw=ctx.measureText(t).width+fs*2,lh=fs*1.9;
+for(let v=-23+fs;v<200;v+=lh){const u0=v<0?-.837*v:1.195*v;for(let u=u0;u<420;u+=tw)ctx.fillText(t,u,v);}}
+else if(m==='stripes'){ctx.translate(0,8);ctx.rotate(Math.atan2(287,240));for(let v=-40;v<200;v+=14)ctx.fillRect(-50,v,500,4);}
+else if(m==='dots'){for(let x=6;x<300;x+=14)for(let y=14;y<300;y+=14){ctx.beginPath();ctx.arc(x,y,2,0,7);ctx.fill();}}
+ctx.globalAlpha=1;}
+ctx.restore();
+ctx.fillStyle='#000';
+ctx.font='bold 96px "Times New Roman",Times,serif';ctx.fillText($('date').value,30,98,440);
+ctx.font='21px Arial,Helvetica,sans-serif';ctx.fillText($('l1').value,24,141,340);ctx.fillText($('l2').value,24,166,340);
+ctx.font='16px Arial,Helvetica,sans-serif';ctx.fillText($('side').value,426,162,40);
+ctx.font='bold 93px '+fam;ctx.fillText($('plate').value,18,268,395);
+ctx.font='bold 80px '+fam;ctx.fillText($('letter').value,420,268,52);
+function vt(t,x,y,size,max,bold){ctx.save();ctx.font=(bold?'bold ':'')+size+'px Arial,Helvetica,sans-serif';ctx.translate(x,y);ctx.rotate(Math.PI/2);ctx.fillText(t,0,0,max);ctx.restore()}
+vt($('ref').value,480,22,15,110,true);
+vt($('stamp').value,484,150,11,115,false);
+vt($('digits').value,579,40,13,120,false);
+cells.forEach((row,j)=>row.forEach((on,i)=>{if(on)ctx.fillRect(499+i*4,20+j*4,4,4)}));
+bands.forEach(([y,h])=>ctx.fillRect(498,108+y,66,h));
+ctx.fillRect(566,190,30,26);
+ctx.restore();
+ctx.fillStyle='#b3261e';ctx.fillRect(0,Lp,Wp,strip);
+ctx.fillStyle='#fff';ctx.font='bold '+(13*sk)+'px Arial';ctx.textAlign='center';
+ctx.fillText('DISPLAY ONLY \u2014 NOT A VEHICLE REGISTRATION LABEL',Wp/2,Lp+strip*0.7,Wp*0.95);ctx.textAlign='left';
+}
+document.querySelectorAll('input[type=text]').forEach(i=>i.addEventListener('input',draw));
+$('date').addEventListener('input',()=>{syncStamp();draw()});
+$('gen').onclick=()=>{genBars();draw()};
+$('bg').onchange=$('bgc').oninput=draw;
+$('font').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+try{const ff=new FontFace('UserFont',await f.arrayBuffer());await ff.load();document.fonts.add(ff);fam='UserFont, Arial, sans-serif';draw()}catch(err){alert('Could not load that font file.')}};
+$('card').onclick=async()=>{const f=$('photo').files[0];if(!f){alert('Choose a guest photo first.');return}
+try{const img=new Image();img.src=URL.createObjectURL(f);await img.decode();
+const W=1200,PH=800,LH=Math.round(W*cv.height/cv.width);
+const o=document.createElement('canvas');o.width=W;o.height=PH+LH+20;const x=o.getContext('2d');
+x.fillStyle='#fff';x.fillRect(0,0,o.width,o.height);
+const r=Math.max(W/img.width,PH/img.height),w=img.width*r,h=img.height*r;
+x.save();x.beginPath();x.rect(0,0,W,PH);x.clip();x.drawImage(img,(W-w)/2,(PH-h)/2,w,h);x.restore();
+x.drawImage(cv,0,PH+10,W,LH);
+o.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='souvenir-card.jpg';a.click()},'image/jpeg',.92);
+}catch(e){alert('Could not load that photo.')}};
+$('save').onclick=()=>{cv.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='show-car-label.jpg';a.click()},'image/jpeg',.95)};
+$('pdf').onclick=()=>{cv.toBlob(async b=>{
+const jpg=new Uint8Array(await b.arrayBuffer());
+const k=72/300,w=cv.width*k,h=cv.height*k,PW=595.28,PH=841.89;
+if(w>PW-20||h>PH-60){alert('That size is too big for A4. Reduce the width or height.');return}
+const x=(PW-w)/2,y=PH-56.69-h,f=n=>n.toFixed(2);
+let c=`q ${f(w)} 0 0 ${f(h)} ${f(x)} ${f(y)} cm /Im0 Do Q\n0.3 w 0 G\n`;
+const g=4.3,L=11.3;
+[[x,y,-1,-1],[x+w,y,1,-1],[x,y+h,-1,1],[x+w,y+h,1,1]].forEach(([cx,cy,dx,dy])=>{c+=`${f(cx+dx*g)} ${f(cy)} m ${f(cx+dx*(g+L))} ${f(cy)} l S\n${f(cx)} ${f(cy+dy*g)} m ${f(cx)} ${f(cy+dy*(g+L))} l S\n`});
+const bw=141.732,by=y-28.35;
+c+=`${f(x)} ${f(by)} m ${f(x+bw)} ${f(by)} l S\n${f(x)} ${f(by-3)} m ${f(x)} ${f(by+3)} l S\n${f(x+bw)} ${f(by-3)} m ${f(x+bw)} ${f(by+3)} l S\n`;
+const enc=new TextEncoder(),parts=[],off=[];let len=0;
+const add=d=>{const u=typeof d==='string'?enc.encode(d):d;parts.push(u);len+=u.length};
+add('%PDF-1.4\n');
+off[1]=len;add('1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n');
+off[2]=len;add('2 0 obj\n<</Type/Pages/Kids[3 0 R]/Count 1>>\nendobj\n');
+off[3]=len;add(`3 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${PW} ${PH}]/Resources<</XObject<</Im0 5 0 R>>>>/Contents 4 0 R>>\nendobj\n`);
+off[4]=len;add(`4 0 obj\n<</Length ${c.length}>>\nstream\n${c}endstream\nendobj\n`);
+off[5]=len;add(`5 0 obj\n<</Type/XObject/Subtype/Image/Width ${cv.width}/Height ${cv.height}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${jpg.length}>>\nstream\n`);add(jpg);add('\nendstream\nendobj\n');
+const xr=len;let t='xref\n0 6\n0000000000 65535 f \n';for(let i=1;i<=5;i++)t+=String(off[i]).padStart(10,'0')+' 00000 n \n';
+add(t+`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${xr}\n%%EOF`);
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(parts,{type:'application/pdf'}));a.download='show-car-label-A4.pdf';a.click();
+},'image/jpeg',.97)};
+genBars();draw();
+document.fonts.load('bold 62px LicenzFont').then(draw).catch(()=>{});
+</script>
+<div class="site-footer">
+  <div class="logos">
+    <a href="https://www.looterscomputas.online/" title="Looters Computas">
+      <img class="mark" src="/brand/siftah-mark.svg" alt="Looters Computas" />
+    </a>
+    <a href="https://www.looterscomputas.online/" title="Siftah Solutions">
+      <img src="/brand/siftah-solutions-logo.svg" alt="Siftah Solutions – trading as looterscomputas.online" />
+    </a>
+  </div>
+  <p class="disc">Siftah Solutions · trading as looterscomputas.online · Not affiliated with NZTA or any official label issuer, for entertainment purposes only</p>
+</div>
+</body></html>
