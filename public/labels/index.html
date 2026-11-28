@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--fg)}
 .wrap{max-width:720px;margin:0 auto;padding:12px 14px 40px}
-.logo{width:min(280px,90%);height:72px;margin:4px auto 8px;background:var(--label-logo,none) center/contain no-repeat}
+.brand-line{text-align:center;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.55;margin:4px 0 2px}
 h1{font-size:1.35rem;margin:0 0 10px;text-align:center}
 canvas{display:block;width:100%;max-width:600px;margin:0 auto 14px;background:#fff;border:1px solid var(--bd);border-radius:8px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
@@ -30,28 +30,12 @@ small{opacity:.7}
 .site-footer .logos .mark{height:36px}
 .site-footer .disc{color:var(--fg);opacity:.55;font-size:12px;line-height:1.45;max-width:520px;margin:0 auto}
 </style>
-<script src="/labels/licenz-label-font.js"></script>
-<script src="/labels/show-label-logo.js"></script>
-<script>
-(function(){
-  try {
-    if (window.LICENZ_LABEL_FONT_B64) {
-      var s = document.createElement('style');
-      s.textContent = "@font-face{font-family:'LicenzFont';font-weight:100 900;font-display:block;src:url(data:font/ttf;base64," + window.LICENZ_LABEL_FONT_B64 + ") format('truetype')}";
-      document.head.appendChild(s);
-    }
-    if (window.SHOW_LABEL_LOGO_B64) {
-      document.documentElement.style.setProperty('--label-logo', "url(data:image/png;base64," + window.SHOW_LABEL_LOGO_B64 + ")");
-    }
-  } catch (e) {}
-})();
-</script>
 </head><body>
 <div class="site-top">
   <a class="back" href="https://www.looterscomputas.online/">← Return to Siftah Solutions</a>
 </div>
 <div class="wrap">
-<div class="logo" role="img" aria-label="Siftah Label Maker logo"></div>
+<p class="brand-line">Siftah Label Maker</p>
 <h1>Show Car Label Maker</h1>
 <canvas id="c" width="600" height="320"></canvas>
 <div class="card">
