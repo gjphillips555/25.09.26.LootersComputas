@@ -105,7 +105,7 @@
     var luma = (0.3*r + 0.59*g + 0.11*b) / 255;
     if (luma > 0.6) return HIGHLIGHT;
     var f = 0.22;
-    function ch(v) { return Math.max(0, Math.min(255, Math.round(v + (255-v)*f)); }
+    function ch(v) { return Math.max(0, Math.min(255, Math.round(v + (255-v)*f))); }
     return "#" + [ch(r),ch(g),ch(b)].map(function(v){ return v.toString(16).padStart(2,"0"); }).join("");
   }
 
