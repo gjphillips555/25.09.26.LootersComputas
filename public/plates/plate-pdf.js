@@ -105,7 +105,7 @@
     var luma = (0.3*r + 0.59*g + 0.11*b) / 255;
     if (luma > 0.6) return HIGHLIGHT;
     var f = 0.22;
-    function ch(v) { return Math.max(0, Math.min(255, Math.round(v + (255-v)*f))); }
+    function ch(v) { return Math.max(0, Math.min(255, Math.round(v + (255-v)*f)); }
     return "#" + [ch(r),ch(g),ch(b)].map(function(v){ return v.toString(16).padStart(2,"0"); }).join("");
   }
 
@@ -183,6 +183,91 @@
       var ls = 9;
       var lw = badgeFont.widthOfTextAtSize(label, ls);
       page.drawText(label, { x: lineX + (lineW - lw) / 2, y: lineY - mm(9), size: ls, font: badgeFont, color: black });
+    } else if (opts.paper === "a4") {
+      /* A4 portrait: full-size plate as two 180×124 mm halves, stacked. */
+      var a4 = pdf.addPage([mm(210), mm(297)]);
+      var halfW = mm(PLATE_W / 2);
+      var plateH = mm(PLATE_H);
+      var gap = mm(16);
+      var marginX = (mm(210) - halfW) / 2;
+      var blockH = plateH * 2 + gap;
+      var yBot = (mm(297) - blockH) / 2;
+      var yTop = yBot + plateH + gap;
+      var black = PDFLib.rgb(0, 0, 0);
+      var join = PDFLib.rgb(0.85, 0.12, 0.14);
+
+      function clipHalf(page, x, y, w, h) {
+        page.pushOperators(
+          PDFLib.pushGraphicsState(),
+          PDFLib.moveTo(x, y),
+          PDFLib.lineTo(x + w, y),
+          PDFLib.lineTo(x + w, y + h),
+          PDFLib.lineTo(x, y + h),
+          PDFLib.closePath(),
+          PDFLib.clip(),
+          PDFLib.endPath()
+        );
+      }
+      function endClip(page) {
+        page.pushOperators(PDFLib.popGraphicsState());
+      }
+
+      /* TOP = LEFT half of the plate */
+      clipHalf(a4, marginX, yTop, halfW, plateH);
+      drawPlate(a4, badgeFont, opts, marginX, yTop);
+      endClip(a4);
+
+      /* BOTTOM = RIGHT half of the plate */
+      clipHalf(a4, marginX, yBot, halfW, plateH);
+      drawPlate(a4, badgeFont, opts, marginX - halfW, yBot);
+      endClip(a4);
+
+      /* Half outlines + join ticks */
+      a4.drawRectangle({
+        x: marginX, y: yTop, width: halfW, height: plateH,
+        borderColor: black, borderWidth: mm(0.35), borderDashArray: []
+      });
+      a4.drawRectangle({
+        x: marginX, y: yBot, width: halfW, height: plateH,
+        borderColor: black, borderWidth: mm(0.35)
+      });
+      /* dashed join edges */
+      a4.drawLine({
+        start: { x: marginX + halfW, y: yTop },
+        end: { x: marginX + halfW, y: yTop + plateH },
+        thickness: mm(0.4), color: join, dashArray: [mm(2), mm(1.5)]
+      });
+      a4.drawLine({
+        start: { x: marginX, y: yBot },
+        end: { x: marginX, y: yBot + plateH },
+        thickness: mm(0.4), color: join, dashArray: [mm(2), mm(1.5)]
+      });
+
+      var labSize = 8;
+      a4.drawText("LEFT half · 180 × 124 mm · true size", {
+        x: marginX, y: yTop + plateH + mm(3), size: labSize, font: badgeFont, color: black
+      });
+      a4.drawText("RIGHT half · 180 × 124 mm · true size", {
+        x: marginX, y: yBot + plateH + mm(3), size: labSize, font: badgeFont, color: black
+      });
+      var joinNote = "Cut on red lines, join left edge of RIGHT to right edge of LEFT";
+      var jw = badgeFont.widthOfTextAtSize(joinNote, 7);
+      a4.drawText(joinNote, {
+        x: (mm(210) - jw) / 2, y: yBot + plateH + gap / 2 - mm(2), size: 7, font: badgeFont, color: join
+      });
+
+      /* 100 mm scale bar */
+      var lineW = mm(100);
+      var lineX = marginX;
+      var lineY = yBot - mm(12);
+      a4.drawLine({ start: { x: lineX, y: lineY }, end: { x: lineX + lineW, y: lineY }, thickness: mm(0.4), color: black });
+      [lineX, lineX + lineW].forEach(function (tx) {
+        a4.drawLine({ start: { x: tx, y: lineY - mm(3) }, end: { x: tx, y: lineY + mm(3) }, thickness: mm(0.3), color: black });
+      });
+      var scaleLab = "100 mm — print at Actual size / 100%";
+      a4.drawText(scaleLab, {
+        x: lineX, y: lineY - mm(8), size: 8, font: badgeFont, color: black
+      });
     } else {
       var p2 = pdf.addPage([mm(PLATE_W), mm(PLATE_H)]);
       drawPlate(p2, badgeFont, opts, 0, 0);
